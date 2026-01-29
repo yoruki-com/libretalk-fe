@@ -1,0 +1,27 @@
+authentication
+
+login
+
+logout
+
+chat
+
+feed system
+
+chip for learning languages
+
+chip for learned languages
+
+chip for sex
+
+chip for age
+
+profile picture
+profile name
+profile description
+
+profile picture upload
+
+
+profile name change
+profile description change
