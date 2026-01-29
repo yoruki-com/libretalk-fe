@@ -1,5 +1,6 @@
 import { View, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { Header } from "@/components/ui/Header";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { ChatCard } from "@/components/ui/ChatCard";
@@ -94,6 +95,7 @@ const mockChats = [
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const handleMenuPress = () => {
     console.log("Menu pressed");
@@ -108,7 +110,7 @@ export default function ChatListScreen() {
   };
 
   const handleChatPress = (chatId: string) => {
-    console.log("Chat pressed:", chatId);
+    router.push(`/chat/${chatId}`);
   };
 
   const handleArchivePress = () => {

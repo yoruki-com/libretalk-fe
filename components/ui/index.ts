@@ -5,3 +5,7 @@ export { SearchInput } from "./SearchInput";
 export { ChatCard } from "./ChatCard";
 export { ArchiveRow } from "./ArchiveRow";
 export { BottomNavigation } from "./BottomNavigation";
+export { ChatHeader } from "./ChatHeader";
+export { MessageBubble } from "./MessageBubble";
+export { ChatInput } from "./ChatInput";
+export { DateSeparator } from "./DateSeparator";
