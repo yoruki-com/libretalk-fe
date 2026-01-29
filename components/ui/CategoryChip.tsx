@@ -1,4 +1,4 @@
-import { Text, Pressable, ScrollView, View } from "react-native";
+import { Text, Pressable, ScrollView } from "react-native";
 
 interface Category {
   id: string;

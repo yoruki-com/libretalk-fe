@@ -7,8 +7,9 @@
       "mcp__figma__get_design_context",
       "mcp__figma__get_screenshot",
       "mcp__figma__get_code_connect_map",
-      "Bash(npx expo install:*)",
-      "Bash(npm install:*)"
+      "Bash(bunx expo install:*)",
+      "Bash(bun install:*)",
+      "Bash(bun run lint)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -1,4 +1,4 @@
-import { View, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ChatHeader } from "@/components/ui/ChatHeader";
@@ -59,7 +59,7 @@ const mockConversation = {
 };
 
 export default function ChatScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [inputValue, setInputValue] = useState("");
 
