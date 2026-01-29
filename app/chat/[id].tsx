@@ -112,7 +112,7 @@ export default function ChatScreen() {
       <ScrollView
         className="flex-1 bg-gray6 px-4 py-6"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ gap: 16 }}
+        contentContainerStyle={{ gap: 16, paddingBottom: 24 }}
       >
         <DateSeparator date="Today" />
 

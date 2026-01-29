@@ -1,4 +1,4 @@
-import { View, TextInput, Pressable, Text } from "react-native";
+import { View, TextInput, Pressable, Text, useWindowDimensions, ScrollView, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -24,6 +24,8 @@ export function ChatInput({
   placeholder = "Type Here...",
 }: ChatInputProps) {
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
+  const maxInputHeight = screenHeight / 4;
 
   return (
     <View
@@ -38,45 +40,59 @@ export function ChatInput({
         </Text>
       )}
 
-      {/* Input field */}
-      <View className="flex-row items-center gap-4 rounded-full bg-light px-4 py-3">
-        {/* Attach button */}
-        <Pressable onPress={onAttachPress} className="active:opacity-70">
-          <Ionicons name="add" size={20} color="#131313" />
-        </Pressable>
+      {/* Input row - items-end to anchor buttons to bottom */}
+      <View className="flex-row items-end gap-3">
+        {/* Input container */}
+        <View className="flex-1 flex-row items-end gap-3 rounded-2xl bg-light px-4 py-3">
+          {/* Attach button */}
+          <Pressable onPress={onAttachPress} className="mb-0.5 active:opacity-70">
+            <Ionicons name="add" size={20} color="#131313" />
+          </Pressable>
 
-        {/* Text input */}
-        <TextInput
-          className="flex-1 font-sans text-[14px] text-dark"
-          placeholder={placeholder}
-          placeholderTextColor="rgba(19, 19, 19, 0.3)"
-          value={value}
-          onChangeText={onChangeText}
-          multiline
-        />
+          {/* Text input with scrollbar */}
+          <ScrollView
+            style={{ maxHeight: maxInputHeight, flex: 1 }}
+            showsVerticalScrollIndicator
+            persistentScrollbar={Platform.OS === "android"}
+            nestedScrollEnabled
+            keyboardShouldPersistTaps="handled"
+          >
+            <TextInput
+              className="font-sans text-[14px] text-dark"
+              placeholder={placeholder}
+              placeholderTextColor="rgba(19, 19, 19, 0.3)"
+              value={value}
+              onChangeText={onChangeText}
+              multiline
+              scrollEnabled={false}
+              style={{ minHeight: 20 }}
+            />
+          </ScrollView>
 
-        {/* Action buttons */}
-        <View className="flex-row items-center gap-2">
-          <Pressable
-            onPress={onCameraPress}
-            className="h-8 w-8 items-center justify-center rounded-full bg-light active:opacity-70"
-          >
-            <Ionicons name="camera" size={16} color="#131313" />
-          </Pressable>
-          <Pressable
-            onPress={onMicPress}
-            className="h-8 w-8 items-center justify-center rounded-full bg-light active:opacity-70"
-          >
-            <Ionicons name="mic" size={16} color="#131313" />
-          </Pressable>
-          <View className="mx-1 h-6 w-px bg-border" />
-          <Pressable
-            onPress={onSend}
-            className="h-8 w-8 items-center justify-center rounded-full bg-light active:opacity-70"
-          >
-            <Ionicons name="send" size={14} color="#014AF1" />
-          </Pressable>
+          {/* Action buttons */}
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              onPress={onCameraPress}
+              className="h-8 w-8 items-center justify-center rounded-full active:opacity-70"
+            >
+              <Ionicons name="camera" size={16} color="#131313" />
+            </Pressable>
+            <Pressable
+              onPress={onMicPress}
+              className="h-8 w-8 items-center justify-center rounded-full active:opacity-70"
+            >
+              <Ionicons name="mic" size={16} color="#131313" />
+            </Pressable>
+          </View>
         </View>
+
+        {/* Send button - outside */}
+        <Pressable
+          onPress={onSend}
+          className="h-11 w-11 items-center justify-center rounded-full bg-primary active:opacity-70"
+        >
+          <Ionicons name="send" size={18} color="#FFFFFF" />
+        </Pressable>
       </View>
     </View>
   );
