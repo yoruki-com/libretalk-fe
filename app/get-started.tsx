@@ -1,12 +1,9 @@
-import { View, Text, ImageBackground } from "react-native";
+import { View, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Button } from "@/components/ui/Button";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
-
-const BACKGROUND_IMAGE =
-  "https://www.figma.com/api/mcp/asset/1fac0972-e2fb-4954-8dab-e7bc642bbdfe";
 
 export default function GetStarted() {
   const insets = useSafeAreaInsets();
@@ -24,18 +21,12 @@ export default function GetStarted() {
 
   return (
     <View className="flex-1 bg-white">
-      {/* Background Image with Overlay */}
+      {/* Background with Gradient */}
       <View className="absolute left-0 right-0 top-0 h-[60%]">
-        <ImageBackground
-          source={{ uri: BACKGROUND_IMAGE }}
+        <LinearGradient
+          colors={["#014AF1", "#4B7BF5", "#A8C4F5"]}
           className="flex-1"
-          resizeMode="cover"
-        >
-          <LinearGradient
-            colors={["rgba(0,0,0,0.4)", "rgba(0,0,0,0.2)", "transparent"]}
-            className="flex-1"
-          />
-        </ImageBackground>
+        />
       </View>
 
       {/* Content Card */}
