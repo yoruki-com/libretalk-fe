@@ -12,3 +12,7 @@ export { DateSeparator } from "./DateSeparator";
 export { ProfileCard } from "./ProfileCard";
 export { SettingsMenuItem } from "./SettingsMenuItem";
 export { SettingsMenuGroup } from "./SettingsMenuGroup";
+export { LocationHeader } from "./LocationHeader";
+export { CategoryChips } from "./CategoryChip";
+export { VibeCard } from "./VibeCard";
+export { SearchBar } from "./SearchBar";
