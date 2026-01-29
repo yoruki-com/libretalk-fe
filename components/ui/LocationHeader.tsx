@@ -27,11 +27,11 @@ export function LocationHeader({
           <Ionicons name="location" size={20} color="#014AF1" />
         </View>
         <View>
-          <Text className="font-inter text-[14px] leading-[1.6] text-gray">
+          <Text className="font-sans text-[14px] leading-[1.6] text-gray">
             {label}
           </Text>
           <View className="flex-row items-center gap-1">
-            <Text className="font-inter-semibold text-[16px] leading-[1.4] text-dark">
+            <Text className="font-sans-semibold text-[16px] leading-[1.4] text-dark">
               {location}
             </Text>
             <Ionicons name="chevron-down" size={16} color="#131313" />

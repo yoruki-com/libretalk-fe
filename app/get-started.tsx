@@ -40,7 +40,7 @@ export default function GetStarted() {
         </View>
 
         {/* Headline */}
-        <Text className="mb-8 text-center font-open-sans text-heading-4 text-dark">
+        <Text className="mb-8 text-center font-sans-semibold text-heading-4 text-dark">
           Platform for Seamless Messaging and Connected Conversations!
         </Text>
 
@@ -52,8 +52,8 @@ export default function GetStarted() {
           {/* Terms */}
           <Text className="mt-2 text-center text-body-small text-dark opacity-80">
             By continuing, you agree to the{" "}
-            <Text className="font-inter-semibold">Terms of Service</Text> &{" "}
-            <Text className="font-inter-semibold">Privacy Policy</Text>
+            <Text className="font-sans-semibold">Terms of Service</Text> &{" "}
+            <Text className="font-sans-semibold">Privacy Policy</Text>
           </Text>
         </View>
       </View>

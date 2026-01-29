@@ -33,7 +33,7 @@ export function Header({
       {/* Center - Logo */}
       <View className="flex-row items-center gap-2">
         <View className="h-8 w-8 bg-gray4" />
-        <Text className="font-open-sans text-[20px] font-semibold leading-7 text-dark">
+        <Text className="font-sans-semibold text-[20px] font-semibold leading-7 text-dark">
           {title}
         </Text>
       </View>

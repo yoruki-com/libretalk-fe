@@ -35,11 +35,11 @@ export function ProfileCard({
             </View>
           )}
           <View>
-            <Text className="font-inter-semibold text-[14px] capitalize leading-5 text-dark">
+            <Text className="font-sans-semibold text-[14px] capitalize leading-5 text-dark">
               {name}
             </Text>
             {subtitle && (
-              <Text className="font-inter text-[12px] leading-[15px] tracking-tight text-gray">
+              <Text className="font-sans text-[12px] leading-[15px] tracking-tight text-gray">
                 {subtitle}
               </Text>
             )}
@@ -59,7 +59,7 @@ export function ProfileCard({
         className="flex-row items-center gap-2 p-4 active:bg-light"
       >
         <Ionicons name="people" size={24} color="#131313" />
-        <Text className="flex-1 font-inter text-[13px] leading-[17px] text-dark">
+        <Text className="flex-1 font-sans text-[13px] leading-[17px] text-dark">
           {contactsCount} Contacts
         </Text>
         <Ionicons name="chevron-forward" size={12} color="#A8A8A8" />

@@ -50,7 +50,7 @@ export function BottomNavigation({
               )}
             </View>
             <Text
-              className={`mt-1 font-inter text-[11px] ${
+              className={`mt-1 font-sans text-[11px] ${
                 isActive ? "text-dark" : "text-dark opacity-40"
               }`}
             >

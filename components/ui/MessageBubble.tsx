@@ -37,7 +37,7 @@ export function MessageBubble({
       >
         {/* Time and read status */}
         <View className="flex-row items-center gap-2">
-          <Text className="font-inter text-[12px] leading-[15px] tracking-tight text-dark opacity-50">
+          <Text className="font-sans text-[12px] leading-[15px] tracking-tight text-dark opacity-50">
             {time}
           </Text>
           {isMe && isRead && (
@@ -81,16 +81,16 @@ export function MessageBubble({
             <View className="mb-2">
               <View className="flex-row items-center gap-2.5 rounded-lg bg-primary p-3">
                 <Ionicons name="document" size={12} color="#F5F5F5" />
-                <Text className="flex-1 font-inter text-[12px] leading-[15px] tracking-tight text-light">
+                <Text className="flex-1 font-sans text-[12px] leading-[15px] tracking-tight text-light">
                   {file.name}
                 </Text>
                 <Ionicons name="download-outline" size={12} color="#F5F5F5" />
               </View>
               <View className="mt-2 flex-row items-center justify-between">
-                <Text className="font-inter text-[11px] font-medium text-dark">
+                <Text className="font-sans text-[11px] font-medium text-dark">
                   Document File
                 </Text>
-                <Text className="font-inter text-[12px] leading-[15px] tracking-tight text-dark opacity-50">
+                <Text className="font-sans text-[12px] leading-[15px] tracking-tight text-dark opacity-50">
                   {file.size}
                 </Text>
               </View>
@@ -99,7 +99,7 @@ export function MessageBubble({
 
           {/* Text message */}
           {message && (
-            <Text className="font-inter text-[12px] leading-[15px] tracking-tight text-dark">
+            <Text className="font-sans text-[12px] leading-[15px] tracking-tight text-dark">
               {message}
             </Text>
           )}

@@ -21,10 +21,10 @@ export function ArchiveRow({ count, onPress }: ArchiveRowProps) {
 
       {/* Content */}
       <View className="flex-1 flex-row items-center justify-between border-b border-border py-3">
-        <Text className="font-inter-semibold text-[14px] capitalize leading-5 text-dark">
+        <Text className="font-sans-semibold text-[14px] capitalize leading-5 text-dark">
           Archive Chat
         </Text>
-        <Text className="font-inter-semibold text-[14px] leading-5 text-primary">
+        <Text className="font-sans-semibold text-[14px] leading-5 text-primary">
           {count}
         </Text>
       </View>

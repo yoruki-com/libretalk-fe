@@ -39,7 +39,7 @@ export function ChatHeader({
           <Ionicons name="chevron-back" size={16} color="#131313" />
           {unreadCount > 0 && (
             <View className="absolute -right-1 -top-1 h-[14px] min-w-[14px] items-center justify-center rounded-full bg-primary px-0.5">
-              <Text className="font-inter text-[11px] font-medium text-white">
+              <Text className="font-sans text-[11px] font-medium text-white">
                 {unreadCount}
               </Text>
             </View>
@@ -65,11 +65,11 @@ export function ChatHeader({
             )}
           </View>
           <View>
-            <Text className="font-inter-semibold text-[14px] capitalize leading-5 text-dark">
+            <Text className="font-sans-semibold text-[14px] capitalize leading-5 text-dark">
               {name}
             </Text>
             {lastSeen && (
-              <Text className="font-inter text-[12px] leading-[15px] tracking-tight text-dark opacity-50">
+              <Text className="font-sans text-[12px] leading-[15px] tracking-tight text-dark opacity-50">
                 {lastSeen}
               </Text>
             )}

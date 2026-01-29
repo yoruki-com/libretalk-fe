@@ -9,7 +9,7 @@ export default function CallScreen() {
       className="flex-1 items-center justify-center bg-white"
       style={{ paddingTop: insets.top }}
     >
-      <Text className="font-inter text-lg text-dark">Call</Text>
+      <Text className="font-sans text-lg text-dark">Call</Text>
     </View>
   );
 }

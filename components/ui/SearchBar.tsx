@@ -20,7 +20,7 @@ export function SearchBar({
     <View className="flex-row items-center gap-2 rounded-full bg-white px-4 py-3">
       <Ionicons name="search" size={20} color="#717171" />
       <TextInput
-        className="flex-1 font-inter text-[14px] text-dark"
+        className="flex-1 font-sans text-[14px] text-dark"
         placeholder={placeholder}
         placeholderTextColor="#717171"
         value={value}

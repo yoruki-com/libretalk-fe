@@ -57,10 +57,10 @@ export function VibeCard({
             <Ionicons name="person" size={20} color="#014AF1" />
           </View>
           <View>
-            <Text className="font-inter-semibold text-[14px] leading-[1.6] text-dark">
+            <Text className="font-sans-semibold text-[14px] leading-[1.6] text-dark">
               {authorName}
             </Text>
-            <Text className="font-inter text-[12px] leading-[1.6] text-gray">
+            <Text className="font-sans text-[12px] leading-[1.6] text-gray">
               {authorRole}
             </Text>
           </View>
@@ -75,7 +75,7 @@ export function VibeCard({
 
       {/* Title */}
       <View className="px-3 py-3">
-        <Text className="font-inter text-[16px] font-medium leading-[1.4] tracking-wide text-dark">
+        <Text className="font-sans text-[16px] font-medium leading-[1.4] tracking-wide text-dark">
           {title}
           {mention && (
             <Text className="text-primary"> @{mention}</Text>
@@ -94,7 +94,7 @@ export function VibeCard({
             size={20}
             color={isLiked ? "#E53935" : "#5D5D5D"}
           />
-          <Text className="font-inter text-[14px] leading-[1.4] tracking-wide text-[#5D5D5D]">
+          <Text className="font-sans text-[14px] leading-[1.4] tracking-wide text-[#5D5D5D]">
             {likes}
           </Text>
         </Pressable>
@@ -103,7 +103,7 @@ export function VibeCard({
           className="flex-row items-center gap-1 active:opacity-70"
         >
           <Ionicons name="chatbubble-outline" size={20} color="#5D5D5D" />
-          <Text className="font-inter text-[14px] leading-[1.4] tracking-wide text-[#5D5D5D]">
+          <Text className="font-sans text-[14px] leading-[1.4] tracking-wide text-[#5D5D5D]">
             {comments}
           </Text>
         </Pressable>
@@ -112,7 +112,7 @@ export function VibeCard({
           className="flex-row items-center gap-1 active:opacity-70"
         >
           <Ionicons name="share-social-outline" size={20} color="#5D5D5D" />
-          <Text className="font-inter text-[14px] leading-[1.4] tracking-wide text-[#5D5D5D]">
+          <Text className="font-sans text-[14px] leading-[1.4] tracking-wide text-[#5D5D5D]">
             {shares}
           </Text>
         </Pressable>

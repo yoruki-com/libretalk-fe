@@ -17,11 +17,10 @@ module.exports = {
         tertiary: "#53C92C",
       },
       fontFamily: {
-        "open-sans": ["OpenSans_600SemiBold"],
-        "open-sans-bold": ["OpenSans_700Bold"],
-        inter: ["Inter_400Regular"],
-        "inter-semibold": ["Inter_600SemiBold"],
-        "inter-bold": ["Inter_700Bold"],
+        sans: ["NunitoSans_400Regular"],
+        "sans-medium": ["NunitoSans_500Medium"],
+        "sans-semibold": ["NunitoSans_600SemiBold"],
+        "sans-bold": ["NunitoSans_700Bold"],
       },
       fontSize: {
         "heading-4": ["24px", { lineHeight: "32px", fontWeight: "600" }],

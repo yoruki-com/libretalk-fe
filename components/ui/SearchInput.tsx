@@ -19,7 +19,7 @@ export function SearchInput({
       <View className="flex-row items-center gap-2 rounded-full bg-light px-4 py-3">
         <Ionicons name="search" size={20} color="#131313" />
         <TextInput
-          className="flex-1 font-inter text-[14px] text-dark"
+          className="flex-1 font-sans text-[14px] text-dark"
           placeholder={placeholder}
           placeholderTextColor="rgba(19, 19, 19, 0.5)"
           value={value}

@@ -16,19 +16,19 @@ export const colors = {
 
 export const typography = {
   heading4: {
-    fontFamily: "OpenSans_600SemiBold",
+    fontFamily: "NunitoSans_600SemiBold",
     fontSize: 24,
     lineHeight: 32,
     fontWeight: "600" as const,
   },
   linkNormal: {
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "NunitoSans_600SemiBold",
     fontSize: 14,
     lineHeight: 20,
     fontWeight: "600" as const,
   },
   bodySmall: {
-    fontFamily: "Inter_400Regular",
+    fontFamily: "NunitoSans_400Regular",
     fontSize: 12,
     lineHeight: 15,
     letterSpacing: -0.12,

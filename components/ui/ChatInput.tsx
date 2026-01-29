@@ -32,8 +32,8 @@ export function ChatInput({
     >
       {/* Typing indicator */}
       {typingUser && (
-        <Text className="mb-4 font-inter text-[12px] leading-[15px] text-dark">
-          <Text className="font-inter-semibold italic">{typingUser},</Text>
+        <Text className="mb-4 font-sans text-[12px] leading-[15px] text-dark">
+          <Text className="font-sans-semibold italic">{typingUser},</Text>
           <Text className="italic"> is typing...</Text>
         </Text>
       )}
@@ -47,7 +47,7 @@ export function ChatInput({
 
         {/* Text input */}
         <TextInput
-          className="flex-1 font-inter text-[14px] text-dark"
+          className="flex-1 font-sans text-[14px] text-dark"
           placeholder={placeholder}
           placeholderTextColor="rgba(19, 19, 19, 0.3)"
           value={value}

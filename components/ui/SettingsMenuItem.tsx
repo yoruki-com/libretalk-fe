@@ -34,7 +34,7 @@ export function SettingsMenuItem({
           />
         </View>
         <Text
-          className={`flex-1 font-inter text-[14px] capitalize leading-5 ${
+          className={`flex-1 font-sans text-[14px] capitalize leading-5 ${
             isPrimary ? "text-light" : "text-dark"
           }`}
         >

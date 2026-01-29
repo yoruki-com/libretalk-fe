@@ -50,11 +50,11 @@ export function ChatCard({
         <View className="flex-row items-start justify-between">
           {/* Meta info */}
           <View className="flex-1 gap-2 pr-3">
-            <Text className="font-inter-semibold text-[14px] capitalize leading-5 text-dark">
+            <Text className="font-sans-semibold text-[14px] capitalize leading-5 text-dark">
               {name}
             </Text>
             <Text
-              className="font-inter text-[12px] leading-[15px] tracking-tight text-dark"
+              className="font-sans text-[12px] leading-[15px] tracking-tight text-dark"
               numberOfLines={2}
             >
               {message}
@@ -64,7 +64,7 @@ export function ChatCard({
           {/* Time and status */}
           <View className="items-end gap-3">
             <Text
-              className={`font-inter text-[12px] leading-[15px] tracking-tight ${
+              className={`font-sans text-[12px] leading-[15px] tracking-tight ${
                 unreadCount > 0 ? "text-primary" : "text-dark"
               }`}
             >
@@ -76,7 +76,7 @@ export function ChatCard({
               )}
               {unreadCount > 0 && (
                 <View className="h-[18px] w-[18px] items-center justify-center rounded-full bg-primary">
-                  <Text className="font-inter-semibold text-[12px] text-white">
+                  <Text className="font-sans-semibold text-[12px] text-white">
                     {unreadCount}
                   </Text>
                 </View>

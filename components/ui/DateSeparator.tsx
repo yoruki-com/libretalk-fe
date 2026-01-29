@@ -7,7 +7,7 @@ interface DateSeparatorProps {
 export function DateSeparator({ date }: DateSeparatorProps) {
   return (
     <View className="items-center justify-center py-2">
-      <Text className="font-inter-semibold text-[14px] capitalize leading-5 text-dark">
+      <Text className="font-sans-semibold text-[14px] capitalize leading-5 text-dark">
         {date}
       </Text>
     </View>

@@ -36,7 +36,7 @@ export function CategoryChips({
             }`}
           >
             <Text
-              className={`font-inter text-[13px] leading-[1.4] ${
+              className={`font-sans text-[13px] leading-[1.4] ${
                 isSelected ? "text-white" : "text-dark"
               }`}
             >

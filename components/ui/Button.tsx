@@ -36,7 +36,7 @@ export function Button({ variant, onPress }: ButtonProps) {
     >
       <Ionicons name={styles.icon} size={20} color="#F5F5F5" />
       <Text
-        className={`${styles.text} text-link-normal font-inter-semibold capitalize`}
+        className={`${styles.text} text-link-normal font-sans-semibold capitalize`}
       >
         {buttonLabels[variant]}
       </Text>

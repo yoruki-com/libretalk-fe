@@ -34,7 +34,7 @@ export default function SettingsScreen() {
     <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
       {/* Header */}
       <View className="gap-4 px-6">
-        <Text className="font-open-sans text-heading-4 font-semibold text-dark">
+        <Text className="font-sans-semibold text-heading-4 font-semibold text-dark">
           Setting Menu
         </Text>
         <SearchInput />
