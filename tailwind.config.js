@@ -9,6 +9,7 @@ module.exports = {
         "primary-30": "#D0EBFF",
         dark: "#131313",
         light: "#F5F5F5",
+        gray: "#A8A8A8",
         gray4: "#BDBDBD",
         gray5: "#E0E0E0",
         gray6: "#F2F2F2",

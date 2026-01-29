@@ -9,3 +9,6 @@ export { ChatHeader } from "./ChatHeader";
 export { MessageBubble } from "./MessageBubble";
 export { ChatInput } from "./ChatInput";
 export { DateSeparator } from "./DateSeparator";
+export { ProfileCard } from "./ProfileCard";
+export { SettingsMenuItem } from "./SettingsMenuItem";
+export { SettingsMenuGroup } from "./SettingsMenuGroup";
