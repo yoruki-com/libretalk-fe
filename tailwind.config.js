@@ -9,6 +9,8 @@ module.exports = {
         dark: "#131313",
         light: "#F5F5F5",
         gray4: "#BDBDBD",
+        border: "#E3E3E3",
+        tertiary: "#53C92C",
       },
       fontFamily: {
         "open-sans": ["OpenSans_600SemiBold"],

@@ -5,7 +5,10 @@ export const colors = {
   white: "#FFFFFF",
   black: "#000000",
   gray4: "#BDBDBD",
+  border: "#E3E3E3",
+  tertiary: "#53C92C",
   overlay: "rgba(0, 0, 0, 0.4)",
+  overlayWhite50: "rgba(255, 255, 255, 0.5)",
 } as const;
 
 export const typography = {
