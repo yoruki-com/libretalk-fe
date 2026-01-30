@@ -43,9 +43,9 @@ export function ChatInput({
       {/* Input row - items-end to anchor buttons to bottom */}
       <View className="flex-row items-end gap-3">
         {/* Input container */}
-        <View className="flex-1 flex-row items-end gap-3 rounded-2xl bg-light px-4 py-3">
+        <View className="flex-1 flex-row items-center gap-3 rounded-2xl bg-light px-4 py-2">
           {/* Attach button */}
-          <Pressable onPress={onAttachPress} className="mb-0.5 active:opacity-70">
+          <Pressable onPress={onAttachPress} className="active:opacity-70">
             <Ionicons name="add" size={20} color="#131313" />
           </Pressable>
 
@@ -71,17 +71,11 @@ export function ChatInput({
 
           {/* Action buttons */}
           <View className="flex-row items-center gap-2">
-            <Pressable
-              onPress={onCameraPress}
-              className="h-8 w-8 items-center justify-center rounded-full active:opacity-70"
-            >
-              <Ionicons name="camera" size={16} color="#131313" />
+            <Pressable onPress={onCameraPress} className="active:opacity-70">
+              <Ionicons name="camera" size={18} color="#131313" />
             </Pressable>
-            <Pressable
-              onPress={onMicPress}
-              className="h-8 w-8 items-center justify-center rounded-full active:opacity-70"
-            >
-              <Ionicons name="mic" size={16} color="#131313" />
+            <Pressable onPress={onMicPress} className="active:opacity-70">
+              <Ionicons name="mic" size={18} color="#131313" />
             </Pressable>
           </View>
         </View>
