@@ -18,7 +18,7 @@ export default function TabLayout() {
               props.navigation.navigate(route.name);
             }
           }}
-          badges={{ updates: true, chat: true, call: true }}
+          badges={{ vibes: true, chat: true, call: true }}
         />
       )}
     >

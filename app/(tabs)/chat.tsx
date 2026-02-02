@@ -1,101 +1,54 @@
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Text, ActivityIndicator, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { Header } from "@/components/ui/Header";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { ChatCard } from "@/components/ui/ChatCard";
 import { ArchiveRow } from "@/components/ui/ArchiveRow";
+import { useConversations } from "@/hooks/useConversations";
+import type { Conversation } from "@/services/api";
 
-// Mock data for chat list
-const mockChats = [
-  {
-    id: "1",
-    name: "Emma Carter",
-    message: "Hey! Are we still on for tonight? 😊, Let me know what time works for you!",
-    time: "10.24 PM",
-    unreadCount: 1,
-    isRead: true,
-  },
-  {
-    id: "2",
-    name: "Sophia Rivera",
-    message: "I just sent you the files. Check them out and tell me what you think.",
-    time: "10.24 PM",
-    unreadCount: 0,
-    isRead: false,
-    isOnline: true,
-  },
-  {
-    id: "3",
-    name: "James Mitchell",
-    message: "Had such a great time today! 😄 Let's do it again soon!",
-    time: "10.24 PM",
-    unreadCount: 1,
-    isRead: false,
-  },
-  {
-    id: "4",
-    name: "Ava Martinez",
-    message: "The game last night was crazy! Did you see that final goal?",
-    time: "10.24 PM",
-    unreadCount: 0,
-    isRead: true,
-  },
-  {
-    id: "5",
-    name: "Olivia Nguyen",
-    message: "Morning! Don't forget our meeting. Let me know if you need anything then.",
-    time: "10.24 PM",
-    unreadCount: 0,
-    isRead: false,
-    isOnline: true,
-  },
-  {
-    id: "6",
-    name: "Ethan Walker",
-    message: "Yo, are you free to catch up later? Got some news to share!",
-    time: "Tomorrow",
-    unreadCount: 0,
-    isRead: true,
-  },
-  {
-    id: "7",
-    name: "Daniel Kim",
-    message: "Hey, I'm running a little late. Should be there in 10 minutes!",
-    time: "Tomorrow",
-    unreadCount: 0,
-    isRead: false,
-    isOnline: true,
-  },
-  {
-    id: "8",
-    name: "Isabella Flores",
-    message: "Did you try that new café yet? The pastries are amazing!",
-    time: "Tuesday",
-    unreadCount: 0,
-    isRead: true,
-  },
-  {
-    id: "9",
-    name: "Liam Thompson",
-    message: "Hey! Are we still on for tonight? 👋, Let me know what time works for you!",
-    time: "Tuesday",
-    unreadCount: 0,
-    isRead: false,
-  },
-  {
-    id: "10",
-    name: "Mia Johnson",
-    message: "Just finished watching that show! You were right, it's SO good!",
-    time: "Monday",
-    unreadCount: 1,
-    isRead: false,
-  },
-];
+// Helper to format time for display
+function formatTime(dateString: string | null): string {
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } else if (diffDays === 1) {
+    return "Yesterday";
+  } else if (diffDays < 7) {
+    return date.toLocaleDateString([], { weekday: "long" });
+  }
+  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+// Get display name for conversation (use participant name for 1:1 chats)
+function getConversationDisplayName(conversation: Conversation): string {
+  if (conversation.name) return conversation.name;
+  if (conversation.participants.length > 0) {
+    return conversation.participants[0].displayName;
+  }
+  return "Unknown";
+}
+
+// Check if any participant is online (for 1:1 chats)
+function isConversationOnline(conversation: Conversation): boolean {
+  if (conversation.isGroup) return false;
+  return conversation.participants.some((p) => p.isOnline);
+}
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { conversations, isLoading, error, refresh } = useConversations();
 
   const handleMenuPress = () => {
     console.log("Menu pressed");
@@ -117,6 +70,12 @@ export default function ChatListScreen() {
     console.log("Archive pressed");
   };
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
+  }, [refresh]);
+
   return (
     <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
       {/* Header Section */}
@@ -129,21 +88,52 @@ export default function ChatListScreen() {
         <SearchInput />
       </View>
 
+      {/* Loading State */}
+      {isLoading && conversations.length === 0 && (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#007AFF" />
+        </View>
+      )}
+
+      {/* Error State */}
+      {error && conversations.length === 0 && (
+        <View className="flex-1 items-center justify-center px-4">
+          <Text className="text-center text-gray-500">
+            Unable to load conversations. Pull to refresh.
+          </Text>
+        </View>
+      )}
+
       {/* Chat List */}
-      <ScrollView className="mt-4 flex-1" showsVerticalScrollIndicator={false}>
-        <ArchiveRow count={16} onPress={handleArchivePress} />
-        {mockChats.map((chat) => (
+      <ScrollView
+        className="mt-4 flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        <ArchiveRow count={0} onPress={handleArchivePress} />
+        {conversations.map((conversation) => (
           <ChatCard
-            key={chat.id}
-            name={chat.name}
-            message={chat.message}
-            time={chat.time}
-            unreadCount={chat.unreadCount}
-            isRead={chat.isRead}
-            isOnline={chat.isOnline}
-            onPress={() => handleChatPress(chat.id)}
+            key={conversation.publicId}
+            name={getConversationDisplayName(conversation)}
+            message=""
+            time={formatTime(conversation.lastMessageAt)}
+            unreadCount={0}
+            isRead={true}
+            isOnline={isConversationOnline(conversation)}
+            onPress={() => handleChatPress(conversation.publicId)}
           />
         ))}
+
+        {/* Empty State */}
+        {!isLoading && conversations.length === 0 && !error && (
+          <View className="items-center justify-center py-8">
+            <Text className="text-center text-gray-500">
+              No conversations yet. Start chatting!
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
