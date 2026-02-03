@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { vibesApi, type Vibe, type VibeCategory, type VibesFilterParams } from "@/services/api/vibes";
+import { likesApi } from "@/services/api/likes";
 
 interface UseVibesOptions {
   category?: string;
   search?: string;
+  userPublicId?: string;
   autoFetch?: boolean;
 }
 
@@ -29,7 +31,7 @@ interface UseVibesResult {
 }
 
 export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
-  const { category: initialCategory, search: initialSearch, autoFetch = true } = options;
+  const { category: initialCategory, search: initialSearch, userPublicId, autoFetch = true } = options;
 
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [categories, setCategories] = useState<VibeCategory[]>([]);
@@ -99,7 +101,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
 
   const toggleLike = useCallback(async (vibeId: string) => {
     const vibe = vibes.find((v) => v.publicId === vibeId);
-    if (!vibe) return;
+    if (!vibe || !userPublicId) return;
 
     // Optimistic update
     setVibes((prev) =>
@@ -115,11 +117,19 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
     );
 
     try {
-      if (vibe.isLiked) {
-        await vibesApi.unlike(vibeId);
-      } else {
-        await vibesApi.like(vibeId);
-      }
+      const result = await likesApi.togglePostLike(vibeId, userPublicId);
+      // Update with server response
+      setVibes((prev) =>
+        prev.map((v) =>
+          v.publicId === vibeId
+            ? {
+                ...v,
+                isLiked: result.data.liked,
+                likesCount: result.data.likesCount,
+              }
+            : v
+        )
+      );
     } catch (err) {
       // Revert on error
       setVibes((prev) =>
@@ -135,7 +145,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
       );
       setError(err instanceof Error ? err : new Error("Failed to toggle like"));
     }
-  }, [vibes]);
+  }, [vibes, userPublicId]);
 
   // Refetch when category or search changes
   useEffect(() => {

@@ -75,13 +75,14 @@ export const apiClient = {
     return handleResponse<T>(response);
   },
 
-  async delete<T>(endpoint: string): Promise<T> {
+  async delete<T>(endpoint: string, data?: unknown): Promise<T> {
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
+      body: data ? JSON.stringify(data) : undefined,
     });
     return handleResponse<T>(response);
   },

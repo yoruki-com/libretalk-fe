@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { vibesApi, type Comment } from "@/services/api/vibes";
+import { commentsApi, type Comment } from "@/services/api/vibes";
+import { likesApi } from "@/services/api/likes";
 import type { PaginationParams } from "@/services/api";
 
 interface UseCommentsOptions {
   postId: string;
+  userPublicId?: string;
   autoFetch?: boolean;
 }
 
@@ -27,7 +29,7 @@ interface UseCommentsResult {
 }
 
 export function useComments(options: UseCommentsOptions): UseCommentsResult {
-  const { postId, autoFetch = true } = options;
+  const { postId, userPublicId, autoFetch = true } = options;
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +44,7 @@ export function useComments(options: UseCommentsOptions): UseCommentsResult {
 
       try {
         const params: PaginationParams = { page, sortBy: "createdAt", sortOrder: "desc" };
-        const response = await vibesApi.comments.getAll(postId, params);
+        const response = await commentsApi.getByPost(postId, params);
 
         if (append) {
           setComments((prev) => [...prev, ...response.data]);
@@ -72,8 +74,16 @@ export function useComments(options: UseCommentsOptions): UseCommentsResult {
 
   const addComment = useCallback(
     async (content: string) => {
+      if (!userPublicId) {
+        setError(new Error("User not authenticated"));
+        throw new Error("User not authenticated");
+      }
       try {
-        const response = await vibesApi.comments.create(postId, { content });
+        const response = await commentsApi.create({
+          postId,
+          content,
+          authorPublicId: userPublicId,
+        });
         // Prepend new comment to the list
         setComments((prev) => [response.data, ...prev]);
       } catch (err) {
@@ -81,26 +91,26 @@ export function useComments(options: UseCommentsOptions): UseCommentsResult {
         throw err;
       }
     },
-    [postId]
+    [postId, userPublicId]
   );
 
   const deleteComment = useCallback(
     async (commentId: string) => {
       try {
-        await vibesApi.comments.delete(postId, commentId);
+        await commentsApi.delete(commentId);
         setComments((prev) => prev.filter((c) => c.publicId !== commentId));
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Failed to delete comment"));
         throw err;
       }
     },
-    [postId]
+    []
   );
 
   const toggleLike = useCallback(
     async (commentId: string) => {
       const comment = comments.find((c) => c.publicId === commentId);
-      if (!comment) return;
+      if (!comment || !userPublicId) return;
 
       // Optimistic update
       setComments((prev) =>
@@ -116,11 +126,19 @@ export function useComments(options: UseCommentsOptions): UseCommentsResult {
       );
 
       try {
-        if (comment.isLiked) {
-          await vibesApi.comments.unlike(postId, commentId);
-        } else {
-          await vibesApi.comments.like(postId, commentId);
-        }
+        const result = await likesApi.toggleCommentLike(commentId, userPublicId);
+        // Update with server response
+        setComments((prev) =>
+          prev.map((c) =>
+            c.publicId === commentId
+              ? {
+                  ...c,
+                  isLiked: result.data.liked,
+                  likesCount: result.data.likesCount,
+                }
+              : c
+          )
+        );
       } catch (err) {
         // Revert on error
         setComments((prev) =>
@@ -137,7 +155,7 @@ export function useComments(options: UseCommentsOptions): UseCommentsResult {
         setError(err instanceof Error ? err : new Error("Failed to toggle like"));
       }
     },
-    [postId, comments]
+    [comments, userPublicId]
   );
 
   useEffect(() => {

@@ -69,12 +69,20 @@ export interface Comment {
   author: CommentAuthor;
   likesCount: number;
   isLiked: boolean;
+  parentId: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
+export interface CommentWithReplies extends Comment {
+  replies: Comment[];
+}
+
 export interface CreateCommentDto {
+  postId: string;
   content: string;
+  parentId?: string;
+  authorPublicId: string;
 }
 
 export interface UpdateCommentDto {
@@ -100,12 +108,12 @@ export const vibesApi = {
     return apiClient.get(`/posts/${publicId}`);
   },
 
-  // Get posts by user
+  // Get posts by author
   async getByUser(
-    userPublicId: string,
+    authorPublicId: string,
     params?: PaginationParams
   ): Promise<PaginatedResponse<Vibe>> {
-    return apiClient.get(`/posts/user/${userPublicId}`, params);
+    return apiClient.get(`/posts/author/${authorPublicId}`, params);
   },
 
   // Create a new post
@@ -123,79 +131,72 @@ export const vibesApi = {
     return apiClient.delete(`/posts/${publicId}`);
   },
 
-  // Like a post
-  async like(publicId: string): Promise<ApiResponse<{ liked: boolean }>> {
-    return apiClient.post(`/posts/${publicId}/like`);
-  },
-
-  // Unlike a post
-  async unlike(publicId: string): Promise<ApiResponse<{ unliked: boolean }>> {
-    return apiClient.delete(`/posts/${publicId}/like`);
-  },
-
   // Get categories
   async getCategories(): Promise<ApiResponse<VibeCategory[]>> {
     return apiClient.get("/posts/categories");
   },
 
-  // Comments
-  comments: {
-    // Get comments for a post
-    async getAll(
-      postPublicId: string,
-      params?: PaginationParams
-    ): Promise<PaginatedResponse<Comment>> {
-      return apiClient.get(`/posts/${postPublicId}/comments`, params);
-    },
+};
 
-    // Create a comment
-    async create(
-      postPublicId: string,
-      data: CreateCommentDto
-    ): Promise<ApiResponse<Comment>> {
-      return apiClient.post(`/posts/${postPublicId}/comments`, data);
-    },
+// Comments API - now a separate module at /comments
+export const commentsApi = {
+  // Get top-level comments for a post
+  async getByPost(
+    postPublicId: string,
+    params?: PaginationParams
+  ): Promise<PaginatedResponse<Comment>> {
+    return apiClient.get(`/comments/post/${postPublicId}`, params);
+  },
 
-    // Update a comment
-    async update(
-      postPublicId: string,
-      commentPublicId: string,
-      data: UpdateCommentDto
-    ): Promise<ApiResponse<Comment>> {
-      return apiClient.patch(
-        `/posts/${postPublicId}/comments/${commentPublicId}`,
-        data
-      );
-    },
+  // Get comments with nested replies for a post
+  async getByPostThreaded(
+    postPublicId: string,
+    params?: PaginationParams
+  ): Promise<PaginatedResponse<CommentWithReplies>> {
+    return apiClient.get(`/comments/post/${postPublicId}/threaded`, params);
+  },
 
-    // Delete a comment
-    async delete(
-      postPublicId: string,
-      commentPublicId: string
-    ): Promise<ApiResponse<{ deleted: boolean }>> {
-      return apiClient.delete(
-        `/posts/${postPublicId}/comments/${commentPublicId}`
-      );
-    },
+  // Get comments by author
+  async getByAuthor(
+    authorPublicId: string,
+    params?: PaginationParams
+  ): Promise<PaginatedResponse<Comment>> {
+    return apiClient.get(`/comments/author/${authorPublicId}`, params);
+  },
 
-    // Like a comment
-    async like(
-      postPublicId: string,
-      commentPublicId: string
-    ): Promise<ApiResponse<{ liked: boolean }>> {
-      return apiClient.post(
-        `/posts/${postPublicId}/comments/${commentPublicId}/like`
-      );
-    },
+  // Get a single comment by ID
+  async getById(publicId: string): Promise<ApiResponse<Comment>> {
+    return apiClient.get(`/comments/${publicId}`);
+  },
 
-    // Unlike a comment
-    async unlike(
-      postPublicId: string,
-      commentPublicId: string
-    ): Promise<ApiResponse<{ unliked: boolean }>> {
-      return apiClient.delete(
-        `/posts/${postPublicId}/comments/${commentPublicId}/like`
-      );
-    },
+  // Get a comment with its replies
+  async getByIdThreaded(publicId: string): Promise<ApiResponse<CommentWithReplies>> {
+    return apiClient.get(`/comments/${publicId}/threaded`);
+  },
+
+  // Get replies to a comment
+  async getReplies(
+    publicId: string,
+    params?: PaginationParams
+  ): Promise<PaginatedResponse<Comment>> {
+    return apiClient.get(`/comments/${publicId}/replies`, params);
+  },
+
+  // Create a new comment
+  async create(data: CreateCommentDto): Promise<ApiResponse<Comment>> {
+    return apiClient.post("/comments", data);
+  },
+
+  // Update a comment
+  async update(
+    publicId: string,
+    data: UpdateCommentDto
+  ): Promise<ApiResponse<Comment>> {
+    return apiClient.patch(`/comments/${publicId}`, data);
+  },
+
+  // Delete a comment
+  async delete(publicId: string): Promise<ApiResponse<void>> {
+    return apiClient.delete(`/comments/${publicId}`);
   },
 };
