@@ -55,6 +55,32 @@ export interface VibesFilterParams extends PaginationParams {
   search?: string;
 }
 
+// Comment Types
+export interface CommentAuthor {
+  publicId: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
+export interface Comment {
+  publicId: string;
+  content: string;
+  author: CommentAuthor;
+  likesCount: number;
+  isLiked: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCommentDto {
+  content: string;
+}
+
+export interface UpdateCommentDto {
+  content: string;
+}
+
 export const vibesApi = {
   // Get all posts (feed)
   async getAll(params?: VibesFilterParams): Promise<PaginatedResponse<Vibe>> {
@@ -110,5 +136,66 @@ export const vibesApi = {
   // Get categories
   async getCategories(): Promise<ApiResponse<VibeCategory[]>> {
     return apiClient.get("/posts/categories");
+  },
+
+  // Comments
+  comments: {
+    // Get comments for a post
+    async getAll(
+      postPublicId: string,
+      params?: PaginationParams
+    ): Promise<PaginatedResponse<Comment>> {
+      return apiClient.get(`/posts/${postPublicId}/comments`, params);
+    },
+
+    // Create a comment
+    async create(
+      postPublicId: string,
+      data: CreateCommentDto
+    ): Promise<ApiResponse<Comment>> {
+      return apiClient.post(`/posts/${postPublicId}/comments`, data);
+    },
+
+    // Update a comment
+    async update(
+      postPublicId: string,
+      commentPublicId: string,
+      data: UpdateCommentDto
+    ): Promise<ApiResponse<Comment>> {
+      return apiClient.patch(
+        `/posts/${postPublicId}/comments/${commentPublicId}`,
+        data
+      );
+    },
+
+    // Delete a comment
+    async delete(
+      postPublicId: string,
+      commentPublicId: string
+    ): Promise<ApiResponse<{ deleted: boolean }>> {
+      return apiClient.delete(
+        `/posts/${postPublicId}/comments/${commentPublicId}`
+      );
+    },
+
+    // Like a comment
+    async like(
+      postPublicId: string,
+      commentPublicId: string
+    ): Promise<ApiResponse<{ liked: boolean }>> {
+      return apiClient.post(
+        `/posts/${postPublicId}/comments/${commentPublicId}/like`
+      );
+    },
+
+    // Unlike a comment
+    async unlike(
+      postPublicId: string,
+      commentPublicId: string
+    ): Promise<ApiResponse<{ unliked: boolean }>> {
+      return apiClient.delete(
+        `/posts/${postPublicId}/comments/${commentPublicId}/like`
+      );
+    },
   },
 };

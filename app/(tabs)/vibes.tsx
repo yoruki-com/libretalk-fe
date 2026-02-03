@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, ScrollView, Text, ActivityIndicator } from "react-native";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   LocationHeader,
@@ -16,6 +17,7 @@ const defaultCategories = [
 
 export default function VibesScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const {
     vibes,
     categories,
@@ -26,6 +28,13 @@ export default function VibesScreen() {
     setSearch,
     refresh,
   } = useVibes();
+
+  const handleCommentPress = (postId: string) => {
+    router.push({
+      pathname: "/post/[id]/comments",
+      params: { id: postId },
+    });
+  };
 
   // Use fetched categories or fallback to defaults
   const displayCategories = categories.length > 0 ? categories : defaultCategories;
@@ -128,7 +137,7 @@ export default function VibesScreen() {
               onPress={() => {}}
               onAuthorPress={() => {}}
               onMenuPress={() => {}}
-              onCommentPress={() => {}}
+              onCommentPress={() => handleCommentPress(vibe.publicId)}
               onSharePress={() => {}}
             />
           ))}

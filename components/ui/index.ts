@@ -16,3 +16,5 @@ export { LocationHeader } from "./LocationHeader";
 export { CategoryChips } from "./CategoryChip";
 export { VibeCard } from "./VibeCard";
 export { SearchBar } from "./SearchBar";
+export { CommentCard } from "./CommentCard";
+export { CommentInput } from "./CommentInput";
