@@ -9,11 +9,10 @@
       "mcp__figma__get_code_connect_map",
       "Bash(bunx expo install:*)",
       "Bash(bun install:*)",
-      "Bash(bun run lint)"
+      "Bash(bun run lint)",
+      "Bash(bunx tsc:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "figma-remote"
-  ]
+  "enabledMcpjsonServers": ["figma-remote"]
 }

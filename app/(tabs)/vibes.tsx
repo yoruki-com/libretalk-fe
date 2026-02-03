@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { View, ScrollView } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, ScrollView, Text, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   LocationHeader,
@@ -7,64 +7,46 @@ import {
   CategoryChips,
   VibeCard,
 } from "@/components/ui";
+import { useVibes } from "@/hooks/useVibes";
 
-const categories = [
+// Default categories as fallback
+const defaultCategories = [
   { id: "all", emoji: "🔥", label: "All" },
-  { id: "music", emoji: "🎵", label: "Music" },
-  { id: "art", emoji: "🎨", label: "Art" },
-  { id: "food", emoji: "🍕", label: "Food" },
-  { id: "sports", emoji: "⚽", label: "Sports" },
-];
-
-const vibes = [
-  {
-    id: "1",
-    authorName: "Sarah Johnson",
-    authorRole: "Host",
-    title: "Amazing sunset vibes at the beach today!",
-    mention: "beachlife",
-    likes: 124,
-    comments: 32,
-    shares: 8,
-  },
-  {
-    id: "2",
-    authorName: "Mike Chen",
-    authorRole: "Creator",
-    title: "Just finished this new track, what do you think?",
-    mention: "newmusic",
-    likes: 89,
-    comments: 15,
-    shares: 23,
-  },
-  {
-    id: "3",
-    authorName: "Emma Wilson",
-    authorRole: "Artist",
-    title: "My latest painting inspired by the city lights",
-    likes: 256,
-    comments: 48,
-    shares: 12,
-  },
 ];
 
 export default function VibesScreen() {
   const insets = useSafeAreaInsets();
+  const {
+    vibes,
+    categories,
+    isLoading,
+    error,
+    toggleLike,
+    setCategory,
+    setSearch,
+    refresh,
+  } = useVibes();
+
+  // Use fetched categories or fallback to defaults
+  const displayCategories = categories.length > 0 ? categories : defaultCategories;
+
+  // Track selected category locally for UI
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [likedVibes, setLikedVibes] = useState<Set<string>>(new Set());
 
-  const handleLike = (id: string) => {
-    setLikedVibes((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
+  // Handle category change
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setCategory(categoryId);
   };
+
+  // Handle search change with debounce
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, setSearch]);
 
   return (
     <View className="flex-1 bg-light" style={{ paddingTop: insets.top }}>
@@ -96,26 +78,53 @@ export default function VibesScreen() {
         {/* Categories */}
         <View className="px-4 pb-4">
           <CategoryChips
-            categories={categories}
+            categories={displayCategories}
             selectedId={selectedCategory}
-            onSelect={setSelectedCategory}
+            onSelect={handleCategoryChange}
           />
         </View>
+
+        {/* Loading State */}
+        {isLoading && vibes.length === 0 && (
+          <View className="flex-1 items-center justify-center py-20">
+            <ActivityIndicator size="large" color="#6B4EFF" />
+          </View>
+        )}
+
+        {/* Error State */}
+        {error && vibes.length === 0 && (
+          <View className="flex-1 items-center justify-center px-4 py-20">
+            <Text className="text-red-500 text-center mb-4">{error.message}</Text>
+            <Text
+              className="text-primary font-semibold"
+              onPress={refresh}
+            >
+              Try Again
+            </Text>
+          </View>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && vibes.length === 0 && (
+          <View className="flex-1 items-center justify-center py-20">
+            <Text className="text-gray3 text-center">No vibes found</Text>
+          </View>
+        )}
 
         {/* Vibes Feed */}
         <View className="gap-4 px-4">
           {vibes.map((vibe) => (
             <VibeCard
-              key={vibe.id}
-              authorName={vibe.authorName}
-              authorRole={vibe.authorRole}
+              key={vibe.publicId}
+              authorName={vibe.author.displayName}
+              authorRole={vibe.author.role || undefined}
               title={vibe.title}
-              mention={vibe.mention}
-              likes={vibe.likes + (likedVibes.has(vibe.id) ? 1 : 0)}
-              comments={vibe.comments}
-              shares={vibe.shares}
-              isLiked={likedVibes.has(vibe.id)}
-              onLikePress={() => handleLike(vibe.id)}
+              mention={vibe.mention || undefined}
+              likes={vibe.likesCount}
+              comments={vibe.commentsCount}
+              shares={vibe.sharesCount}
+              isLiked={vibe.isLiked}
+              onLikePress={() => toggleLike(vibe.publicId)}
               onPress={() => {}}
               onAuthorPress={() => {}}
               onMenuPress={() => {}}
