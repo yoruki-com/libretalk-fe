@@ -6,6 +6,7 @@ import { ChatInput } from "@/components/ui/ChatInput";
 import { MessageBubble } from "@/components/ui/MessageBubble";
 import { DateSeparator } from "@/components/ui/DateSeparator";
 import { useConversation } from "@/hooks/useConversation";
+import { useTheme } from "@/contexts/ThemeContext";
 import type { Message } from "@/services/api";
 
 // Helper to format time from ISO string
@@ -82,6 +83,7 @@ export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [inputValue, setInputValue] = useState("");
+  const { theme } = useTheme();
 
   const { conversation, messages, isLoading, error, sendMessage } = useConversation({
     conversationId: id,
@@ -134,8 +136,11 @@ export default function ChatScreen() {
   // Loading state
   if (isLoading && !conversation) {
     return (
-      <View className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#6B4EFF" />
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: theme.background }}
+      >
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -143,8 +148,11 @@ export default function ChatScreen() {
   // Error state
   if (error && !conversation) {
     return (
-      <View className="flex-1 bg-white items-center justify-center px-4">
-        <Text className="text-red-500 text-center">{error.message}</Text>
+      <View
+        className="flex-1 items-center justify-center px-4"
+        style={{ backgroundColor: theme.background }}
+      >
+        <Text style={{ color: theme.error, textAlign: "center" }}>{error.message}</Text>
       </View>
     );
   }
@@ -162,7 +170,8 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
+      className="flex-1"
+      style={{ backgroundColor: theme.background }}
     >
       <ChatHeader
         name={displayName}
@@ -175,7 +184,8 @@ export default function ChatScreen() {
       />
 
       <ScrollView
-        className="flex-1 bg-gray6 px-4 py-6"
+        className="flex-1 px-4 py-6"
+        style={{ backgroundColor: theme.surface }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ gap: 16, paddingBottom: 24 }}
       >

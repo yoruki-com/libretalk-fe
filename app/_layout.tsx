@@ -10,8 +10,25 @@ import {
   NunitoSans_700Bold,
 } from "@expo-google-fonts/nunito-sans";
 import { useEffect } from "react";
+import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 
 SplashScreen.preventAutoHideAsync();
+
+function RootLayoutContent() {
+  const { theme, isDark } = useTheme();
+
+  return (
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: theme.background },
+        }}
+      />
+    </>
+  );
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -32,14 +49,8 @@ export default function RootLayout() {
   }
 
   return (
-    <>
-      <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: "#FFFFFF" },
-        }}
-      />
-    </>
+    <ThemeProvider>
+      <RootLayoutContent />
+    </ThemeProvider>
   );
 }

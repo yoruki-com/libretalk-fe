@@ -7,6 +7,7 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { ChatCard } from "@/components/ui/ChatCard";
 import { ArchiveRow } from "@/components/ui/ArchiveRow";
 import { useConversations } from "@/hooks/useConversations";
+import { useTheme } from "@/contexts/ThemeContext";
 import type { Conversation } from "@/services/api";
 
 // Helper to format time for display
@@ -47,6 +48,7 @@ export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  const { theme } = useTheme();
 
   const { conversations, isLoading, error, refresh } = useConversations();
 
@@ -77,7 +79,10 @@ export default function ChatListScreen() {
   }, [refresh]);
 
   return (
-    <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
+    <View
+      className="flex-1"
+      style={{ paddingTop: insets.top, backgroundColor: theme.background }}
+    >
       {/* Header Section */}
       <View className="gap-6 px-4">
         <Header
@@ -91,14 +96,14 @@ export default function ChatListScreen() {
       {/* Loading State */}
       {isLoading && conversations.length === 0 && (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={theme.primary} />
         </View>
       )}
 
       {/* Error State */}
       {error && conversations.length === 0 && (
         <View className="flex-1 items-center justify-center px-4">
-          <Text className="text-center text-gray-500">
+          <Text style={{ color: theme.textSecondary, textAlign: "center" }}>
             Unable to load conversations. Pull to refresh.
           </Text>
         </View>
@@ -129,7 +134,7 @@ export default function ChatListScreen() {
         {/* Empty State */}
         {!isLoading && conversations.length === 0 && !error && (
           <View className="items-center justify-center py-8">
-            <Text className="text-center text-gray-500">
+            <Text style={{ color: theme.textSecondary, textAlign: "center" }}>
               No conversations yet. Start chatting!
             </Text>
           </View>

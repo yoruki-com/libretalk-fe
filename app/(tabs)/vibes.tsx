@@ -9,6 +9,7 @@ import {
   VibeCard,
 } from "@/components/ui";
 import { useVibes } from "@/hooks/useVibes";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Default categories as fallback
 const defaultCategories = [
@@ -18,6 +19,7 @@ const defaultCategories = [
 export default function VibesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { theme } = useTheme();
   const {
     vibes,
     categories,
@@ -58,7 +60,10 @@ export default function VibesScreen() {
   }, [searchQuery, setSearch]);
 
   return (
-    <View className="flex-1 bg-light" style={{ paddingTop: insets.top }}>
+    <View
+      className="flex-1"
+      style={{ paddingTop: insets.top, backgroundColor: theme.surface }}
+    >
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 20 }}
@@ -96,16 +101,18 @@ export default function VibesScreen() {
         {/* Loading State */}
         {isLoading && vibes.length === 0 && (
           <View className="flex-1 items-center justify-center py-20">
-            <ActivityIndicator size="large" color="#6B4EFF" />
+            <ActivityIndicator size="large" color={theme.primary} />
           </View>
         )}
 
         {/* Error State */}
         {error && vibes.length === 0 && (
           <View className="flex-1 items-center justify-center px-4 py-20">
-            <Text className="text-red-500 text-center mb-4">{error.message}</Text>
+            <Text style={{ color: theme.error, textAlign: "center", marginBottom: 16 }}>
+              {error.message}
+            </Text>
             <Text
-              className="text-primary font-semibold"
+              style={{ color: theme.primary, fontWeight: "600" }}
               onPress={refresh}
             >
               Try Again
@@ -116,7 +123,9 @@ export default function VibesScreen() {
         {/* Empty State */}
         {!isLoading && !error && vibes.length === 0 && (
           <View className="flex-1 items-center justify-center py-20">
-            <Text className="text-gray3 text-center">No vibes found</Text>
+            <Text style={{ color: theme.textSecondary, textAlign: "center" }}>
+              No vibes found
+            </Text>
           </View>
         )}
 

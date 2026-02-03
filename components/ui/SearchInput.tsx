@@ -1,5 +1,6 @@
 import { View, TextInput, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface SearchInputProps {
   placeholder?: string;
@@ -14,14 +15,20 @@ export function SearchInput({
   onChangeText,
   onPress,
 }: SearchInputProps) {
+  const { theme } = useTheme();
+
   return (
     <Pressable onPress={onPress}>
-      <View className="flex-row items-center gap-2 rounded-full bg-light px-4 py-3">
-        <Ionicons name="search" size={20} color="#131313" />
+      <View
+        className="flex-row items-center gap-2 rounded-full px-4 py-3"
+        style={{ backgroundColor: theme.surface }}
+      >
+        <Ionicons name="search" size={20} color={theme.iconSecondary} />
         <TextInput
-          className="flex-1 font-sans text-[14px] text-dark"
+          className="flex-1 font-sans text-[14px]"
+          style={{ color: theme.text }}
           placeholder={placeholder}
-          placeholderTextColor="rgba(19, 19, 19, 0.5)"
+          placeholderTextColor={theme.textTertiary}
           value={value}
           onChangeText={onChangeText}
           editable={!onPress}

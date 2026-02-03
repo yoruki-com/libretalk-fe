@@ -1,8 +1,10 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Switch } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { ProfileCard } from "@/components/ui/ProfileCard";
 import { SettingsMenuGroup } from "@/components/ui/SettingsMenuGroup";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const primaryMenuItems = [
   { icon: "laptop-outline" as const, label: "Connected Device" },
@@ -21,6 +23,7 @@ const settingsMenuItems = [
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const { theme, isDark, toggleTheme } = useTheme();
 
   const handleQRPress = () => {
     console.log("QR pressed");
@@ -31,10 +34,16 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
+    <View
+      className="flex-1"
+      style={{ paddingTop: insets.top, backgroundColor: theme.background }}
+    >
       {/* Header */}
       <View className="gap-4 px-6">
-        <Text className="font-sans-semibold text-heading-4 font-semibold text-dark">
+        <Text
+          className="font-sans-semibold text-heading-4 font-semibold"
+          style={{ color: theme.text }}
+        >
           Setting Menu
         </Text>
         <SearchInput />
@@ -54,6 +63,45 @@ export default function SettingsScreen() {
           onQRPress={handleQRPress}
           onContactsPress={handleContactsPress}
         />
+
+        {/* Theme Toggle */}
+        <View
+          className="flex-row items-center justify-between rounded-2xl p-4"
+          style={{ backgroundColor: theme.surface }}
+        >
+          <View className="flex-row items-center gap-3">
+            <View
+              className="h-10 w-10 items-center justify-center rounded-full"
+              style={{ backgroundColor: theme.primaryLight }}
+            >
+              <Ionicons
+                name={isDark ? "moon" : "sunny"}
+                size={20}
+                color={theme.primary}
+              />
+            </View>
+            <View>
+              <Text
+                className="font-sans-semibold text-base"
+                style={{ color: theme.text }}
+              >
+                Dark Mode
+              </Text>
+              <Text
+                className="font-sans text-sm"
+                style={{ color: theme.textSecondary }}
+              >
+                {isDark ? "On" : "Off"}
+              </Text>
+            </View>
+          </View>
+          <Switch
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: theme.border, true: theme.primary }}
+            thumbColor={theme.card}
+          />
+        </View>
 
         {/* Primary Menu Group */}
         <SettingsMenuGroup items={primaryMenuItems} variant="primary" />

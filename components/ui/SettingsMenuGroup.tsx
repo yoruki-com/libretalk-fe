@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { SettingsMenuItem } from "./SettingsMenuItem";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface MenuItem {
   icon: keyof typeof Ionicons.glyphMap;
@@ -17,13 +18,17 @@ export function SettingsMenuGroup({
   items,
   variant = "default",
 }: SettingsMenuGroupProps) {
+  const { theme } = useTheme();
   const isPrimary = variant === "primary";
 
   return (
     <View
-      className={`overflow-hidden rounded-2xl ${
-        isPrimary ? "bg-primary" : "border border-border bg-white"
-      }`}
+      className="overflow-hidden rounded-2xl"
+      style={{
+        backgroundColor: isPrimary ? theme.primary : theme.card,
+        borderWidth: isPrimary ? 0 : 1,
+        borderColor: theme.border,
+      }}
     >
       {items.map((item, index) => (
         <SettingsMenuItem

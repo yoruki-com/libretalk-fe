@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { VibeCard, CommentCard, CommentInput } from "@/components/ui";
 import { useComments } from "@/hooks/useComments";
+import { useTheme } from "@/contexts/ThemeContext";
 import { vibesApi, type Vibe } from "@/services/api/vibes";
 
 // Helper to format relative time
@@ -35,6 +36,7 @@ export default function CommentsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
 
   const [post, setPost] = useState<Vibe | null>(null);
   const [isLoadingPost, setIsLoadingPost] = useState(true);
@@ -91,31 +93,38 @@ export default function CommentsScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
-      style={{ paddingTop: insets.top }}
+      className="flex-1"
+      style={{ paddingTop: insets.top, backgroundColor: theme.background }}
     >
       {/* Header */}
-      <View className="flex-row items-center justify-between border-b border-gray6 px-4 py-3">
+      <View
+        className="flex-row items-center justify-between px-4 py-3"
+        style={{ borderBottomWidth: 1, borderBottomColor: theme.border }}
+      >
         <Pressable onPress={handleBack} className="p-1 active:opacity-70">
-          <Ionicons name="arrow-back" size={24} color="#131313" />
+          <Ionicons name="arrow-back" size={24} color={theme.icon} />
         </Pressable>
-        <Text className="font-sans-semibold text-[16px] text-dark">Comments</Text>
+        <Text className="font-sans-semibold text-[16px]" style={{ color: theme.text }}>
+          Comments
+        </Text>
         <View className="w-8" />
       </View>
 
       {/* Loading State */}
       {isLoading && (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#6B4EFF" />
+          <ActivityIndicator size="large" color={theme.primary} />
         </View>
       )}
 
       {/* Error State */}
       {error && !isLoading && (
         <View className="flex-1 items-center justify-center px-4">
-          <Text className="text-red-500 text-center mb-4">{error.message}</Text>
+          <Text style={{ color: theme.error, textAlign: "center", marginBottom: 16 }}>
+            {error.message}
+          </Text>
           <Pressable onPress={refresh}>
-            <Text className="text-primary font-semibold">Try Again</Text>
+            <Text style={{ color: theme.primary, fontWeight: "600" }}>Try Again</Text>
           </Pressable>
         </View>
       )}
@@ -146,7 +155,7 @@ export default function CommentsScreen() {
 
             {/* Comments Section Header */}
             <View className="flex-row items-center justify-between px-4 py-2">
-              <Text className="font-sans-semibold text-[14px] text-dark">
+              <Text className="font-sans-semibold text-[14px]" style={{ color: theme.text }}>
                 {comments.length > 0
                   ? `${comments.length} Comment${comments.length > 1 ? "s" : ""}`
                   : "Comments"}
@@ -156,11 +165,11 @@ export default function CommentsScreen() {
             {/* Comments List */}
             {comments.length === 0 && !isLoadingComments ? (
               <View className="items-center py-10">
-                <Ionicons name="chatbubble-outline" size={48} color="#DADADA" />
-                <Text className="mt-3 font-sans text-[14px] text-gray">
+                <Ionicons name="chatbubble-outline" size={48} color={theme.border} />
+                <Text className="mt-3 font-sans text-[14px]" style={{ color: theme.textSecondary }}>
                   No comments yet
                 </Text>
-                <Text className="mt-1 font-sans text-[12px] text-gray3">
+                <Text className="mt-1 font-sans text-[12px]" style={{ color: theme.textTertiary }}>
                   Be the first to comment!
                 </Text>
               </View>
