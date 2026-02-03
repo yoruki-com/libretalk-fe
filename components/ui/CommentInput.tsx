@@ -1,5 +1,6 @@
 import { View, TextInput, Pressable, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface CommentInputProps {
   value: string;
@@ -18,30 +19,46 @@ export function CommentInput({
   placeholder = "Write a comment...",
   isSubmitting = false,
 }: CommentInputProps) {
+  const { theme } = useTheme();
   const canSubmit = value.trim().length > 0 && !isSubmitting;
 
   return (
-    <View className="flex-row items-center gap-3 border-t border-gray6 bg-white px-4 py-3">
+    <View
+      className="flex-row items-center gap-3 px-4 py-3"
+      style={{
+        backgroundColor: theme.card,
+        borderTopWidth: 1,
+        borderTopColor: theme.border,
+      }}
+    >
       {/* Avatar */}
       {avatarUrl ? (
         <Image
           source={{ uri: avatarUrl }}
-          className="h-9 w-9 rounded-full bg-gray4"
+          className="h-9 w-9 rounded-full"
+          style={{ backgroundColor: theme.surface }}
         />
       ) : (
-        <View className="h-9 w-9 items-center justify-center rounded-full bg-primary-30">
-          <Ionicons name="person" size={18} color="#014AF1" />
+        <View
+          className="h-9 w-9 items-center justify-center rounded-full"
+          style={{ backgroundColor: theme.primaryLight }}
+        >
+          <Ionicons name="person" size={18} color={theme.primary} />
         </View>
       )}
 
       {/* Input */}
-      <View className="flex-1 flex-row items-center rounded-full bg-gray6 px-4 py-2">
+      <View
+        className="flex-1 flex-row items-center rounded-full px-4 py-2"
+        style={{ backgroundColor: theme.surface }}
+      >
         <TextInput
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#949494"
-          className="flex-1 font-sans text-[14px] text-dark"
+          placeholderTextColor={theme.textTertiary}
+          className="flex-1 font-sans text-[14px]"
+          style={{ color: theme.text }}
           multiline
           maxLength={500}
           editable={!isSubmitting}
@@ -51,15 +68,17 @@ export function CommentInput({
       {/* Submit button */}
       <Pressable
         onPress={canSubmit ? onSubmit : undefined}
-        className={`h-9 w-9 items-center justify-center rounded-full ${
-          canSubmit ? "bg-primary active:opacity-70" : "bg-gray4"
-        }`}
+        className="h-9 w-9 items-center justify-center rounded-full"
+        style={{
+          backgroundColor: canSubmit ? theme.primary : theme.surface,
+          opacity: canSubmit ? 1 : 0.6,
+        }}
         disabled={!canSubmit}
       >
         <Ionicons
           name="send"
           size={18}
-          color={canSubmit ? "#FFFFFF" : "#949494"}
+          color={canSubmit ? "#FFFFFF" : theme.textTertiary}
         />
       </Pressable>
     </View>
