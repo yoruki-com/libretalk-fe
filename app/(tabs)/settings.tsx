@@ -1,10 +1,12 @@
-import { View, Text, ScrollView, Switch } from "react-native";
+import { View, Text, ScrollView, Switch, Alert, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { ProfileCard } from "@/components/ui/ProfileCard";
 import { SettingsMenuGroup } from "@/components/ui/SettingsMenuGroup";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const primaryMenuItems = [
   { icon: "laptop-outline" as const, label: "Connected Device" },
@@ -23,7 +25,9 @@ const settingsMenuItems = [
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { theme, isDark, toggleTheme } = useTheme();
+  const { user, signOut } = useAuth();
 
   const handleQRPress = () => {
     console.log("QR pressed");
@@ -31,6 +35,31 @@ export default function SettingsScreen() {
 
   const handleContactsPress = () => {
     console.log("Contacts pressed");
+  };
+
+  const handleLogout = () => {
+    Alert.alert("Esci", "Sei sicuro di voler uscire dal tuo account?", [
+      {
+        text: "Annulla",
+        style: "cancel",
+      },
+      {
+        text: "Esci",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await signOut();
+            router.replace("/(auth)/login");
+          } catch (error) {
+            Alert.alert(
+              "Errore",
+              "Si è verificato un errore durante il logout."
+            );
+            console.error("Logout error:", error);
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -57,8 +86,9 @@ export default function SettingsScreen() {
       >
         {/* Profile Card */}
         <ProfileCard
-          name="Emma Carter"
-          subtitle="Only Emergency Call"
+          name={user?.name ?? user?.email ?? "Utente"}
+          subtitle={user?.email ?? ""}
+          avatar={user?.avatar}
           contactsCount={356}
           onQRPress={handleQRPress}
           onContactsPress={handleContactsPress}
@@ -108,6 +138,21 @@ export default function SettingsScreen() {
 
         {/* Settings Menu Group */}
         <SettingsMenuGroup items={settingsMenuItems} variant="default" />
+
+        {/* Logout Button */}
+        <Pressable
+          onPress={handleLogout}
+          className="flex-row items-center justify-center gap-2 rounded-2xl p-4"
+          style={{ backgroundColor: theme.surface }}
+        >
+          <Ionicons name="log-out-outline" size={20} color={theme.error} />
+          <Text
+            className="font-sans-semibold text-base"
+            style={{ color: theme.error }}
+          >
+            Esci dall'account
+          </Text>
+        </Pressable>
       </ScrollView>
     </View>
   );

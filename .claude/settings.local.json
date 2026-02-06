@@ -13,7 +13,16 @@
       "Bash(bunx tsc:*)",
       "Bash(bun add:*)",
       "WebSearch",
-      "WebFetch(domain:auth0.com)"
+      "WebFetch(domain:auth0.com)",
+      "Bash(bun remove:*)",
+      "Bash(ls:*)",
+      "Bash(bunx expo prebuild:*)",
+      "Bash(java -version:*)",
+      "Bash(javac:*)",
+      "Bash(echo:*)",
+      "Bash(\"/c/Program Files/Android/Android Studio/jbr/bin/javac.exe\" -version)",
+      "Bash(./gradlew.bat clean)",
+      "Bash(bun run:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

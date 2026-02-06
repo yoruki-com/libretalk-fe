@@ -11,6 +11,7 @@ import {
 } from "@expo-google-fonts/nunito-sans";
 import { useEffect } from "react";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,7 +26,12 @@ function RootLayoutContent() {
           headerShown: false,
           contentStyle: { backgroundColor: theme.background },
         }}
-      />
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="get-started" />
+      </Stack>
     </>
   );
 }
@@ -49,8 +55,10 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider>
-      <RootLayoutContent />
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <RootLayoutContent />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
