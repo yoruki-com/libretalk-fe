@@ -50,7 +50,8 @@
           "customScheme": "libretalk"
         }
       ],
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "./plugins/withAuth0SchemeFixPlugin"
     ],
     "experiments": {
       "typedRoutes": true,
