@@ -16,7 +16,6 @@ import {
 
 const AUTH0_DOMAIN = process.env.EXPO_PUBLIC_AUTH0_DOMAIN!;
 const AUTH0_CLIENT_ID = process.env.EXPO_PUBLIC_AUTH0_CLIENT_ID!;
-const AUTH0_AUDIENCE = process.env.EXPO_PUBLIC_AUTH0_AUDIENCE!;
 const CUSTOM_SCHEME = "libretalk";
 
 export interface User {
@@ -123,7 +122,7 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
     if (Platform.OS !== "ios") {
       // Fallback to Universal Login on Android
       await authorize(
-        { connection: "apple", scope: "openid profile email offline_access", audience: AUTH0_AUDIENCE },
+        { connection: "apple", scope: "openid profile email offline_access" },
         { customScheme: CUSTOM_SCHEME }
       );
       const credentials = await getCredentials();
@@ -157,7 +156,6 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
           subject_token_type:
             "http://auth0.com/oauth/token-type/apple-authz-code",
           scope: "openid profile email offline_access",
-          audience: AUTH0_AUDIENCE,
         }),
       });
 
@@ -166,7 +164,7 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
         console.error("Token exchange error:", error);
         // Fallback to Universal Login if token exchange fails
         await authorize(
-          { connection: "apple", scope: "openid profile email offline_access", audience: AUTH0_AUDIENCE },
+          { connection: "apple", scope: "openid profile email offline_access" },
           { customScheme: CUSTOM_SCHEME }
         );
         const credentials = await getCredentials();
@@ -218,7 +216,6 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
         {
           connection: "google-oauth2",
           scope: "openid profile email offline_access",
-          audience: AUTH0_AUDIENCE,
         },
         { customScheme: CUSTOM_SCHEME }
       );
@@ -243,7 +240,7 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
   const signInWithEmail = useCallback(async () => {
     try {
       await authorize(
-        { scope: "openid profile email offline_access", audience: AUTH0_AUDIENCE },
+        { scope: "openid profile email offline_access" },
         { customScheme: CUSTOM_SCHEME }
       );
 
