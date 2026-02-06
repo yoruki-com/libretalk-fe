@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { vibesApi, type Vibe, type VibeCategory, type VibesFilterParams } from "@/services/api/vibes";
+import { vibesApi, type Vibe, type VibesFilterParams } from "@/services/api/vibes";
 import { likesApi } from "@/services/api/likes";
 
 interface UseVibesOptions {
@@ -12,9 +12,7 @@ interface UseVibesOptions {
 
 interface UseVibesResult {
   vibes: Vibe[];
-  categories: VibeCategory[];
   isLoading: boolean;
-  isLoadingCategories: boolean;
   error: Error | null;
   pagination: {
     page: number;
@@ -35,9 +33,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
   const { category: initialCategory, search: initialSearch, userPublicId, autoFetch = true, enabled = true } = options;
 
   const [vibes, setVibes] = useState<Vibe[]>([]);
-  const [categories, setCategories] = useState<VibeCategory[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [pagination, setPagination] = useState<UseVibesResult["pagination"]>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,20 +71,6 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
     },
     [category, search]
   );
-
-  const fetchCategories = useCallback(async () => {
-    setIsLoadingCategories(true);
-
-    try {
-      const response = await vibesApi.getCategories();
-      setCategories(response.data);
-    } catch (err) {
-      // Categories are optional, don't set error
-      console.warn("Failed to fetch categories:", err);
-    } finally {
-      setIsLoadingCategories(false);
-    }
-  }, []);
 
   const refresh = useCallback(async () => {
     await fetchVibes(1, false);
@@ -155,18 +137,9 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
     }
   }, [autoFetch, enabled, fetchVibes]);
 
-  // Fetch categories on mount
-  useEffect(() => {
-    if (autoFetch && enabled) {
-      fetchCategories();
-    }
-  }, [autoFetch, enabled, fetchCategories]);
-
   return {
     vibes,
-    categories,
     isLoading,
-    isLoadingCategories,
     error,
     pagination,
     refresh,

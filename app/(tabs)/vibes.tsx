@@ -24,7 +24,6 @@ export default function VibesScreen() {
   const { isAuthenticated } = useAuth();
   const {
     vibes,
-    categories,
     isLoading,
     error,
     toggleLike,
@@ -39,9 +38,6 @@ export default function VibesScreen() {
       params: { id: postId },
     });
   };
-
-  // Use fetched categories or fallback to defaults
-  const displayCategories = categories.length > 0 ? categories : defaultCategories;
 
   // Track selected category locally for UI
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -94,7 +90,7 @@ export default function VibesScreen() {
         {/* Categories */}
         <View className="px-4 pb-4">
           <CategoryChips
-            categories={displayCategories}
+            categories={defaultCategories}
             selectedId={selectedCategory}
             onSelect={handleCategoryChange}
           />

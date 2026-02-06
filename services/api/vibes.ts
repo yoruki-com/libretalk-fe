@@ -27,12 +27,6 @@ export interface Vibe {
   updatedAt: string;
 }
 
-export interface VibeCategory {
-  id: string;
-  emoji: string;
-  label: string;
-}
-
 export interface CreateVibeDto {
   title: string;
   content?: string;
@@ -131,10 +125,6 @@ export const vibesApi = {
     return apiClient.delete(`/posts/${publicId}`);
   },
 
-  // Get categories
-  async getCategories(): Promise<ApiResponse<VibeCategory[]>> {
-    return apiClient.get("/posts/categories");
-  },
 
 };
 

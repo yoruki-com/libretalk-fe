@@ -22,7 +22,7 @@ export default function TabLayout() {
         />
       )}
     >
-      <Tabs.Screen name="updates" options={{ title: "Updates" }} />
+      <Tabs.Screen name="vibes" options={{ title: "Vibes" }} />
       <Tabs.Screen name="community" options={{ title: "Community" }} />
       <Tabs.Screen name="chat" options={{ title: "Chat" }} />
       <Tabs.Screen name="call" options={{ title: "Call" }} />
