@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { VibeCard, CommentCard, CommentInput } from "@/components/ui";
 import { useComments } from "@/hooks/useComments";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { vibesApi, type Vibe } from "@/services/api/vibes";
 
 // Helper to format relative time
@@ -37,6 +38,7 @@ export default function CommentsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const { isAuthenticated } = useAuth();
 
   const [post, setPost] = useState<Vibe | null>(null);
   const [isLoadingPost, setIsLoadingPost] = useState(true);
@@ -51,7 +53,7 @@ export default function CommentsScreen() {
     addComment,
     toggleLike,
     refresh,
-  } = useComments({ postId: id });
+  } = useComments({ postId: id, enabled: isAuthenticated });
 
   // Fetch post on mount
   React.useEffect(() => {

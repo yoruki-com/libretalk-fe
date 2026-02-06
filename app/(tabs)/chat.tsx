@@ -8,6 +8,7 @@ import { ChatCard } from "@/components/ui/ChatCard";
 import { ArchiveRow } from "@/components/ui/ArchiveRow";
 import { useConversations } from "@/hooks/useConversations";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Conversation } from "@/services/api";
 
 // Helper to format time for display
@@ -49,8 +50,11 @@ export default function ChatListScreen() {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const { theme } = useTheme();
+  const { isAuthenticated } = useAuth();
 
-  const { conversations, isLoading, error, refresh } = useConversations();
+  const { conversations, isLoading, error, refresh } = useConversations({
+    enabled: isAuthenticated,
+  });
 
   const handleMenuPress = () => {
     console.log("Menu pressed");

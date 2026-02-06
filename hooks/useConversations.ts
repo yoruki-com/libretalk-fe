@@ -5,6 +5,7 @@ interface UseConversationsOptions {
   userPublicId?: string;
   params?: PaginationParams;
   autoFetch?: boolean;
+  enabled?: boolean;
 }
 
 interface UseConversationsResult {
@@ -26,7 +27,7 @@ interface UseConversationsResult {
 export function useConversations(
   options: UseConversationsOptions = {}
 ): UseConversationsResult {
-  const { userPublicId, params, autoFetch = true } = options;
+  const { userPublicId, params, autoFetch = true, enabled = true } = options;
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,10 +73,10 @@ export function useConversations(
   }, [fetchConversations, pagination, currentPage, isLoading]);
 
   useEffect(() => {
-    if (autoFetch) {
+    if (autoFetch && enabled) {
       fetchConversations(1);
     }
-  }, [autoFetch, fetchConversations]);
+  }, [autoFetch, enabled, fetchConversations]);
 
   return {
     conversations,

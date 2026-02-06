@@ -7,6 +7,7 @@ interface UseVibesOptions {
   search?: string;
   userPublicId?: string;
   autoFetch?: boolean;
+  enabled?: boolean;
 }
 
 interface UseVibesResult {
@@ -31,7 +32,7 @@ interface UseVibesResult {
 }
 
 export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
-  const { category: initialCategory, search: initialSearch, userPublicId, autoFetch = true } = options;
+  const { category: initialCategory, search: initialSearch, userPublicId, autoFetch = true, enabled = true } = options;
 
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [categories, setCategories] = useState<VibeCategory[]>([]);
@@ -149,17 +150,17 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
 
   // Refetch when category or search changes
   useEffect(() => {
-    if (autoFetch) {
+    if (autoFetch && enabled) {
       fetchVibes(1, false);
     }
-  }, [autoFetch, fetchVibes]);
+  }, [autoFetch, enabled, fetchVibes]);
 
   // Fetch categories on mount
   useEffect(() => {
-    if (autoFetch) {
+    if (autoFetch && enabled) {
       fetchCategories();
     }
-  }, [autoFetch, fetchCategories]);
+  }, [autoFetch, enabled, fetchCategories]);
 
   return {
     vibes,

@@ -7,6 +7,7 @@ interface UseCommentsOptions {
   postId: string;
   userPublicId?: string;
   autoFetch?: boolean;
+  enabled?: boolean;
 }
 
 interface UseCommentsResult {
@@ -29,7 +30,7 @@ interface UseCommentsResult {
 }
 
 export function useComments(options: UseCommentsOptions): UseCommentsResult {
-  const { postId, userPublicId, autoFetch = true } = options;
+  const { postId, userPublicId, autoFetch = true, enabled = true } = options;
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -159,10 +160,10 @@ export function useComments(options: UseCommentsOptions): UseCommentsResult {
   );
 
   useEffect(() => {
-    if (autoFetch && postId) {
+    if (autoFetch && enabled && postId) {
       fetchComments(1);
     }
-  }, [autoFetch, postId, fetchComments]);
+  }, [autoFetch, enabled, postId, fetchComments]);
 
   return {
     comments,

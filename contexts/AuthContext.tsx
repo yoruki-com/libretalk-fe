@@ -9,9 +9,14 @@ import {
 import { useAuth0, Auth0Provider } from "react-native-auth0";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { Platform } from "react-native";
+import {
+  setTokenGetter,
+  clearTokenGetter,
+} from "@/services/api/client";
 
 const AUTH0_DOMAIN = process.env.EXPO_PUBLIC_AUTH0_DOMAIN!;
 const AUTH0_CLIENT_ID = process.env.EXPO_PUBLIC_AUTH0_CLIENT_ID!;
+const AUTH0_AUDIENCE = process.env.EXPO_PUBLIC_AUTH0_AUDIENCE!;
 const CUSTOM_SCHEME = "libretalk";
 
 export interface User {
@@ -34,19 +39,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Token getter for API client
-let tokenGetter: (() => Promise<string | null>) | null = null;
-
-export function setTokenGetter(getter: () => Promise<string | null>) {
-  tokenGetter = getter;
-}
-
-export function clearTokenGetter() {
-  tokenGetter = null;
-}
-
-export { tokenGetter };
 
 function AuthContextProvider({ children }: { children: ReactNode }) {
   const {
@@ -101,23 +93,29 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
   }, [auth0User]);
 
   const getToken = useCallback(async (): Promise<string | null> => {
+    console.log("[AuthContext] getToken called, isAuthenticated:", isAuthenticated);
     try {
       const credentials = await getCredentials();
+      console.log("[AuthContext] credentials received:", !!credentials?.accessToken);
       if (credentials?.accessToken) {
         setAccessToken(credentials.accessToken);
         return credentials.accessToken;
       }
       return null;
     } catch (error) {
-      console.error("Error getting token:", error);
+      console.error("[AuthContext] Error getting token:", error);
       return null;
     }
-  }, [getCredentials]);
+  }, [getCredentials, isAuthenticated]);
 
   // Register token getter with API client
   useEffect(() => {
+    console.log("[AuthContext] Registering token getter");
     setTokenGetter(getToken);
-    return () => clearTokenGetter();
+    return () => {
+      console.log("[AuthContext] Clearing token getter");
+      clearTokenGetter();
+    };
   }, [getToken]);
 
   // Native Apple Sign-In with Token Exchange
@@ -125,7 +123,7 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
     if (Platform.OS !== "ios") {
       // Fallback to Universal Login on Android
       await authorize(
-        { connection: "apple", scope: "openid profile email offline_access" },
+        { connection: "apple", scope: "openid profile email offline_access", audience: AUTH0_AUDIENCE },
         { customScheme: CUSTOM_SCHEME }
       );
       const credentials = await getCredentials();
@@ -159,6 +157,7 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
           subject_token_type:
             "http://auth0.com/oauth/token-type/apple-authz-code",
           scope: "openid profile email offline_access",
+          audience: AUTH0_AUDIENCE,
         }),
       });
 
@@ -167,7 +166,7 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
         console.error("Token exchange error:", error);
         // Fallback to Universal Login if token exchange fails
         await authorize(
-          { connection: "apple", scope: "openid profile email offline_access" },
+          { connection: "apple", scope: "openid profile email offline_access", audience: AUTH0_AUDIENCE },
           { customScheme: CUSTOM_SCHEME }
         );
         const credentials = await getCredentials();
@@ -219,6 +218,7 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
         {
           connection: "google-oauth2",
           scope: "openid profile email offline_access",
+          audience: AUTH0_AUDIENCE,
         },
         { customScheme: CUSTOM_SCHEME }
       );
@@ -243,7 +243,7 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
   const signInWithEmail = useCallback(async () => {
     try {
       await authorize(
-        { scope: "openid profile email offline_access" },
+        { scope: "openid profile email offline_access", audience: AUTH0_AUDIENCE },
         { customScheme: CUSTOM_SCHEME }
       );
 

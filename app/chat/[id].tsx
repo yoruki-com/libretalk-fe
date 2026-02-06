@@ -7,6 +7,7 @@ import { MessageBubble } from "@/components/ui/MessageBubble";
 import { DateSeparator } from "@/components/ui/DateSeparator";
 import { useConversation } from "@/hooks/useConversation";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Message } from "@/services/api";
 
 // Helper to format time from ISO string
@@ -84,9 +85,11 @@ export default function ChatScreen() {
   const router = useRouter();
   const [inputValue, setInputValue] = useState("");
   const { theme } = useTheme();
+  const { isAuthenticated } = useAuth();
 
   const { conversation, messages, isLoading, error, sendMessage } = useConversation({
     conversationId: id,
+    enabled: isAuthenticated,
   });
 
   // Get the other participant for 1:1 chats

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui";
 import { useVibes } from "@/hooks/useVibes";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Default categories as fallback
 const defaultCategories = [
@@ -20,6 +21,7 @@ export default function VibesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useTheme();
+  const { isAuthenticated } = useAuth();
   const {
     vibes,
     categories,
@@ -29,7 +31,7 @@ export default function VibesScreen() {
     setCategory,
     setSearch,
     refresh,
-  } = useVibes();
+  } = useVibes({ enabled: isAuthenticated });
 
   const handleCommentPress = (postId: string) => {
     router.push({

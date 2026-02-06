@@ -4,6 +4,7 @@ import { conversationsApi, type Conversation, type Message, type PaginationParam
 interface UseConversationOptions {
   conversationId: string;
   autoFetch?: boolean;
+  enabled?: boolean;
 }
 
 interface UseConversationResult {
@@ -26,7 +27,7 @@ interface UseConversationResult {
 }
 
 export function useConversation(options: UseConversationOptions): UseConversationResult {
-  const { conversationId, autoFetch = true } = options;
+  const { conversationId, autoFetch = true, enabled = true } = options;
 
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -102,11 +103,11 @@ export function useConversation(options: UseConversationOptions): UseConversatio
   );
 
   useEffect(() => {
-    if (autoFetch && conversationId) {
+    if (autoFetch && enabled && conversationId) {
       fetchConversation();
       fetchMessages(1);
     }
-  }, [autoFetch, conversationId, fetchConversation, fetchMessages]);
+  }, [autoFetch, enabled, conversationId, fetchConversation, fetchMessages]);
 
   return {
     conversation,
