@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { View, ScrollView, Text, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   LocationHeader,
@@ -37,7 +38,21 @@ export default function VibesScreen() {
     setCategory,
     setSearch,
     refresh,
-  } = useVibes({ enabled: isAuthenticated });
+  } = useVibes({ enabled: isAuthenticated, userPublicId: profile?.publicId });
+
+  // Refresh vibes when tab regains focus (sync likes from other pages)
+  const isFirstFocus = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      if (isAuthenticated) {
+        refresh();
+      }
+    }, [isAuthenticated, refresh])
+  );
 
   const handleCommentPress = (postId: string) => {
     router.push({

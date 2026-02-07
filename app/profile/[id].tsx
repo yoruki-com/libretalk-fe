@@ -4,11 +4,13 @@ import type { UserMe } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
 import type { Vibe } from "@/services/api/vibes";
 import { vibesApi } from "@/services/api/vibes";
+import { likesApi } from "@/services/api/likes";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -46,10 +48,14 @@ export default function ProfileScreen() {
       const res = await usersApi.getById(id);
       setUser(res.data as UserMe);
 
-      const vibesRes = await vibesApi.getByUser(id);
-      setVibes(vibesRes.data);
-    } catch {
-      // ignore
+      try {
+        const vibesRes = await vibesApi.getByUser(id);
+        setVibes(vibesRes.data);
+      } catch (vibesErr) {
+        console.error("[Profile] Failed to fetch vibes:", vibesErr);
+      }
+    } catch (err) {
+      console.error("[Profile] Failed to fetch user:", err);
     } finally {
       setIsLoading(false);
     }
@@ -58,6 +64,70 @@ export default function ProfileScreen() {
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  // Refresh vibes when screen regains focus (sync likes from other pages)
+  const isFirstFocus = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      if (id) {
+        vibesApi.getByUser(id).then((res) => setVibes(res.data)).catch(() => {});
+      }
+    }, [id])
+  );
+
+  const toggleLike = useCallback(
+    async (vibeId: string) => {
+      const vibe = vibes.find((v) => v.publicId === vibeId);
+      if (!vibe || !currentUser?.publicId) return;
+
+      // Optimistic update
+      setVibes((prev) =>
+        prev.map((v) =>
+          v.publicId === vibeId
+            ? {
+                ...v,
+                isLiked: !v.isLiked,
+                likesCount: v.isLiked ? v.likesCount - 1 : v.likesCount + 1,
+              }
+            : v
+        )
+      );
+
+      try {
+        const result = await likesApi.togglePostLike(vibeId, currentUser.publicId);
+        // Sync with server response
+        setVibes((prev) =>
+          prev.map((v) =>
+            v.publicId === vibeId
+              ? {
+                  ...v,
+                  isLiked: result.data.liked,
+                  likesCount: result.data.likesCount,
+                }
+              : v
+          )
+        );
+      } catch {
+        // Revert on error
+        setVibes((prev) =>
+          prev.map((v) =>
+            v.publicId === vibeId
+              ? {
+                  ...v,
+                  isLiked: vibe.isLiked,
+                  likesCount: vibe.likesCount,
+                }
+              : v
+          )
+        );
+      }
+    },
+    [vibes, currentUser?.publicId]
+  );
 
   if (isLoading) {
     return (
@@ -428,18 +498,21 @@ export default function ProfileScreen() {
             {/* Posts */}
             <View className="gap-4 pb-24">
               {vibes.map((vibe) => (
-                <VibeCard
-                  key={vibe.publicId}
-                  authorName={vibe.author.displayName}
-                  authorAvatarUrl={vibe.author.avatarUrl}
-                  authorCountryCode={vibe.author.countryCode}
-                  authorLanguages={vibe.author.languages}
-                  content={vibe.content ?? ""}
-                  likes={vibe.likesCount}
-                  comments={vibe.commentsCount}
-                  shares={0}
-                  isLiked={vibe.isLiked}
-                />
+                <View key={vibe.publicId}>
+                  <VibeCard
+                    authorName={vibe.author.displayName}
+                    authorAvatarUrl={vibe.author.avatarUrl}
+                    authorCountryCode={vibe.author.countryCode}
+                    authorLanguages={vibe.author.languages}
+                    content={vibe.content ?? ""}
+                    likes={vibe.likesCount}
+                    comments={vibe.commentsCount}
+                    shares={0}
+                    isLiked={vibe.isLiked}
+                    onPress={() => {}}
+                    onLikePress={() => toggleLike(vibe.publicId)}
+                  />
+                </View>
               ))}
               {vibes.length === 0 && (
                 <Text
