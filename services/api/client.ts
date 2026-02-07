@@ -28,22 +28,11 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
     "Content-Type": "application/json",
   };
 
-  console.log("[API Client] tokenGetter defined:", !!tokenGetter);
-
   if (tokenGetter) {
     try {
       const token = await tokenGetter();
       if (token) {
-        // Check if token looks like a JWT (has 3 parts separated by dots)
-        const parts = token.split('.');
-        const isJWT = parts.length === 3;
-        console.log("[API Client] token received, isJWT:", isJWT, "length:", token.length);
-        if (!isJWT) {
-          console.warn("[API Client] Token is NOT a JWT! This is an opaque token. User needs to re-login with audience.");
-        }
         headers["Authorization"] = `Bearer ${token}`;
-      } else {
-        console.log("[API Client] token is null");
       }
     } catch (error) {
       console.error("[API Client] Error getting auth token:", error);

@@ -111,10 +111,8 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
   }, [auth0User]);
 
   const getToken = useCallback(async (): Promise<string | null> => {
-    console.log("[AuthContext] getToken called, isAuthenticated:", isAuthenticated);
     try {
       const credentials = await getCredentials();
-      console.log("[AuthContext] credentials received:", !!credentials?.accessToken);
       if (credentials?.accessToken) {
         setAccessToken(credentials.accessToken);
         return credentials.accessToken;
@@ -128,12 +126,8 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
 
   // Register token getter with API client
   useEffect(() => {
-    console.log("[AuthContext] Registering token getter");
     setTokenGetter(getToken);
-    return () => {
-      console.log("[AuthContext] Clearing token getter");
-      clearTokenGetter();
-    };
+    return () => clearTokenGetter();
   }, [getToken]);
 
   // Native Apple Sign-In with Token Exchange
