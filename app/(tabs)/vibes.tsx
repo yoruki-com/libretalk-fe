@@ -83,7 +83,11 @@ export default function VibesScreen() {
             languages={profile?.languages}
             hasNotification
             onNotificationPress={() => {}}
-            onAvatarPress={() => {}}
+            onAvatarPress={() => {
+              if (profile?.publicId) {
+                router.push({ pathname: "/profile/[id]", params: { id: profile.publicId } });
+              }
+            }}
           />
         </View>
 
@@ -154,7 +158,7 @@ export default function VibesScreen() {
               isLiked={vibe.isLiked}
               onLikePress={() => toggleLike(vibe.publicId)}
               onPress={() => {}}
-              onAuthorPress={() => {}}
+              onAuthorPress={() => router.push({ pathname: "/profile/[id]", params: { id: vibe.author.publicId } })}
               onMenuPress={() => {}}
               onCommentPress={() => handleCommentPress(vibe.publicId)}
               onSharePress={() => {}}

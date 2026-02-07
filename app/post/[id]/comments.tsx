@@ -153,6 +153,7 @@ export default function CommentsScreen() {
                   comments={post.commentsCount}
                   shares={post.sharesCount}
                   isLiked={post.isLiked}
+                  onAuthorPress={() => router.push({ pathname: "/profile/[id]", params: { id: post.author.publicId } })}
                 />
               </View>
             )}
