@@ -147,11 +147,10 @@ export default function CommentsScreen() {
                   authorAvatarUrl={post.author.avatarUrl}
                   authorCountryCode={post.author.countryCode}
                   authorLanguages={post.author.languages}
-                  title={post.title}
-                  mention={post.mention || undefined}
+                  content={post.content ?? ""}
                   likes={post.likesCount}
                   comments={post.commentsCount}
-                  shares={post.sharesCount}
+                  shares={0}
                   isLiked={post.isLiked}
                   onAuthorPress={() => router.push({ pathname: "/profile/[id]", params: { id: post.author.publicId } })}
                 />

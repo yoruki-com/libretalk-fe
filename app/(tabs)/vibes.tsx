@@ -150,11 +150,10 @@ export default function VibesScreen() {
               authorAvatarUrl={vibe.author.avatarUrl}
               authorCountryCode={vibe.author.countryCode}
               authorLanguages={vibe.author.languages}
-              title={vibe.title}
-              mention={vibe.mention || undefined}
+              content={vibe.content ?? ""}
               likes={vibe.likesCount}
               comments={vibe.commentsCount}
-              shares={vibe.sharesCount}
+              shares={0}
               isLiked={vibe.isLiked}
               onLikePress={() => toggleLike(vibe.publicId)}
               onPress={() => {}}

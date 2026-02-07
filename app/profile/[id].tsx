@@ -1,26 +1,26 @@
-import { useEffect, useState, useCallback } from "react";
+import { VibeCard } from "@/components/ui";
+import { useTheme } from "@/contexts/ThemeContext";
+import type { UserMe } from "@/services/api/types";
+import { usersApi } from "@/services/api/users";
+import type { Vibe } from "@/services/api/vibes";
+import { vibesApi } from "@/services/api/vibes";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
+  ActivityIndicator,
   Image,
   Pressable,
-  ActivityIndicator,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "@/contexts/ThemeContext";
-import { usersApi } from "@/services/api/users";
-import { vibesApi } from "@/services/api/vibes";
-import { VibeCard } from "@/components/ui";
-import type { UserMe } from "@/services/api/types";
-import type { Vibe } from "@/services/api/vibes";
 
 const STATIC_MAP_PLACEHOLDER =
   "https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/0,20,2,0/600x300@2x?access_token=placeholder";
 
-type ProfileTab = "profile" | "moments" | "honor";
+type ProfileTab = "profile" | "vibes" | "honor";
 
 export default function ProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -31,7 +31,7 @@ export default function ProfileScreen() {
   const [user, setUser] = useState<UserMe | null>(null);
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<ProfileTab>("moments");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("vibes");
   const [bioExpanded, setBioExpanded] = useState(false);
 
   const fetchUser = useCallback(async () => {
@@ -121,7 +121,8 @@ export default function ProfileScreen() {
 
           {/* Location label */}
           {user.city && (
-            <View className="absolute bottom-3 right-3 flex-row items-center gap-1 rounded-full px-3 py-1"
+            <View
+              className="absolute bottom-3 right-3 flex-row items-center gap-1 rounded-full px-3 py-1"
               style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
             >
               <Ionicons name="location" size={12} color="#FFFFFF" />
@@ -197,8 +198,14 @@ export default function ProfileScreen() {
             </Text>
             {user.isOnline && (
               <View className="flex-row items-center gap-1">
-                <View className="h-2 w-2 rounded-full" style={{ backgroundColor: theme.success }} />
-                <Text className="font-sans text-[12px]" style={{ color: theme.success }}>
+                <View
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: theme.success }}
+                />
+                <Text
+                  className="font-sans text-[12px]"
+                  style={{ color: theme.success }}
+                >
                   Active now
                 </Text>
               </View>
@@ -234,7 +241,11 @@ export default function ProfileScreen() {
               </View>
             ))}
             {learningLanguages.length > 0 && spokenLanguages.length > 0 && (
-              <Ionicons name="swap-horizontal" size={16} color={theme.textTertiary} />
+              <Ionicons
+                name="swap-horizontal"
+                size={16}
+                color={theme.textTertiary}
+              />
             )}
             {learningLanguages.map((lang) => (
               <View key={lang.code} className="items-center">
@@ -258,26 +269,44 @@ export default function ProfileScreen() {
         {/* Stats */}
         <View className="mt-4 flex-row items-center gap-4 px-4">
           <View className="flex-row items-center gap-1">
-            <Text className="font-sans-semibold text-[14px]" style={{ color: theme.text }}>
+            <Text
+              className="font-sans-semibold text-[14px]"
+              style={{ color: theme.text }}
+            >
               0
             </Text>
-            <Text className="font-sans text-[13px]" style={{ color: theme.textSecondary }}>
+            <Text
+              className="font-sans text-[13px]"
+              style={{ color: theme.textSecondary }}
+            >
               Following
             </Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <Text className="font-sans-semibold text-[14px]" style={{ color: theme.text }}>
+            <Text
+              className="font-sans-semibold text-[14px]"
+              style={{ color: theme.text }}
+            >
               0
             </Text>
-            <Text className="font-sans text-[13px]" style={{ color: theme.textSecondary }}>
+            <Text
+              className="font-sans text-[13px]"
+              style={{ color: theme.textSecondary }}
+            >
               Followers
             </Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <Text className="font-sans-semibold text-[14px]" style={{ color: theme.text }}>
+            <Text
+              className="font-sans-semibold text-[14px]"
+              style={{ color: theme.text }}
+            >
               0d
             </Text>
-            <Text className="font-sans text-[13px]" style={{ color: theme.textSecondary }}>
+            <Text
+              className="font-sans text-[13px]"
+              style={{ color: theme.textSecondary }}
+            >
               Streak
             </Text>
           </View>
@@ -314,7 +343,7 @@ export default function ProfileScreen() {
           {(
             [
               { key: "profile", label: "Profile" },
-              { key: "moments", label: "Moments" },
+              { key: "vibes", label: "Vibes" },
               { key: "honor", label: "Honor" },
             ] as const
           ).map((tab) => {
@@ -345,24 +374,42 @@ export default function ProfileScreen() {
         </View>
 
         {/* Tab Content */}
-        {activeTab === "moments" && (
+        {activeTab === "vibes" && (
           <View className="px-4 pt-4">
             {/* Moment stats */}
             <View className="flex-row items-center gap-4 pb-4">
-              <Text className="font-sans text-[13px]" style={{ color: theme.textSecondary }}>
-                <Text className="font-sans-semibold" style={{ color: theme.text }}>
+              <Text
+                className="font-sans text-[13px]"
+                style={{ color: theme.textSecondary }}
+              >
+                <Text
+                  className="font-sans-semibold"
+                  style={{ color: theme.text }}
+                >
                   {vibes.length}
                 </Text>{" "}
-                Moments
+                Vibes
               </Text>
-              <Text className="font-sans text-[13px]" style={{ color: theme.textSecondary }}>
-                <Text className="font-sans-semibold" style={{ color: theme.text }}>
+              <Text
+                className="font-sans text-[13px]"
+                style={{ color: theme.textSecondary }}
+              >
+                <Text
+                  className="font-sans-semibold"
+                  style={{ color: theme.text }}
+                >
                   0
                 </Text>{" "}
                 Likes
               </Text>
-              <Text className="font-sans text-[13px]" style={{ color: theme.textSecondary }}>
-                <Text className="font-sans-semibold" style={{ color: theme.text }}>
+              <Text
+                className="font-sans text-[13px]"
+                style={{ color: theme.textSecondary }}
+              >
+                <Text
+                  className="font-sans-semibold"
+                  style={{ color: theme.text }}
+                >
                   0
                 </Text>{" "}
                 Comments
@@ -378,11 +425,10 @@ export default function ProfileScreen() {
                   authorAvatarUrl={vibe.author.avatarUrl}
                   authorCountryCode={vibe.author.countryCode}
                   authorLanguages={vibe.author.languages}
-                  title={vibe.title}
-                  mention={vibe.mention || undefined}
+                  content={vibe.content ?? ""}
                   likes={vibe.likesCount}
                   comments={vibe.commentsCount}
-                  shares={vibe.sharesCount}
+                  shares={0}
                   isLiked={vibe.isLiked}
                 />
               ))}
@@ -391,7 +437,7 @@ export default function ProfileScreen() {
                   className="py-8 text-center font-sans text-[14px]"
                   style={{ color: theme.textSecondary }}
                 >
-                  No moments yet
+                  No vibes yet
                 </Text>
               )}
             </View>
@@ -400,7 +446,10 @@ export default function ProfileScreen() {
 
         {activeTab === "profile" && (
           <View className="items-center justify-center px-4 py-12">
-            <Text className="font-sans text-[14px]" style={{ color: theme.textSecondary }}>
+            <Text
+              className="font-sans text-[14px]"
+              style={{ color: theme.textSecondary }}
+            >
               Profile details coming soon
             </Text>
           </View>
@@ -408,7 +457,10 @@ export default function ProfileScreen() {
 
         {activeTab === "honor" && (
           <View className="items-center justify-center px-4 py-12">
-            <Text className="font-sans text-[14px]" style={{ color: theme.textSecondary }}>
+            <Text
+              className="font-sans text-[14px]"
+              style={{ color: theme.textSecondary }}
+            >
               Honor board coming soon
             </Text>
           </View>

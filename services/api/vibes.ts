@@ -20,36 +20,30 @@ export interface VibeAuthor {
 
 export interface Vibe {
   publicId: string;
-  title: string;
-  content: string | null;
-  mediaUrl: string | null;
-  mediaMimeType: string | null;
-  mention: string | null;
-  category: string | null;
+  content: string;
+  visibility: string;
+  languageCode: string | null;
   author: VibeAuthor;
+  space: { publicId: string; name: string; slug: string } | null;
+  media: { url: string; mimeType: string; width: number | null; height: number | null; duration: number | null; sortOrder: number }[];
   likesCount: number;
   commentsCount: number;
-  sharesCount: number;
   isLiked: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateVibeDto {
-  title: string;
-  content?: string;
-  mediaUrl?: string;
-  mediaMimeType?: string;
-  mention?: string;
-  category?: string;
+  content: string;
+  visibility?: string;
+  languageCode?: string;
+  spaceId?: string;
 }
 
 export interface UpdateVibeDto {
-  title?: string;
-  content?: string | null;
-  mediaUrl?: string | null;
-  mention?: string | null;
-  category?: string | null;
+  content?: string;
+  visibility?: string;
+  languageCode?: string | null;
 }
 
 export interface VibesFilterParams extends PaginationParams {

@@ -8,7 +8,7 @@ interface VibeCardProps {
   authorAvatarUrl?: string | null;
   authorCountryCode?: string | null;
   authorLanguages?: UserBadgeLanguage[];
-  title: string;
+  content: string;
   mention?: string;
   likes: number;
   comments: number;
@@ -27,7 +27,7 @@ export function VibeCard({
   authorAvatarUrl,
   authorCountryCode,
   authorLanguages = [],
-  title,
+  content,
   mention,
   likes,
   comments,
@@ -75,19 +75,13 @@ export function VibeCard({
         </Pressable>
       </View>
 
-      {/* Image placeholder */}
-      <View
-        className="mx-3 h-[200px] rounded-lg"
-        style={{ backgroundColor: theme.surface }}
-      />
-
-      {/* Title */}
-      <View className="px-3 py-3">
+      {/* Content */}
+      <View className="px-4 pb-3">
         <Text
           className="font-sans text-[16px] font-medium leading-[1.4] tracking-wide"
           style={{ color: theme.text }}
         >
-          {title}
+          {content}
           {mention && <Text style={{ color: theme.primary }}> @{mention}</Text>}
         </Text>
       </View>
