@@ -88,6 +88,21 @@ export interface UpdateUserDto {
   isProfilePublic?: boolean;
 }
 
+// User Language Types
+export type LanguageProficiency = "NATIVE" | "FLUENT" | "ADVANCED" | "INTERMEDIATE" | "BEGINNER";
+
+export interface UserLanguage {
+  code: string;
+  name: string;
+  nativeName: string;
+  proficiency: LanguageProficiency;
+  isLearning: boolean;
+}
+
+export interface UserMe extends User {
+  languages: UserLanguage[];
+}
+
 // Conversation Types
 export interface ConversationParticipant {
   publicId: string;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { View, ScrollView, Text, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,6 +9,7 @@ import {
   VibeCard,
 } from "@/components/ui";
 import { useVibes } from "@/hooks/useVibes";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -21,7 +22,8 @@ export default function VibesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useTheme();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user: authUser } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated);
   const {
     vibes,
     isLoading,
@@ -70,10 +72,13 @@ export default function VibesScreen() {
         {/* Header */}
         <View className="px-4 py-4">
           <LocationHeader
-            location="New York, USA"
+            displayName={profile?.displayName ?? authUser?.name}
+            avatarUrl={profile?.avatarUrl ?? authUser?.avatar}
+            countryCode={profile?.country?.code}
+            languages={profile?.languages}
             hasNotification
-            onLocationPress={() => {}}
             onNotificationPress={() => {}}
+            onAvatarPress={() => {}}
           />
         </View>
 

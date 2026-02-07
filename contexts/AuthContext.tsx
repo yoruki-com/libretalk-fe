@@ -64,6 +64,25 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
           if (credentials?.accessToken) {
             setAccessToken(credentials.accessToken);
             setIsAuthenticated(true);
+
+            // Fetch user info to populate avatar, name, etc.
+            try {
+              const response = await fetch(
+                `https://${AUTH0_DOMAIN}/userinfo`,
+                { headers: { Authorization: `Bearer ${credentials.accessToken}` } }
+              );
+              if (response.ok) {
+                const userInfo = await response.json();
+                setUser({
+                  id: userInfo.sub,
+                  email: userInfo.email,
+                  name: userInfo.name,
+                  avatar: userInfo.picture,
+                });
+              }
+            } catch (err) {
+              console.error("Error fetching user info:", err);
+            }
           }
         }
       } catch (error) {

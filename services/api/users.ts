@@ -4,11 +4,17 @@ import type {
   PaginatedResponse,
   PaginationParams,
   User,
+  UserMe,
   CreateUserDto,
   UpdateUserDto,
 } from "./types";
 
 export const usersApi = {
+  // Get current authenticated user profile
+  async getMe(): Promise<ApiResponse<UserMe>> {
+    return apiClient.get("/users/me");
+  },
+
   // Get all users (paginated)
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<User>> {
     return apiClient.get("/users", params);
