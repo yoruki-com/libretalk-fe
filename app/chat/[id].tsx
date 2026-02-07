@@ -178,7 +178,7 @@ export default function ChatScreen() {
 
   const isOnline = otherParticipant?.isOnline ?? false;
   const lastSeen = otherParticipant
-    ? getLastSeenText(otherParticipant.lastReadAt, isOnline)
+    ? getLastSeenText(otherParticipant.lastSeenAt, isOnline)
     : "";
 
   return (

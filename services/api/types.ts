@@ -118,6 +118,7 @@ export interface ConversationParticipant {
   displayName: string;
   avatarUrl: string | null;
   isOnline: boolean;
+  lastSeenAt: string | null;
   joinedAt: string;
   lastReadAt: string | null;
   isMuted: boolean;
