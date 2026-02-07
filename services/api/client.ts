@@ -44,10 +44,10 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    if (response.status === 401) {
-      throw new ApiError(401, "Unauthorized - Please sign in again");
-    }
     const errorData = await response.json().catch(() => null);
+    if (response.status === 401) {
+      throw new ApiError(401, errorData?.message || "Unauthorized - Please sign in again", errorData);
+    }
     throw new ApiError(
       response.status,
       errorData?.message || response.statusText,
