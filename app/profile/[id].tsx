@@ -85,6 +85,8 @@ export default function ProfileScreen() {
   const learningLanguages = (user.languages ?? []).filter((l) => l.isLearning);
   const bioText = user.bio ?? "";
   const shouldTruncateBio = bioText.length > 120;
+  const totalLikes = vibes.reduce((sum, v) => sum + v.likesCount, 0);
+  const totalComments = vibes.reduce((sum, v) => sum + v.commentsCount, 0);
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.background }}>
@@ -186,7 +188,7 @@ export default function ProfileScreen() {
                   className="font-sans-semibold text-[15px]"
                   style={{ color: theme.primary }}
                 >
-                  0
+                  {totalLikes}
                 </Text>
               </View>
             )}
@@ -405,7 +407,7 @@ export default function ProfileScreen() {
                   className="font-sans-semibold"
                   style={{ color: theme.text }}
                 >
-                  0
+                  {totalLikes}
                 </Text>{" "}
                 Likes
               </Text>
@@ -417,7 +419,7 @@ export default function ProfileScreen() {
                   className="font-sans-semibold"
                   style={{ color: theme.text }}
                 >
-                  0
+                  {totalComments}
                 </Text>{" "}
                 Comments
               </Text>
