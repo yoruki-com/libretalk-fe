@@ -8,10 +8,13 @@ import {
   CategoryChips,
   VibeCard,
 } from "@/components/ui";
+import { getLocales } from "expo-localization";
 import { useVibes } from "@/hooks/useVibes";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+
+const deviceCountryCode = getLocales()[0]?.regionCode ?? null;
 
 // Default categories as fallback
 const defaultCategories = [
@@ -74,7 +77,7 @@ export default function VibesScreen() {
           <LocationHeader
             displayName={profile?.displayName ?? authUser?.name}
             avatarUrl={profile?.avatarUrl ?? authUser?.avatar}
-            countryCode={profile?.country?.code}
+            countryCode={profile?.country?.code ?? deviceCountryCode}
             languages={profile?.languages}
             hasNotification
             onNotificationPress={() => {}}

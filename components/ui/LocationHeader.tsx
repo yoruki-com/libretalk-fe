@@ -2,14 +2,6 @@ import { View, Text, Pressable, Image, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 
-function countryCodeToFlag(code: string): string {
-  const codePoints = code
-    .toUpperCase()
-    .split("")
-    .map((char) => 0x1f1e6 + char.charCodeAt(0) - 65);
-  return String.fromCodePoint(...codePoints);
-}
-
 interface LanguageChip {
   code: string;
   name: string;
@@ -60,12 +52,16 @@ export function LocationHeader({
             )}
             {countryCode && (
               <View
-                className="absolute -bottom-0.5 -right-0.5 h-5 w-5 items-center justify-center rounded-full"
-                style={{ backgroundColor: theme.card }}
+                className="absolute -bottom-0.5 -right-0.5 h-5 w-5 items-center justify-center overflow-hidden rounded-full"
+                style={{ borderWidth: 1.5, borderColor: theme.surface }}
               >
-                <Text style={{ fontSize: 12, lineHeight: 16 }}>
-                  {countryCodeToFlag(countryCode)}
-                </Text>
+                <Image
+                  source={{
+                    uri: `https://flagcdn.com/w80/${countryCode.toLowerCase()}.png`,
+                  }}
+                  className="h-5 w-5"
+                  resizeMode="cover"
+                />
               </View>
             )}
           </View>
