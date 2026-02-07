@@ -1,76 +1,49 @@
-import { View, Text, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useRouter } from "expo-router";
+import { Pressable, Text, View } from "react-native";
 
 interface HeaderProps {
   title?: string;
-  onMenuPress?: () => void;
-  onCameraPress?: () => void;
-  onNewChatPress?: () => void;
+  onVipPress?: () => void;
 }
 
-export function Header({
-  title = "Chatterly",
-  onMenuPress,
-  onCameraPress,
-  onNewChatPress,
-}: HeaderProps) {
+export function Header({ title = "Chat", onVipPress }: HeaderProps) {
   const { theme } = useTheme();
+  const router = useRouter();
+
+  const handleVipPress = () => {
+    if (onVipPress) {
+      onVipPress();
+    } else {
+      router.push("/vip");
+    }
+  };
 
   return (
     <View className="flex-row items-center justify-between py-2">
-      {/* Left - Menu */}
+      {/* Left - VIP chip */}
       <View className="w-[76px]">
         <Pressable
-          onPress={onMenuPress}
-          className="h-8 w-8 items-center justify-center rounded-full active:opacity-70"
-          style={{ backgroundColor: theme.surface }}
+          onPress={handleVipPress}
+          className="items-center justify-center self-start rounded-full px-3 py-1 active:opacity-70"
+          style={{ backgroundColor: "#F59E0B" }}
         >
-          <View className="flex-row gap-1.5">
-            <View
-              className="h-[3px] w-[3px] rounded-full"
-              style={{ backgroundColor: theme.icon }}
-            />
-            <View
-              className="h-[3px] w-[3px] rounded-full"
-              style={{ backgroundColor: theme.icon }}
-            />
-            <View
-              className="h-[3px] w-[3px] rounded-full"
-              style={{ backgroundColor: theme.icon }}
-            />
-          </View>
+          <Text className="font-sans-semibold text-[12px] text-white">
+            VIP
+          </Text>
         </Pressable>
       </View>
 
-      {/* Center - Logo */}
-      <View className="flex-row items-center gap-2">
-        <View className="h-8 w-8" style={{ backgroundColor: theme.border }} />
-        <Text
-          className="font-sans-semibold text-[20px] font-semibold leading-7"
-          style={{ color: theme.text }}
-        >
-          {title}
-        </Text>
-      </View>
+      {/* Center - Title */}
+      <Text
+        className="font-sans-semibold text-[20px] font-semibold leading-7"
+        style={{ color: theme.text }}
+      >
+        {title}
+      </Text>
 
-      {/* Right - Actions */}
-      <View className="flex-row items-center gap-2">
-        <Pressable
-          onPress={onCameraPress}
-          className="h-8 w-8 items-center justify-center rounded-full active:opacity-70"
-          style={{ backgroundColor: theme.surface }}
-        >
-          <Ionicons name="camera" size={16} color={theme.icon} />
-        </Pressable>
-        <Pressable
-          onPress={onNewChatPress}
-          className="h-8 w-8 items-center justify-center rounded-full active:opacity-70"
-          style={{ backgroundColor: theme.primary }}
-        >
-          <Ionicons name="add" size={16} color="#FFFFFF" />
-        </Pressable>
-      </View>
+      {/* Right - spacer to keep title centered */}
+      <View className="w-[76px]" />
     </View>
   );
 }

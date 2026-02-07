@@ -20,12 +20,12 @@ export function SearchInput({
   return (
     <Pressable onPress={onPress}>
       <View
-        className="flex-row items-center gap-2 rounded-full px-4 py-3"
+        className="flex-row items-center gap-1.5 rounded-full px-2.5 py-1.5"
         style={{ backgroundColor: theme.surface }}
       >
-        <Ionicons name="search" size={20} color={theme.iconSecondary} />
+        <Ionicons name="search" size={14} color={theme.iconSecondary} />
         <TextInput
-          className="flex-1 font-sans text-[14px]"
+          className="flex-1 font-sans text-[12px]"
           style={{ color: theme.text }}
           placeholder={placeholder}
           placeholderTextColor={theme.textTertiary}

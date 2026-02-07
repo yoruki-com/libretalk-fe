@@ -1,15 +1,21 @@
-import { View, ScrollView, Text, ActivityIndicator, RefreshControl } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { ArchiveRow } from "@/components/ui/ArchiveRow";
+import { ChatCard } from "@/components/ui/ChatCard";
 import { Header } from "@/components/ui/Header";
 import { SearchInput } from "@/components/ui/SearchInput";
-import { ChatCard } from "@/components/ui/ChatCard";
-import { ArchiveRow } from "@/components/ui/ArchiveRow";
-import { useConversations } from "@/hooks/useConversations";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useConversations } from "@/hooks/useConversations";
 import type { Conversation } from "@/services/api";
+import { useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Helper to format time for display
 function formatTime(dateString: string | null): string {
@@ -56,18 +62,6 @@ export default function ChatListScreen() {
     enabled: isAuthenticated,
   });
 
-  const handleMenuPress = () => {
-    console.log("Menu pressed");
-  };
-
-  const handleCameraPress = () => {
-    console.log("Camera pressed");
-  };
-
-  const handleNewChatPress = () => {
-    console.log("New chat pressed");
-  };
-
   const handleChatPress = (chatId: string) => {
     router.push(`/chat/${chatId}`);
   };
@@ -89,14 +83,9 @@ export default function ChatListScreen() {
     >
       {/* Header Section */}
       <View className="gap-6 px-4">
-        <Header
-          onMenuPress={handleMenuPress}
-          onCameraPress={handleCameraPress}
-          onNewChatPress={handleNewChatPress}
-        />
+        <Header />
         <SearchInput />
       </View>
-
       {/* Loading State */}
       {isLoading && conversations.length === 0 && (
         <View className="flex-1 items-center justify-center">

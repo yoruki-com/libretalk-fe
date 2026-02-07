@@ -16,9 +16,11 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const deviceCountryCode = getLocales()[0]?.regionCode ?? null;
 
-// Default categories as fallback
-const defaultCategories = [
-  { id: "all", emoji: "🔥", label: "All" },
+const feedFilters = [
+  { id: "recent", emoji: "🕐", label: "Recent" },
+  { id: "for-you", emoji: "✨", label: "For You" },
+  { id: "nearby", emoji: "📍", label: "Nearby" },
+  { id: "following", emoji: "👥", label: "Following" },
 ];
 
 export default function VibesScreen() {
@@ -45,7 +47,7 @@ export default function VibesScreen() {
   };
 
   // Track selected category locally for UI
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("recent");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Handle category change
@@ -98,7 +100,7 @@ export default function VibesScreen() {
         {/* Categories */}
         <View className="px-4 pb-4">
           <CategoryChips
-            categories={defaultCategories}
+            categories={feedFilters}
             selectedId={selectedCategory}
             onSelect={handleCategoryChange}
           />
