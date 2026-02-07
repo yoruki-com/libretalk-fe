@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { View, ScrollView, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { SearchBar, CategoryChips, CommunityCard } from "@/components/ui";
+import { SearchBar, CategoryChips, CommunityCard, RefreshableScrollView } from "@/components/ui";
 import { useCommunity } from "@/hooks/useCommunity";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -48,10 +48,10 @@ export default function CommunityScreen() {
       className="flex-1"
       style={{ paddingTop: insets.top, backgroundColor: theme.surface }}
     >
-      <ScrollView
+      <RefreshableScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 20 }}
-        showsVerticalScrollIndicator={false}
+        onRefresh={refresh}
       >
         {/* Title */}
         <View className="px-4 pt-4 pb-2">
@@ -146,7 +146,7 @@ export default function CommunityScreen() {
             />
           ))}
         </View>
-      </ScrollView>
+      </RefreshableScrollView>
     </View>
   );
 }

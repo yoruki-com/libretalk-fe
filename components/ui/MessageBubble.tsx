@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface ImageItem {
   uri: string;
@@ -28,6 +29,8 @@ export function MessageBubble({
   images,
   file,
 }: MessageBubbleProps) {
+  const { theme } = useTheme();
+
   return (
     <View className={`flex-col ${isMe ? "items-end" : "items-start"}`}>
       <View
@@ -37,18 +40,20 @@ export function MessageBubble({
       >
         {/* Time and read status */}
         <View className="flex-row items-center gap-2">
-          <Text className="font-sans text-[12px] leading-[15px] tracking-tight text-dark opacity-50">
+          <Text
+            className="font-sans text-[12px] leading-[15px] tracking-tight"
+            style={{ color: theme.textSecondary }}
+          >
             {time}
           </Text>
           {isMe && isRead && (
-            <Ionicons name="checkmark-done" size={12} color="#53C92C" />
+            <Ionicons name="checkmark-done" size={12} color={theme.success} />
           )}
           {isMe && !isRead && (
             <Ionicons
               name="checkmark-done"
               size={12}
-              color="#131313"
-              style={{ opacity: 0.5 }}
+              color={theme.textTertiary}
             />
           )}
         </View>
@@ -57,9 +62,10 @@ export function MessageBubble({
         <View
           className={`p-3 shadow-sm ${
             isMe
-              ? "rounded-bl-2xl rounded-tl-2xl rounded-tr-2xl bg-primary-30"
-              : "rounded-bl-2xl rounded-br-2xl rounded-tr-2xl bg-white"
+              ? "rounded-bl-2xl rounded-tl-2xl rounded-tr-2xl"
+              : "rounded-bl-2xl rounded-br-2xl rounded-tr-2xl"
           }`}
+          style={{ backgroundColor: isMe ? theme.primaryLight : theme.card }}
         >
           {/* Images grid */}
           {images && images.length > 0 && (
@@ -87,10 +93,16 @@ export function MessageBubble({
                 <Ionicons name="download-outline" size={12} color="#F5F5F5" />
               </View>
               <View className="mt-2 flex-row items-center justify-between">
-                <Text className="font-sans text-[11px] font-medium text-dark">
+                <Text
+                  className="font-sans text-[11px] font-medium"
+                  style={{ color: theme.text }}
+                >
                   Document File
                 </Text>
-                <Text className="font-sans text-[12px] leading-[15px] tracking-tight text-dark opacity-50">
+                <Text
+                  className="font-sans text-[12px] leading-[15px] tracking-tight"
+                  style={{ color: theme.textSecondary }}
+                >
                   {file.size}
                 </Text>
               </View>
@@ -99,7 +111,10 @@ export function MessageBubble({
 
           {/* Text message */}
           {message && (
-            <Text className="font-sans text-[12px] leading-[15px] tracking-tight text-dark">
+            <Text
+              className="font-sans text-[12px] leading-[15px] tracking-tight"
+              style={{ color: theme.text }}
+            >
               {message}
             </Text>
           )}

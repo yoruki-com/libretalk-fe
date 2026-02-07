@@ -10,6 +10,7 @@ interface ChatCardProps {
   unreadCount?: number;
   isRead?: boolean;
   isOnline?: boolean;
+  isGroup?: boolean;
   onPress?: () => void;
 }
 
@@ -21,6 +22,7 @@ export function ChatCard({
   unreadCount = 0,
   isRead = false,
   isOnline = false,
+  isGroup = false,
   onPress,
 }: ChatCardProps) {
   const { theme } = useTheme();
@@ -44,7 +46,7 @@ export function ChatCard({
             className="h-14 w-14 items-center justify-center rounded-full"
             style={{ backgroundColor: theme.surface }}
           >
-            <Ionicons name="person" size={24} color={theme.iconSecondary} />
+            <Ionicons name={isGroup ? "people" : "person"} size={24} color={theme.iconSecondary} />
           </View>
         )}
         {isOnline && (

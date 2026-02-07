@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { View, ScrollView, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,6 +8,7 @@ import {
   SearchBar,
   CategoryChips,
   VibeCard,
+  RefreshableScrollView,
 } from "@/components/ui";
 import { getLocales } from "expo-localization";
 import { useVibes } from "@/hooks/useVibes";
@@ -84,10 +85,10 @@ export default function VibesScreen() {
       className="flex-1"
       style={{ paddingTop: insets.top, backgroundColor: theme.surface }}
     >
-      <ScrollView
+      <RefreshableScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 20 }}
-        showsVerticalScrollIndicator={false}
+        onRefresh={refresh}
       >
         {/* Header */}
         <View className="px-4 py-4">
@@ -179,7 +180,7 @@ export default function VibesScreen() {
             />
           ))}
         </View>
-      </ScrollView>
+      </RefreshableScrollView>
     </View>
   );
 }

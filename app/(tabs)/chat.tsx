@@ -8,14 +8,8 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useConversations } from "@/hooks/useConversations";
 import type { Conversation } from "@/services/api";
 import { useRouter } from "expo-router";
-import { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
+import { RefreshableScrollView } from "@/components/ui";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Helper to format time for display
@@ -37,25 +31,39 @@ function formatTime(dateString: string | null): string {
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-// Get display name for conversation (use participant name for 1:1 chats)
-function getConversationDisplayName(conversation: Conversation): string {
-  if (conversation.name) return conversation.name;
-  if (conversation.participants.length > 0) {
-    return conversation.participants[0].displayName;
+// Get the other participants (exclude the current user)
+function getOtherParticipants(conversation: Conversation, currentUserPublicId: string) {
+  return conversation.participants.filter((p) => p.publicId !== currentUserPublicId);
+}
+
+// Get display name for conversation
+function getConversationDisplayName(conversation: Conversation, currentUserPublicId: string): string {
+  if (conversation.isGroup) {
+    if (conversation.name) return conversation.name;
+    const others = getOtherParticipants(conversation, currentUserPublicId);
+    return others.map((p) => p.displayName).join(", ") || "Group";
   }
-  return "Unknown";
+  const other = getOtherParticipants(conversation, currentUserPublicId)[0];
+  return other?.displayName ?? "Unknown";
+}
+
+// Get avatar for conversation
+function getConversationAvatar(conversation: Conversation, currentUserPublicId: string): string | undefined {
+  if (conversation.isGroup) return conversation.avatarUrl ?? undefined;
+  const other = getOtherParticipants(conversation, currentUserPublicId)[0];
+  return other?.avatarUrl ?? undefined;
 }
 
 // Check if any participant is online (for 1:1 chats)
-function isConversationOnline(conversation: Conversation): boolean {
+function isConversationOnline(conversation: Conversation, currentUserPublicId: string): boolean {
   if (conversation.isGroup) return false;
-  return conversation.participants.some((p) => p.isOnline);
+  const other = getOtherParticipants(conversation, currentUserPublicId)[0];
+  return other?.isOnline ?? false;
 }
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [refreshing, setRefreshing] = useState(false);
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
   const { profile } = useCurrentUser(isAuthenticated);
@@ -72,12 +80,6 @@ export default function ChatListScreen() {
   const handleArchivePress = () => {
     console.log("Archive pressed");
   };
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refresh();
-    setRefreshing(false);
-  }, [refresh]);
 
   return (
     <View
@@ -106,23 +108,19 @@ export default function ChatListScreen() {
       )}
 
       {/* Chat List */}
-      <ScrollView
-        className="mt-4 flex-1"
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
+      <RefreshableScrollView className="mt-4 flex-1" onRefresh={refresh}>
         <ArchiveRow count={0} onPress={handleArchivePress} />
         {conversations.map((conversation) => (
           <ChatCard
             key={conversation.publicId}
-            name={getConversationDisplayName(conversation)}
+            name={getConversationDisplayName(conversation, profile!.publicId)}
             message=""
             time={formatTime(conversation.lastMessageAt)}
+            avatar={getConversationAvatar(conversation, profile!.publicId)}
             unreadCount={0}
             isRead={true}
-            isOnline={isConversationOnline(conversation)}
+            isOnline={isConversationOnline(conversation, profile!.publicId)}
+            isGroup={conversation.isGroup}
             onPress={() => handleChatPress(conversation.publicId)}
           />
         ))}
@@ -135,7 +133,7 @@ export default function ChatListScreen() {
             </Text>
           </View>
         )}
-      </ScrollView>
+      </RefreshableScrollView>
     </View>
   );
 }

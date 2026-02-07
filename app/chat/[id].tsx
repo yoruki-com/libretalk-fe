@@ -1,4 +1,11 @@
-import { ScrollView, KeyboardAvoidingView, Platform, View, Text, ActivityIndicator } from "react-native";
+import {
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  View,
+  Text,
+  ActivityIndicator,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, useMemo } from "react";
 import { ChatHeader } from "@/components/ui/ChatHeader";
@@ -6,6 +13,7 @@ import { ChatInput } from "@/components/ui/ChatInput";
 import { MessageBubble } from "@/components/ui/MessageBubble";
 import { DateSeparator } from "@/components/ui/DateSeparator";
 import { useConversation } from "@/hooks/useConversation";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Message } from "@/services/api";
@@ -54,12 +62,15 @@ function getLastSeenText(lastSeenAt: string | null, isOnline: boolean): string {
 
   if (diffMins < 1) return "Last seen just now";
   if (diffMins < 60) return `Last seen ${diffMins} min ago`;
-  if (diffHours < 24) return `Last seen ${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+  if (diffHours < 24)
+    return `Last seen ${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
   return `Last seen ${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
 }
 
 // Group messages by date
-function groupMessagesByDate(messages: Message[]): { date: string; messages: Message[] }[] {
+function groupMessagesByDate(
+  messages: Message[],
+): { date: string; messages: Message[] }[] {
   const groups: Map<string, Message[]> = new Map();
 
   // Messages come sorted desc, we need to reverse for display
@@ -77,40 +88,38 @@ function groupMessagesByDate(messages: Message[]): { date: string; messages: Mes
   }));
 }
 
-// TODO: Replace with actual current user ID from auth context
-const CURRENT_USER_ID = "";
-
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [inputValue, setInputValue] = useState("");
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated);
+  const currentUserPublicId = profile?.publicId ?? "";
 
-  const { conversation, messages, isLoading, error, sendMessage } = useConversation({
-    conversationId: id,
-    enabled: isAuthenticated,
-  });
+  const { conversation, messages, isLoading, error, sendMessage } =
+    useConversation({
+      conversationId: id,
+      enabled: isAuthenticated,
+    });
 
   // Get the other participant for 1:1 chats
   const otherParticipant = useMemo(() => {
     if (!conversation || conversation.isGroup) return null;
-    return conversation.participants.find((p) => p.publicId !== CURRENT_USER_ID) || conversation.participants[0];
-  }, [conversation]);
+    return (
+      conversation.participants.find((p) => p.publicId !== currentUserPublicId) ||
+      conversation.participants[0]
+    );
+  }, [conversation, currentUserPublicId]);
 
   // Group messages by date
-  const messageGroups = useMemo(() => groupMessagesByDate(messages), [messages]);
+  const messageGroups = useMemo(
+    () => groupMessagesByDate(messages),
+    [messages],
+  );
 
   const handleBack = () => {
     router.back();
-  };
-
-  const handleCall = () => {
-    console.log("Call pressed");
-  };
-
-  const handleVideo = () => {
-    console.log("Video call pressed");
   };
 
   const handleSend = async () => {
@@ -122,10 +131,6 @@ export default function ChatScreen() {
         console.error("Failed to send message:", err);
       }
     }
-  };
-
-  const handleAttach = () => {
-    console.log("Attach pressed");
   };
 
   const handleCamera = () => {
@@ -155,7 +160,9 @@ export default function ChatScreen() {
         className="flex-1 items-center justify-center px-4"
         style={{ backgroundColor: theme.background }}
       >
-        <Text style={{ color: theme.error, textAlign: "center" }}>{error.message}</Text>
+        <Text style={{ color: theme.error, textAlign: "center" }}>
+          {error.message}
+        </Text>
       </View>
     );
   }
@@ -164,6 +171,10 @@ export default function ChatScreen() {
   const displayName = conversation?.isGroup
     ? conversation.name || "Group Chat"
     : otherParticipant?.displayName || "Chat";
+
+  const displayAvatar = conversation?.isGroup
+    ? conversation.avatarUrl ?? undefined
+    : otherParticipant?.avatarUrl ?? undefined;
 
   const isOnline = otherParticipant?.isOnline ?? false;
   const lastSeen = otherParticipant
@@ -178,12 +189,11 @@ export default function ChatScreen() {
     >
       <ChatHeader
         name={displayName}
+        avatar={displayAvatar}
         lastSeen={lastSeen}
         isOnline={isOnline}
         unreadCount={0}
         onBackPress={handleBack}
-        onCallPress={handleCall}
-        onVideoPress={handleVideo}
       />
 
       <ScrollView
@@ -201,7 +211,7 @@ export default function ChatScreen() {
                   key={msg.publicId}
                   message={msg.content || undefined}
                   time={formatTime(msg.createdAt)}
-                  isMe={msg.sender.publicId === CURRENT_USER_ID}
+                  isMe={msg.sender.publicId === currentUserPublicId}
                   isRead={msg.status === "READ"}
                   images={
                     msg.type === "IMAGE" && msg.mediaUrl
@@ -234,7 +244,6 @@ export default function ChatScreen() {
         value={inputValue}
         onChangeText={setInputValue}
         onSend={handleSend}
-        onAttachPress={handleAttach}
         onCameraPress={handleCamera}
         onMicPress={handleMic}
       />

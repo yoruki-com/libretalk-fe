@@ -1,6 +1,15 @@
-import { View, TextInput, Pressable, Text, useWindowDimensions, ScrollView, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface ChatInputProps {
   value?: string;
@@ -26,15 +35,24 @@ export function ChatInput({
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
   const maxInputHeight = screenHeight / 4;
+  const { theme } = useTheme();
 
   return (
     <View
-      className="border-t border-border bg-white px-4 pt-4"
-      style={{ paddingBottom: insets.bottom + 16 }}
+      className="px-4 pt-4"
+      style={{
+        paddingBottom: insets.bottom + 16,
+        backgroundColor: theme.background,
+        borderTopWidth: 1,
+        borderTopColor: theme.border,
+      }}
     >
       {/* Typing indicator */}
       {typingUser && (
-        <Text className="mb-4 font-sans text-[12px] leading-[15px] text-dark">
+        <Text
+          className="mb-4 font-sans text-[12px] leading-[15px]"
+          style={{ color: theme.textSecondary }}
+        >
           <Text className="font-sans-semibold italic">{typingUser},</Text>
           <Text className="italic"> is typing...</Text>
         </Text>
@@ -43,12 +61,10 @@ export function ChatInput({
       {/* Input row - items-end to anchor buttons to bottom */}
       <View className="flex-row items-end gap-3">
         {/* Input container */}
-        <View className="flex-1 flex-row items-center gap-3 rounded-2xl bg-light px-4 py-2">
-          {/* Attach button */}
-          <Pressable onPress={onAttachPress} className="active:opacity-70">
-            <Ionicons name="add" size={20} color="#131313" />
-          </Pressable>
-
+        <View
+          className="flex-1 flex-row items-center gap-3 rounded-2xl px-4 py-2"
+          style={{ backgroundColor: theme.surface }}
+        >
           {/* Text input with scrollbar */}
           <ScrollView
             style={{ maxHeight: maxInputHeight, flex: 1 }}
@@ -58,35 +74,26 @@ export function ChatInput({
             keyboardShouldPersistTaps="handled"
           >
             <TextInput
-              className="font-sans text-[14px] text-dark"
+              className="font-sans text-[14px]"
               placeholder={placeholder}
-              placeholderTextColor="rgba(19, 19, 19, 0.3)"
+              placeholderTextColor={theme.textTertiary}
               value={value}
               onChangeText={onChangeText}
               multiline
               scrollEnabled={false}
-              style={{ minHeight: 20 }}
+              style={{ minHeight: 20, color: theme.text }}
             />
           </ScrollView>
 
-          {/* Action buttons */}
-          <View className="flex-row items-center gap-2">
-            <Pressable onPress={onCameraPress} className="active:opacity-70">
-              <Ionicons name="camera" size={18} color="#131313" />
-            </Pressable>
-            <Pressable onPress={onMicPress} className="active:opacity-70">
-              <Ionicons name="mic" size={18} color="#131313" />
-            </Pressable>
-          </View>
+          {/* Send button - in the middle */}
+          <Pressable
+            onPress={onSend}
+            className="h-9 w-9 items-center justify-center rounded-full active:opacity-70"
+            style={{ backgroundColor: theme.primary }}
+          >
+            <Ionicons name="send" size={16} color="#FFFFFF" />
+          </Pressable>
         </View>
-
-        {/* Send button - outside */}
-        <Pressable
-          onPress={onSend}
-          className="h-11 w-11 items-center justify-center rounded-full bg-primary active:opacity-70"
-        >
-          <Ionicons name="send" size={18} color="#FFFFFF" />
-        </Pressable>
       </View>
     </View>
   );

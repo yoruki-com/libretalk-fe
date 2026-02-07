@@ -10,8 +10,6 @@ interface ChatHeaderProps {
   isOnline?: boolean;
   unreadCount?: number;
   onBackPress?: () => void;
-  onCallPress?: () => void;
-  onVideoPress?: () => void;
 }
 
 export function ChatHeader({
@@ -21,8 +19,6 @@ export function ChatHeader({
   isOnline = false,
   unreadCount = 0,
   onBackPress,
-  onCallPress,
-  onVideoPress,
 }: ChatHeaderProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
