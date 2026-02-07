@@ -5,6 +5,8 @@ import { usersApi } from "@/services/api/users";
 import type { Vibe } from "@/services/api/vibes";
 import { vibesApi } from "@/services/api/vibes";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -27,6 +29,9 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme, isDark } = useTheme();
+  const { isAuthenticated } = useAuth();
+  const { profile: currentUser } = useCurrentUser(isAuthenticated);
+  const isOwnProfile = !!(currentUser && id && currentUser.publicId === id);
 
   const [user, setUser] = useState<UserMe | null>(null);
   const [vibes, setVibes] = useState<Vibe[]>([]);
@@ -174,15 +179,17 @@ export default function ProfileScreen() {
             </View>
 
             {/* Likes */}
-            <View className="mb-2 flex-row items-center gap-1">
-              <Ionicons name="thumbs-up" size={18} color={theme.primary} />
-              <Text
-                className="font-sans-semibold text-[15px]"
-                style={{ color: theme.primary }}
-              >
-                0
-              </Text>
-            </View>
+            {!isOwnProfile && (
+              <View className="mb-2 flex-row items-center gap-1">
+                <Ionicons name="thumbs-up" size={18} color={theme.primary} />
+                <Text
+                  className="font-sans-semibold text-[15px]"
+                  style={{ color: theme.primary }}
+                >
+                  0
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -468,36 +475,38 @@ export default function ProfileScreen() {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View
-        className="absolute bottom-0 left-0 right-0 flex-row items-center gap-3 px-4"
-        style={{
-          paddingBottom: insets.bottom + 12,
-          paddingTop: 12,
-          backgroundColor: theme.background,
-          borderTopWidth: 1,
-          borderTopColor: theme.border,
-        }}
-      >
-        <Pressable
-          className="flex-1 items-center rounded-full border py-3 active:opacity-70"
-          style={{ borderColor: theme.primary }}
+      {!isOwnProfile && (
+        <View
+          className="absolute bottom-0 left-0 right-0 flex-row items-center gap-3 px-4"
+          style={{
+            paddingBottom: insets.bottom + 12,
+            paddingTop: 12,
+            backgroundColor: theme.background,
+            borderTopWidth: 1,
+            borderTopColor: theme.border,
+          }}
         >
-          <Text
-            className="font-sans-semibold text-[15px]"
-            style={{ color: theme.primary }}
+          <Pressable
+            className="flex-1 items-center rounded-full border py-3 active:opacity-70"
+            style={{ borderColor: theme.primary }}
           >
-            Follow
-          </Text>
-        </Pressable>
-        <Pressable
-          className="flex-1 items-center rounded-full py-3 active:opacity-70"
-          style={{ backgroundColor: theme.primary }}
-        >
-          <Text className="font-sans-semibold text-[15px] text-white">
-            Say Hi
-          </Text>
-        </Pressable>
-      </View>
+            <Text
+              className="font-sans-semibold text-[15px]"
+              style={{ color: theme.primary }}
+            >
+              Follow
+            </Text>
+          </Pressable>
+          <Pressable
+            className="flex-1 items-center rounded-full py-3 active:opacity-70"
+            style={{ backgroundColor: theme.primary }}
+          >
+            <Text className="font-sans-semibold text-[15px] text-white">
+              Say Hi
+            </Text>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }
