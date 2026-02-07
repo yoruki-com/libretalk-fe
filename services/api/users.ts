@@ -21,14 +21,14 @@ export const usersApi = {
     return apiClient.get("/users", params);
   },
 
-  // Get active users
-  async getActive(params?: PaginationParams): Promise<PaginatedResponse<User>> {
-    return apiClient.get("/users/active", params);
+  // Get active users (with languages)
+  async getActive(): Promise<ApiResponse<UserMe[]>> {
+    return apiClient.get("/users/active");
   },
 
-  // Get online users
-  async getOnline(params?: PaginationParams): Promise<PaginatedResponse<User>> {
-    return apiClient.get("/users/online", params);
+  // Get online users (with languages)
+  async getOnline(): Promise<ApiResponse<UserMe[]>> {
+    return apiClient.get("/users/online");
   },
 
   // Get user by ID
