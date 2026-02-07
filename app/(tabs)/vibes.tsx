@@ -141,7 +141,9 @@ export default function VibesScreen() {
             <VibeCard
               key={vibe.publicId}
               authorName={vibe.author.displayName}
-              authorRole={vibe.author.role || undefined}
+              authorAvatarUrl={vibe.author.avatarUrl}
+              authorCountryCode={vibe.author.countryCode}
+              authorLanguages={vibe.author.languages}
               title={vibe.title}
               mention={vibe.mention || undefined}
               likes={vibe.likesCount}

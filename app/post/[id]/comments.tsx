@@ -144,7 +144,9 @@ export default function CommentsScreen() {
               <View className="p-4">
                 <VibeCard
                   authorName={post.author.displayName}
-                  authorRole={post.author.role || undefined}
+                  authorAvatarUrl={post.author.avatarUrl}
+                  authorCountryCode={post.author.countryCode}
+                  authorLanguages={post.author.languages}
                   title={post.title}
                   mention={post.mention || undefined}
                   likes={post.likesCount}

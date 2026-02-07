@@ -2,11 +2,19 @@ import { apiClient } from "./client";
 import type { ApiResponse, PaginatedResponse, PaginationParams } from "./types";
 
 // Vibe/Post Types
+export interface VibeAuthorLanguage {
+  code: string;
+  proficiency: string;
+  isLearning: boolean;
+}
+
 export interface VibeAuthor {
   publicId: string;
   username: string;
   displayName: string;
   avatarUrl: string | null;
+  countryCode: string | null;
+  languages: VibeAuthorLanguage[];
   role: string | null;
 }
 

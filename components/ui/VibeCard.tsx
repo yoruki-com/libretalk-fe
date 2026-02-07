@@ -1,10 +1,13 @@
 import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { UserBadge, type UserBadgeLanguage } from "./UserBadge";
 
 interface VibeCardProps {
   authorName: string;
-  authorRole?: string;
+  authorAvatarUrl?: string | null;
+  authorCountryCode?: string | null;
+  authorLanguages?: UserBadgeLanguage[];
   title: string;
   mention?: string;
   likes: number;
@@ -21,7 +24,9 @@ interface VibeCardProps {
 
 export function VibeCard({
   authorName,
-  authorRole = "Host",
+  authorAvatarUrl,
+  authorCountryCode,
+  authorLanguages = [],
   title,
   mention,
   likes,
@@ -52,34 +57,21 @@ export function VibeCard({
     >
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3">
-        <Pressable
-          onPress={onAuthorPress}
-          className="flex-row items-center gap-2 active:opacity-70"
-        >
-          {/* Avatar placeholder */}
-          <View
-            className="h-10 w-10 items-center justify-center rounded-full"
-            style={{ backgroundColor: theme.primaryLight }}
-          >
-            <Ionicons name="person" size={20} color={theme.primary} />
-          </View>
-          <View>
-            <Text
-              className="font-sans-semibold text-[14px] leading-[1.6]"
-              style={{ color: theme.text }}
-            >
-              {authorName}
-            </Text>
-            <Text
-              className="font-sans text-[12px] leading-[1.6]"
-              style={{ color: theme.textSecondary }}
-            >
-              {authorRole}
-            </Text>
-          </View>
-        </Pressable>
+        <View className="flex-1">
+          <UserBadge
+            displayName={authorName}
+            avatarUrl={authorAvatarUrl}
+            countryCode={authorCountryCode}
+            languages={authorLanguages}
+            onPress={onAuthorPress}
+          />
+        </View>
         <Pressable onPress={onMenuPress} className="p-2 active:opacity-70">
-          <Ionicons name="ellipsis-horizontal" size={20} color={theme.iconSecondary} />
+          <Ionicons
+            name="ellipsis-horizontal"
+            size={20}
+            color={theme.iconSecondary}
+          />
         </Pressable>
       </View>
 
@@ -96,9 +88,7 @@ export function VibeCard({
           style={{ color: theme.text }}
         >
           {title}
-          {mention && (
-            <Text style={{ color: theme.primary }}> @{mention}</Text>
-          )}
+          {mention && <Text style={{ color: theme.primary }}> @{mention}</Text>}
         </Text>
       </View>
 
@@ -127,7 +117,11 @@ export function VibeCard({
           onPress={onCommentPress}
           className="flex-row items-center gap-1 active:opacity-70"
         >
-          <Ionicons name="chatbubble-outline" size={20} color={theme.textSecondary} />
+          <Ionicons
+            name="chatbubble-outline"
+            size={20}
+            color={theme.textSecondary}
+          />
           <Text
             className="font-sans text-[14px] leading-[1.4] tracking-wide"
             style={{ color: theme.textSecondary }}
@@ -139,7 +133,11 @@ export function VibeCard({
           onPress={onSharePress}
           className="flex-row items-center gap-1 active:opacity-70"
         >
-          <Ionicons name="share-social-outline" size={20} color={theme.textSecondary} />
+          <Ionicons
+            name="share-social-outline"
+            size={20}
+            color={theme.textSecondary}
+          />
           <Text
             className="font-sans text-[14px] leading-[1.4] tracking-wide"
             style={{ color: theme.textSecondary }}
