@@ -1,6 +1,6 @@
-import { View, Text, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, Text, View } from "react-native";
 import { UserBadge, type UserBadgeLanguage } from "./UserBadge";
 
 interface VibeCardProps {
@@ -31,13 +31,11 @@ export function VibeCard({
   mention,
   likes,
   comments,
-  shares,
   onPress,
   onAuthorPress,
   onMenuPress,
   onLikePress,
   onCommentPress,
-  onSharePress,
   isLiked = false,
 }: VibeCardProps) {
   const { theme, isDark } = useTheme();
@@ -121,22 +119,6 @@ export function VibeCard({
             style={{ color: theme.textSecondary }}
           >
             {comments}
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={onSharePress}
-          className="flex-row items-center gap-1 active:opacity-70"
-        >
-          <Ionicons
-            name="share-social-outline"
-            size={20}
-            color={theme.textSecondary}
-          />
-          <Text
-            className="font-sans text-[14px] leading-[1.4] tracking-wide"
-            style={{ color: theme.textSecondary }}
-          >
-            {shares}
           </Text>
         </Pressable>
       </View>

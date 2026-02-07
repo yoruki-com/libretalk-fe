@@ -1,6 +1,6 @@
-import { View, Text, Pressable, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import { Image, Pressable, Text, View } from "react-native";
 
 interface CommentCardProps {
   authorName: string;
@@ -79,7 +79,11 @@ export function CommentCard({
               {time}
             </Text>
             <Pressable onPress={onMenuPress} className="p-1 active:opacity-70">
-              <Ionicons name="ellipsis-horizontal" size={16} color={theme.textTertiary} />
+              <Ionicons
+                name="ellipsis-horizontal"
+                size={16}
+                color={theme.textTertiary}
+              />
             </Pressable>
           </View>
         </View>
@@ -111,18 +115,6 @@ export function CommentCard({
                 {likes}
               </Text>
             )}
-          </Pressable>
-          <Pressable
-            onPress={onReplyPress}
-            className="flex-row items-center gap-1 active:opacity-70"
-          >
-            <Ionicons name="chatbubble-outline" size={16} color={theme.textTertiary} />
-            <Text
-              className="font-sans text-[12px]"
-              style={{ color: theme.textSecondary }}
-            >
-              Reply
-            </Text>
           </Pressable>
         </View>
       </View>

@@ -1,5 +1,5 @@
-import { Tabs } from "expo-router";
 import { BottomNavigation } from "@/components/ui/BottomNavigation";
+import { Tabs } from "expo-router";
 
 export default function TabLayout() {
   return (
@@ -18,7 +18,7 @@ export default function TabLayout() {
               props.navigation.navigate(route.name);
             }
           }}
-          badges={{ vibes: true, chat: true, call: true }}
+          //badges={{ vibes: true, chat: true, call: true }}
         />
       )}
     >
