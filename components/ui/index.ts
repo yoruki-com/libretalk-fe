@@ -13,6 +13,7 @@ export { ProfileCard } from "./ProfileCard";
 export { SettingsMenuItem } from "./SettingsMenuItem";
 export { SettingsMenuGroup } from "./SettingsMenuGroup";
 export { LocationHeader } from "./LocationHeader";
+export { UserBadge, type UserBadgeLanguage } from "./UserBadge";
 export { CategoryChips } from "./CategoryChip";
 export { VibeCard } from "./VibeCard";
 export { SearchBar } from "./SearchBar";
