@@ -7,6 +7,7 @@ import type {
   UserMe,
   CreateUserDto,
   UpdateUserDto,
+  UpdateUserLanguagesDto,
 } from "./types";
 
 export const usersApi = {
@@ -61,6 +62,11 @@ export const usersApi = {
   // Update last seen
   async updateLastSeen(publicId: string): Promise<ApiResponse<User>> {
     return apiClient.post(`/users/${publicId}/last-seen`);
+  },
+
+  // Update current user's languages
+  async updateMyLanguages(data: UpdateUserLanguagesDto): Promise<ApiResponse<UserMe>> {
+    return apiClient.put("/users/me/languages", data);
   },
 
   // Delete a user

@@ -103,6 +103,14 @@ export interface UserMe extends User {
   languages: UserLanguage[];
 }
 
+export interface UpdateUserLanguagesDto {
+  languages: {
+    code: string;
+    proficiency: LanguageProficiency;
+    isLearning: boolean;
+  }[];
+}
+
 // Conversation Types
 export interface ConversationParticipant {
   publicId: string;

@@ -1,4 +1,4 @@
-import { View, Text, Pressable, Image, ScrollView } from "react-native";
+import { View, Text, Pressable, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -79,40 +79,34 @@ export function LocationHeader({
             </Text>
           )}
           {languages.length > 0 && (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 4, paddingTop: 2 }}
-            >
-              {spokenLanguages.map((lang) => (
+            <View className="flex-row gap-1.5" style={{ paddingTop: 2 }}>
+              {spokenLanguages.length > 0 && (
                 <View
-                  key={lang.code}
-                  className="rounded-full px-2 py-0.5"
-                  style={{ backgroundColor: "rgba(236, 72, 153, 0.15)" }}
+                  className="rounded-full px-2.5 py-0.5"
+                  style={{ backgroundColor: "#EC4899" }}
                 >
                   <Text
-                    className="font-sans text-[11px]"
-                    style={{ color: "#EC4899" }}
+                    className="font-sans-semibold text-[11px] uppercase"
+                    style={{ color: "#FFFFFF" }}
                   >
-                    {lang.name}
+                    {spokenLanguages.map((l) => l.code).join(" · ")}
                   </Text>
                 </View>
-              ))}
-              {learningLanguages.map((lang) => (
+              )}
+              {learningLanguages.length > 0 && (
                 <View
-                  key={lang.code}
-                  className="rounded-full px-2 py-0.5"
-                  style={{ backgroundColor: "rgba(59, 130, 246, 0.15)" }}
+                  className="rounded-full px-2.5 py-0.5"
+                  style={{ backgroundColor: "#3B82F6" }}
                 >
                   <Text
-                    className="font-sans text-[11px]"
-                    style={{ color: "#3B82F6" }}
+                    className="font-sans-semibold text-[11px] uppercase"
+                    style={{ color: "#FFFFFF" }}
                   >
-                    {lang.name}
+                    {learningLanguages.map((l) => l.code).join(" · ")}
                   </Text>
                 </View>
-              ))}
-            </ScrollView>
+              )}
+            </View>
           )}
         </View>
       </View>

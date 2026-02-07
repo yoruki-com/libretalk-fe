@@ -112,6 +112,18 @@ export const apiClient = {
     return handleResponse<T>(response);
   },
 
+  async put<T>(endpoint: string, data: unknown): Promise<T> {
+    const headers = await getAuthHeaders();
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: "PUT",
+      headers,
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
+    return handleResponse<T>(response);
+  },
+
   async patch<T>(endpoint: string, data: unknown): Promise<T> {
     const headers = await getAuthHeaders();
 
