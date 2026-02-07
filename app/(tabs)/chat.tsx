@@ -3,6 +3,7 @@ import { ChatCard } from "@/components/ui/ChatCard";
 import { Header } from "@/components/ui/Header";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useConversations } from "@/hooks/useConversations";
 import type { Conversation } from "@/services/api";
@@ -57,9 +58,11 @@ export default function ChatListScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated);
 
   const { conversations, isLoading, error, refresh } = useConversations({
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!profile?.publicId,
+    userPublicId: profile?.publicId,
   });
 
   const handleChatPress = (chatId: string) => {

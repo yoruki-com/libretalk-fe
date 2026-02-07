@@ -1,7 +1,7 @@
-import { View, Text, Pressable, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import { Image, Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ChatHeaderProps {
   name: string;
@@ -77,7 +77,10 @@ export function ChatHeader({
             {isOnline && (
               <View
                 className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2"
-                style={{ borderColor: theme.card, backgroundColor: theme.success }}
+                style={{
+                  borderColor: theme.card,
+                  backgroundColor: theme.success,
+                }}
               />
             )}
           </View>
@@ -97,24 +100,6 @@ export function ChatHeader({
               </Text>
             )}
           </View>
-        </View>
-
-        {/* Action buttons */}
-        <View className="flex-row items-center gap-2">
-          <Pressable
-            onPress={onCallPress}
-            className="h-8 w-8 items-center justify-center rounded-full active:opacity-70"
-            style={{ backgroundColor: theme.surface }}
-          >
-            <Ionicons name="call" size={16} color={theme.icon} />
-          </Pressable>
-          <Pressable
-            onPress={onVideoPress}
-            className="h-8 w-8 items-center justify-center rounded-full active:opacity-70"
-            style={{ backgroundColor: theme.primary }}
-          >
-            <Ionicons name="videocam" size={16} color="#F5F5F5" />
-          </Pressable>
         </View>
       </View>
     </View>
