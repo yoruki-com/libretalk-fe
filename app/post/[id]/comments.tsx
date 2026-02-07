@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { VibeCard, CommentCard, CommentInput } from "@/components/ui";
 import { useComments } from "@/hooks/useComments";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { vibesApi, type Vibe } from "@/services/api/vibes";
@@ -39,6 +40,7 @@ export default function CommentsScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated);
 
   const [post, setPost] = useState<Vibe | null>(null);
   const [isLoadingPost, setIsLoadingPost] = useState(true);
@@ -53,7 +55,7 @@ export default function CommentsScreen() {
     addComment,
     toggleLike,
     refresh,
-  } = useComments({ postId: id, enabled: isAuthenticated });
+  } = useComments({ postId: id, userPublicId: profile?.publicId, enabled: isAuthenticated && !!profile?.publicId });
 
   // Fetch post on mount
   React.useEffect(() => {
@@ -200,14 +202,12 @@ export default function CommentsScreen() {
           </ScrollView>
 
           {/* Comment Input */}
-          <View style={{ paddingBottom: insets.bottom }}>
-            <CommentInput
-              value={commentText}
-              onChangeText={setCommentText}
-              onSubmit={handleSubmitComment}
-              isSubmitting={isSubmitting}
-            />
-          </View>
+          <CommentInput
+            value={commentText}
+            onChangeText={setCommentText}
+            onSubmit={handleSubmitComment}
+            isSubmitting={isSubmitting}
+          />
         </>
       )}
     </KeyboardAvoidingView>
