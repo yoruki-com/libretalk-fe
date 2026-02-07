@@ -114,11 +114,19 @@ export default function ChatListScreen() {
           <ChatCard
             key={conversation.publicId}
             name={getConversationDisplayName(conversation, profile!.publicId)}
-            message=""
+            message={conversation.lastMessage?.content ?? ""}
             time={formatTime(conversation.lastMessageAt)}
             avatar={getConversationAvatar(conversation, profile!.publicId)}
             unreadCount={0}
-            isRead={true}
+            isMyTurn={
+              !!conversation.lastMessage &&
+              conversation.lastMessage.sender.publicId !== profile!.publicId
+            }
+            isRead={
+              !!conversation.lastMessage &&
+              conversation.lastMessage.sender.publicId === profile!.publicId &&
+              conversation.lastMessage.status === "READ"
+            }
             isOnline={isConversationOnline(conversation, profile!.publicId)}
             isGroup={conversation.isGroup}
             onPress={() => handleChatPress(conversation.publicId)}

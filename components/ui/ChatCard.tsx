@@ -8,6 +8,7 @@ interface ChatCardProps {
   time: string;
   avatar?: string;
   unreadCount?: number;
+  isMyTurn?: boolean;
   isRead?: boolean;
   isOnline?: boolean;
   isGroup?: boolean;
@@ -20,6 +21,7 @@ export function ChatCard({
   time,
   avatar,
   unreadCount = 0,
+  isMyTurn = false,
   isRead = false,
   isOnline = false,
   isGroup = false,
@@ -89,7 +91,17 @@ export function ChatCard({
               {time}
             </Text>
             <View className="flex-row items-center gap-3">
-              {isRead && (
+              {isMyTurn && (
+                <View
+                  className="rounded-full px-2 py-0.5"
+                  style={{ backgroundColor: theme.primary }}
+                >
+                  <Text className="font-sans-semibold text-[10px] text-white">
+                    My turn
+                  </Text>
+                </View>
+              )}
+              {isRead && !isMyTurn && (
                 <Ionicons name="checkmark-done" size={16} color={theme.success} />
               )}
               {unreadCount > 0 && (

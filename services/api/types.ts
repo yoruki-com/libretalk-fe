@@ -131,6 +131,18 @@ export interface ConversationSpace {
   slug: string;
 }
 
+export interface ConversationLastMessage {
+  publicId: string;
+  content: string | null;
+  type: string;
+  status: MessageStatus;
+  sender: {
+    publicId: string;
+    displayName: string;
+  };
+  createdAt: string;
+}
+
 export interface Conversation {
   publicId: string;
   name: string | null;
@@ -138,6 +150,7 @@ export interface Conversation {
   isGroup: boolean;
   space: ConversationSpace | null;
   participants: ConversationParticipant[];
+  lastMessage: ConversationLastMessage | null;
   lastMessageAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -192,8 +205,3 @@ export interface CreateMessageDto {
   replyToId?: string;
 }
 
-// Extended conversation with last message for chat list
-export interface ConversationWithLastMessage extends Conversation {
-  lastMessage?: Message;
-  unreadCount?: number;
-}
