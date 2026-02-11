@@ -1,4 +1,4 @@
-import { VibeCard } from "@/components/ui";
+import { CountryFlag, VibeCard } from "@/components/ui";
 import { useTheme } from "@/contexts/ThemeContext";
 import type { UserMe } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
@@ -22,6 +22,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 const STATIC_MAP_PLACEHOLDER =
   "https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/0,20,2,0/600x300@2x?access_token=placeholder";
@@ -244,16 +245,10 @@ export default function ProfileScreen() {
             </View>
             {user.country && (
               <View
-                className="absolute -bottom-1 -right-1 h-7 w-7 items-center justify-center overflow-hidden rounded-full"
+                className="absolute -bottom-0.5 -right-0.5 h-8 w-8 items-center justify-center overflow-hidden rounded-full"
                 style={{ borderWidth: 2, borderColor: theme.background }}
               >
-                <Image
-                  source={{
-                    uri: `https://flagcdn.com/w80/${user.country.code.toLowerCase()}.png`,
-                  }}
-                  className="h-7 w-7"
-                  resizeMode="cover"
-                />
+                <CountryFlag code={user.country.code} size={32} />
               </View>
             )}
           </View>
