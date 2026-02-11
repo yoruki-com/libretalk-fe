@@ -1,6 +1,6 @@
-import { View, Text, Pressable, Image } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import { Image, Pressable, Text, View } from "react-native";
 
 interface ProfileCardProps {
   name: string;
@@ -15,7 +15,6 @@ export function ProfileCard({
   name,
   subtitle,
   avatar,
-  contactsCount = 0,
   onQRPress,
   onContactsPress,
 }: ProfileCardProps) {
@@ -24,7 +23,11 @@ export function ProfileCard({
   return (
     <View
       className="overflow-hidden rounded-2xl"
-      style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.border }}
+      style={{
+        backgroundColor: theme.card,
+        borderWidth: 1,
+        borderColor: theme.border,
+      }}
     >
       {/* Profile Info */}
       <View className="flex-row items-center justify-between px-4 py-2">
@@ -73,12 +76,12 @@ export function ProfileCard({
         onPress={onContactsPress}
         className="flex-row items-center gap-2 p-4 active:opacity-80"
       >
-        <Ionicons name="people" size={24} color={theme.icon} />
+        <Ionicons name="create-outline" size={24} color={theme.icon} />
         <Text
           className="flex-1 font-sans text-[13px] leading-[17px]"
           style={{ color: theme.text }}
         >
-          {contactsCount} Contacts
+          Edit Profile
         </Text>
         <Ionicons name="chevron-forward" size={12} color={theme.textTertiary} />
       </Pressable>

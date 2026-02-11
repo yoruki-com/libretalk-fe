@@ -1,13 +1,12 @@
-import { View, Text, ScrollView, Switch, Alert, Pressable } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ProfileCard } from "@/components/ui/ProfileCard";
+import { SettingsMenuGroup } from "@/components/ui/SettingsMenuGroup";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { SearchInput } from "@/components/ui/SearchInput";
-import { ProfileCard } from "@/components/ui/ProfileCard";
-import { SettingsMenuGroup } from "@/components/ui/SettingsMenuGroup";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useAuth } from "@/contexts/AuthContext";
+import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -19,16 +18,28 @@ export default function SettingsScreen() {
   const primaryMenuItems = [
     { icon: "laptop-outline" as const, label: t("settings.connectedDevice") },
     { icon: "time-outline" as const, label: t("settings.recentActivities") },
-    { icon: "document-text-outline" as const, label: t("settings.draftChatterBox") },
+    {
+      icon: "document-text-outline" as const,
+      label: t("settings.draftChatterBox"),
+    },
   ];
 
   const settingsMenuItems = [
     { icon: "person-outline" as const, label: t("settings.account") },
     { icon: "lock-closed-outline" as const, label: t("settings.privacy") },
-    { icon: "chatbubbles-outline" as const, label: t("settings.chatCommunity") },
-    { icon: "notifications-outline" as const, label: t("settings.notification") },
+    {
+      icon: "chatbubbles-outline" as const,
+      label: t("settings.chatCommunity"),
+    },
+    {
+      icon: "notifications-outline" as const,
+      label: t("settings.notification"),
+    },
     { icon: "server-outline" as const, label: t("settings.storageData") },
-    { icon: "information-circle-outline" as const, label: t("settings.recentUpdates") },
+    {
+      icon: "information-circle-outline" as const,
+      label: t("settings.recentUpdates"),
+    },
   ];
 
   const handleQRPress = () => {
@@ -36,7 +47,7 @@ export default function SettingsScreen() {
   };
 
   const handleContactsPress = () => {
-    console.log("Contacts pressed");
+    router.push("/profile/edit" as never);
   };
 
   const handleLogout = () => {
@@ -74,7 +85,6 @@ export default function SettingsScreen() {
         >
           {t("settings.title")}
         </Text>
-        <SearchInput />
       </View>
 
       {/* Menu Content */}
@@ -88,7 +98,6 @@ export default function SettingsScreen() {
           name={user?.name ?? user?.email ?? t("common.user")}
           subtitle={user?.email ?? ""}
           avatar={user?.avatar}
-          contactsCount={356}
           onQRPress={handleQRPress}
           onContactsPress={handleContactsPress}
         />

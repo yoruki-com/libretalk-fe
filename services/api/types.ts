@@ -33,6 +33,8 @@ export type PersonalityType =
   | "ISTJ" | "ISFJ" | "ESTJ" | "ESFJ"
   | "ISTP" | "ISFP" | "ESTP" | "ESFP";
 
+export type Gender = "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
+
 export interface User {
   publicId: string;
   email: string;
@@ -43,6 +45,7 @@ export interface User {
   avatarUrl: string | null;
   dateOfBirth: string | null;
   personalityType: PersonalityType | null;
+  gender: Gender | null;
   jobTitle: string | null;
   country: {
     publicId: string;
@@ -85,6 +88,7 @@ export interface UpdateUserDto {
   avatarUrl?: string | null;
   dateOfBirth?: string | null;
   personalityType?: PersonalityType | null;
+  gender?: Gender | null;
   jobTitle?: string | null;
   countryId?: string | null;
   city?: string | null;
