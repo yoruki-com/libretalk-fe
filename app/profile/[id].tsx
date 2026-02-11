@@ -511,6 +511,12 @@ export default function ProfileScreen() {
                     isLiked={vibe.isLiked}
                     onPress={() => {}}
                     onLikePress={() => toggleLike(vibe.publicId)}
+                    onCommentPress={() =>
+                      router.push({
+                        pathname: "/post/[id]/comments",
+                        params: { id: vibe.publicId },
+                      })
+                    }
                   />
                 </View>
               ))}
