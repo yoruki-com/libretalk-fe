@@ -1,9 +1,9 @@
-import { View, Text, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type TabName = "vibes" | "community" | "chat" | "call" | "settings";
+type TabName = "vibes" | "community" | "chat" | "settings";
 
 interface BottomNavigationProps {
   activeTab: TabName;
@@ -11,11 +11,14 @@ interface BottomNavigationProps {
   badges?: Partial<Record<TabName, boolean>>;
 }
 
-const tabs: { name: TabName; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+const tabs: {
+  name: TabName;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}[] = [
   { name: "vibes", label: "Vibes", icon: "grid-outline" },
   { name: "community", label: "Community", icon: "people-outline" },
   { name: "chat", label: "Chat", icon: "chatbubbles" },
-  { name: "call", label: "Call", icon: "call-outline" },
   { name: "settings", label: "Settings", icon: "settings-outline" },
 ];
 

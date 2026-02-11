@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -6,6 +6,9 @@ import { SearchBar, CategoryChips, CommunityCard, RefreshableScrollView } from "
 import { useCommunity } from "@/hooks/useCommunity";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { conversationsApi } from "@/services/api";
+import { getRandomHelloSticker } from "@/constants/stickers";
 
 const communityFilters = [
   { id: "all", emoji: "🌍", label: "All" },
@@ -19,6 +22,7 @@ export default function CommunityScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated);
   const {
     users,
     isLoading,
@@ -30,6 +34,29 @@ export default function CommunityScreen() {
 
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleWavePress = useCallback(
+    async (userPublicId: string) => {
+      if (!profile) return;
+      try {
+        const { data: conversation } = await conversationsApi.create({
+          participantIds: [userPublicId],
+        });
+        const sticker = getRandomHelloSticker();
+        await conversationsApi.messages.send(conversation.publicId, {
+          type: "STICKER",
+          content: sticker.id,
+        });
+        router.push({
+          pathname: "/chat/[id]",
+          params: { id: conversation.publicId },
+        } as never);
+      } catch (err) {
+        console.error("Failed to wave:", err);
+      }
+    },
+    [profile, router]
+  );
 
   const handleFilterChange = (filterId: string) => {
     setSelectedFilter(filterId);
@@ -143,6 +170,7 @@ export default function CommunityScreen() {
                   params: { id: user.publicId },
                 })
               }
+              onWavePress={() => handleWavePress(user.publicId)}
             />
           ))}
         </View>

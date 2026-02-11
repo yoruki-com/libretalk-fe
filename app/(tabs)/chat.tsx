@@ -114,7 +114,11 @@ export default function ChatListScreen() {
           <ChatCard
             key={conversation.publicId}
             name={getConversationDisplayName(conversation, profile!.publicId)}
-            message={conversation.lastMessage?.content ?? ""}
+            message={
+              conversation.lastMessage?.type === "STICKER"
+                ? "Sticker"
+                : (conversation.lastMessage?.content ?? "")
+            }
             time={formatTime(conversation.lastMessageAt)}
             avatar={getConversationAvatar(conversation, profile!.publicId)}
             unreadCount={0}

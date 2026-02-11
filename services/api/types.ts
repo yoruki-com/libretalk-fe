@@ -170,7 +170,7 @@ export interface UpdateConversationDto {
 }
 
 // Message Types
-export type MessageType = "TEXT" | "IMAGE" | "AUDIO" | "VIDEO" | "FILE" | "SYSTEM";
+export type MessageType = "TEXT" | "IMAGE" | "AUDIO" | "VIDEO" | "FILE" | "SYSTEM" | "STICKER";
 export type MessageStatus = "SENT" | "DELIVERED" | "READ";
 
 export interface MessageSender {

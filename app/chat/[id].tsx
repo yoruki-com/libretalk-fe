@@ -17,6 +17,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Message } from "@/services/api";
+import { getStickerById } from "@/constants/stickers";
 
 // Helper to format time from ISO string
 function formatTime(isoString: string): string {
@@ -209,10 +210,15 @@ export default function ChatScreen() {
               {group.messages.map((msg) => (
                 <MessageBubble
                   key={msg.publicId}
-                  message={msg.content || undefined}
+                  message={msg.type !== "STICKER" ? (msg.content || undefined) : undefined}
                   time={formatTime(msg.createdAt)}
                   isMe={msg.sender.publicId === currentUserPublicId}
                   isRead={msg.status === "READ"}
+                  stickerSource={
+                    msg.type === "STICKER" && msg.content
+                      ? getStickerById(msg.content)?.source
+                      : undefined
+                  }
                   images={
                     msg.type === "IMAGE" && msg.mediaUrl
                       ? [{ uri: msg.mediaUrl }]
