@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -177,9 +177,10 @@ export default function VibesScreen() {
               onLikePress={() => toggleLike(vibe.publicId)}
               onPress={() => {}}
               onAuthorPress={() => router.push({ pathname: "/profile/[id]", params: { id: vibe.author.publicId } })}
-              onMenuPress={() => {}}
               onCommentPress={() => handleCommentPress(vibe.publicId)}
-              onSharePress={() => {}}
+              onReportPress={() => {
+                Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
+              }}
             />
           ))}
         </View>

@@ -1,7 +1,9 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { UserBadge, type UserBadgeLanguage } from "./UserBadge";
+import { DropdownMenu } from "./DropdownMenu";
 
 interface VibeCardProps {
   authorName: string;
@@ -20,6 +22,7 @@ interface VibeCardProps {
   onLikePress?: () => void;
   onCommentPress?: () => void;
   onSharePress?: () => void;
+  onReportPress?: () => void;
   isLiked?: boolean;
 }
 
@@ -35,12 +38,22 @@ export function VibeCard({
   comments,
   onPress,
   onAuthorPress,
-  onMenuPress,
   onLikePress,
   onCommentPress,
+  onReportPress,
   isLiked = false,
 }: VibeCardProps) {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
+
+  const menuItems = [
+    {
+      key: "report",
+      label: t("menu.reportThis"),
+      icon: "flag-outline" as const,
+      onPress: () => onReportPress?.(),
+    },
+  ];
 
   return (
     <Pressable
@@ -67,13 +80,7 @@ export function VibeCard({
             onPress={onAuthorPress}
           />
         </View>
-        <Pressable onPress={onMenuPress} className="p-2 active:opacity-70">
-          <Ionicons
-            name="ellipsis-horizontal"
-            size={20}
-            color={theme.iconSecondary}
-          />
-        </Pressable>
+        <DropdownMenu items={menuItems} triggerColor={theme.iconSecondary} />
       </View>
 
       {/* Content */}

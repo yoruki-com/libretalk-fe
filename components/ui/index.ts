@@ -21,3 +21,4 @@ export { CommentCard } from "./CommentCard";
 export { CommentInput } from "./CommentInput";
 export { CommunityCard } from "./CommunityCard";
 export { RefreshableScrollView } from "./RefreshableScrollView";
+export { DropdownMenu, type DropdownMenuItem } from "./DropdownMenu";

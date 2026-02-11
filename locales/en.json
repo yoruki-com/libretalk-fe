@@ -123,5 +123,8 @@
   },
   "time": {
     "now": "now"
+  },
+  "menu": {
+    "reportThis": "Report this"
   }
 }

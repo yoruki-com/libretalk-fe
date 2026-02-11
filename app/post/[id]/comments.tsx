@@ -7,6 +7,7 @@ import {
   Platform,
   ActivityIndicator,
   Pressable,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -157,6 +158,9 @@ export default function CommentsScreen() {
                   shares={0}
                   isLiked={post.isLiked}
                   onAuthorPress={() => router.push({ pathname: "/profile/[id]", params: { id: post.author.publicId } })}
+                  onReportPress={() => {
+                    Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
+                  }}
                 />
               </View>
             )}
@@ -196,7 +200,9 @@ export default function CommentsScreen() {
                     onLikePress={() => toggleLike(comment.publicId)}
                     onAuthorPress={() => {}}
                     onReplyPress={() => {}}
-                    onMenuPress={() => {}}
+                    onReportPress={() => {
+                      Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
+                    }}
                   />
                 ))}
               </View>

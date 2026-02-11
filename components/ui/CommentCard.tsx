@@ -1,6 +1,8 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Image, Pressable, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { DropdownMenu } from "./DropdownMenu";
 
 interface CommentCardProps {
   authorName: string;
@@ -14,6 +16,7 @@ interface CommentCardProps {
   onAuthorPress?: () => void;
   onReplyPress?: () => void;
   onMenuPress?: () => void;
+  onReportPress?: () => void;
 }
 
 export function CommentCard({
@@ -26,10 +29,19 @@ export function CommentCard({
   isLiked = false,
   onLikePress,
   onAuthorPress,
-  onReplyPress,
-  onMenuPress,
+  onReportPress,
 }: CommentCardProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
+
+  const menuItems = [
+    {
+      key: "report",
+      label: t("menu.reportThis"),
+      icon: "flag-outline" as const,
+      onPress: () => onReportPress?.(),
+    },
+  ];
 
   return (
     <View className="flex-row gap-3 px-4 py-3">
@@ -78,13 +90,11 @@ export function CommentCard({
             >
               {time}
             </Text>
-            <Pressable onPress={onMenuPress} className="p-1 active:opacity-70">
-              <Ionicons
-                name="ellipsis-horizontal"
-                size={16}
-                color={theme.textTertiary}
-              />
-            </Pressable>
+            <DropdownMenu
+              items={menuItems}
+              triggerSize={16}
+              triggerColor={theme.textTertiary}
+            />
           </View>
         </View>
 

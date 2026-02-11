@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -523,6 +524,9 @@ export default function ProfileScreen() {
                         params: { id: vibe.publicId },
                       })
                     }
+                    onReportPress={() => {
+                      Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
+                    }}
                   />
                 </View>
               ))}
