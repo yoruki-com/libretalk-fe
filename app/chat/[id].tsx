@@ -208,6 +208,14 @@ export default function ChatScreen() {
         isOnline={isOnline}
         unreadCount={0}
         onBackPress={handleBack}
+        onProfilePress={() => {
+          if (otherParticipant?.publicId) {
+            router.push({
+              pathname: "/profile/[id]",
+              params: { id: otherParticipant.publicId },
+            });
+          }
+        }}
       />
 
       <ScrollView

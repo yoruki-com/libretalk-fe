@@ -220,55 +220,40 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        {/* Avatar + Likes overlapping map */}
+        {/* Avatar overlapping map */}
         <View className="relative px-4" style={{ marginTop: -40 }}>
-          <View className="flex-row items-end justify-between">
-            {/* Avatar with flag */}
-            <View className="relative">
-              <View
-                className="h-20 w-20 overflow-hidden rounded-full"
-                style={{ borderWidth: 3, borderColor: theme.background }}
-              >
-                {user.avatarUrl ? (
-                  <Image
-                    source={{ uri: user.avatarUrl }}
-                    className="h-full w-full"
-                  />
-                ) : (
-                  <View
-                    className="h-full w-full items-center justify-center"
-                    style={{ backgroundColor: theme.card }}
-                  >
-                    <Ionicons name="person" size={36} color={theme.primary} />
-                  </View>
-                )}
-              </View>
-              {user.country && (
+          {/* Avatar with flag */}
+          <View className="relative self-start">
+            <View
+              className="h-20 w-20 overflow-hidden rounded-full"
+              style={{ borderWidth: 3, borderColor: theme.background }}
+            >
+              {user.avatarUrl ? (
+                <Image
+                  source={{ uri: user.avatarUrl }}
+                  className="h-full w-full"
+                />
+              ) : (
                 <View
-                  className="absolute -bottom-1 -right-1 h-7 w-7 items-center justify-center overflow-hidden rounded-full"
-                  style={{ borderWidth: 2, borderColor: theme.background }}
+                  className="h-full w-full items-center justify-center"
+                  style={{ backgroundColor: theme.card }}
                 >
-                  <Image
-                    source={{
-                      uri: `https://flagcdn.com/w80/${user.country.code.toLowerCase()}.png`,
-                    }}
-                    className="h-7 w-7"
-                    resizeMode="cover"
-                  />
+                  <Ionicons name="person" size={36} color={theme.primary} />
                 </View>
               )}
             </View>
-
-            {/* Likes */}
-            {!isOwnProfile && (
-              <View className="mb-2 flex-row items-center gap-1">
-                <Ionicons name="thumbs-up" size={18} color={theme.primary} />
-                <Text
-                  className="font-sans-semibold text-[15px]"
-                  style={{ color: theme.primary }}
-                >
-                  {totalLikes}
-                </Text>
+            {user.country && (
+              <View
+                className="absolute -bottom-1 -right-1 h-7 w-7 items-center justify-center overflow-hidden rounded-full"
+                style={{ borderWidth: 2, borderColor: theme.background }}
+              >
+                <Image
+                  source={{
+                    uri: `https://flagcdn.com/w80/${user.country.code.toLowerCase()}.png`,
+                  }}
+                  className="h-7 w-7"
+                  resizeMode="cover"
+                />
               </View>
             )}
           </View>

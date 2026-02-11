@@ -10,6 +10,7 @@ interface ChatHeaderProps {
   isOnline?: boolean;
   unreadCount?: number;
   onBackPress?: () => void;
+  onProfilePress?: () => void;
 }
 
 export function ChatHeader({
@@ -19,6 +20,7 @@ export function ChatHeader({
   isOnline = false,
   unreadCount = 0,
   onBackPress,
+  onProfilePress,
 }: ChatHeaderProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
@@ -54,7 +56,10 @@ export function ChatHeader({
         </Pressable>
 
         {/* User info */}
-        <View className="flex-1 flex-row items-center gap-4">
+        <Pressable
+          onPress={onProfilePress}
+          className="flex-1 flex-row items-center gap-4 active:opacity-70"
+        >
           <View className="relative">
             {avatar ? (
               <Image
@@ -96,7 +101,7 @@ export function ChatHeader({
               </Text>
             )}
           </View>
-        </View>
+        </Pressable>
       </View>
     </View>
   );
