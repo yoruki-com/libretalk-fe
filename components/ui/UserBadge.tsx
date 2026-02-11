@@ -1,6 +1,7 @@
 import { View, Text, Pressable, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { CountryFlag } from "./CountryFlag";
 
 export interface UserBadgeLanguage {
   code: string;
@@ -56,13 +57,7 @@ export function UserBadge({
             className={`absolute items-center justify-center overflow-hidden rounded-full ${compact ? "-bottom-0.5 -right-0.5 h-4 w-4" : "-bottom-0.5 -right-0.5 h-5 w-5"}`}
             style={{ borderWidth: 1.5, borderColor: theme.surface }}
           >
-            <Image
-              source={{
-                uri: `https://flagcdn.com/w80/${countryCode.toLowerCase()}.png`,
-              }}
-              className={compact ? "h-4 w-4" : "h-5 w-5"}
-              resizeMode="cover"
-            />
+            <CountryFlag code={countryCode} size={compact ? 16 : 20} />
           </View>
         )}
       </View>

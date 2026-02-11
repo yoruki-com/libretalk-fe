@@ -1,4 +1,4 @@
-import { CountryFlag, VibeCard } from "@/components/ui";
+import { CountryFlag, DropdownMenu, type DropdownMenuItem, VibeCard } from "@/components/ui";
 import { useTheme } from "@/contexts/ThemeContext";
 import type { UserMe } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
@@ -162,6 +162,17 @@ export default function ProfileScreen() {
   const totalLikes = vibes.reduce((sum, v) => sum + v.likesCount, 0);
   const totalComments = vibes.reduce((sum, v) => sum + v.commentsCount, 0);
 
+  const profileMenuItems: DropdownMenuItem[] = [
+    {
+      key: "report",
+      label: t("menu.reportThis"),
+      icon: "flag-outline",
+      onPress: () => {
+        Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
+      },
+    },
+  ];
+
   const tabs = [
     { key: "profile" as const, label: t("profile.tabProfile") },
     { key: "vibes" as const, label: t("profile.tabVibes") },
@@ -198,12 +209,18 @@ export default function ProfileScreen() {
             >
               <Ionicons name="chevron-back" size={22} color="#FFFFFF" />
             </Pressable>
-            <Pressable
-              className="h-9 w-9 items-center justify-center rounded-full active:opacity-70"
-              style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
-            >
-              <Ionicons name="ellipsis-horizontal" size={20} color="#FFFFFF" />
-            </Pressable>
+            {!isOwnProfile && (
+              <View
+                className="h-9 w-9 items-center justify-center rounded-full"
+                style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+              >
+                <DropdownMenu
+                  items={profileMenuItems}
+                  triggerSize={20}
+                  triggerColor="#FFFFFF"
+                />
+              </View>
+            )}
           </View>
 
           {/* Location label */}
