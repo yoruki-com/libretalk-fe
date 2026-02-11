@@ -275,6 +275,9 @@ export default function ProfileScreen() {
             >
               {user.displayName}
             </Text>
+            {user.isVip && (
+              <Ionicons name="shield-checkmark" size={18} color={theme.primary} />
+            )}
             {user.isOnline && (
               <View className="flex-row items-center gap-1">
                 <View
@@ -504,6 +507,7 @@ export default function ProfileScreen() {
                     authorAvatarUrl={vibe.author.avatarUrl}
                     authorCountryCode={vibe.author.countryCode}
                     authorLanguages={vibe.author.languages}
+                    authorIsVip={vibe.author.isVip}
                     content={vibe.content ?? ""}
                     likes={vibe.likesCount}
                     comments={vibe.commentsCount}

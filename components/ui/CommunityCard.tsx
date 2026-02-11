@@ -13,6 +13,7 @@ interface CommunityCardProps {
   interests?: string[];
   city?: string | null;
   isOnline?: boolean;
+  isVip?: boolean;
   onPress?: () => void;
   onWavePress?: () => void;
 }
@@ -27,6 +28,7 @@ export function CommunityCard({
   interests = [],
   city,
   isOnline = false,
+  isVip = false,
   onPress,
   onWavePress,
 }: CommunityCardProps) {
@@ -97,13 +99,18 @@ export function CommunityCard({
 
         {/* Name + Languages + Bio + Wave */}
         <View className="flex-1 pt-0.5">
-          <Text
-            className="font-sans-semibold text-[16px] leading-[1.4]"
-            style={{ color: theme.text }}
-            numberOfLines={1}
-          >
-            {displayName}
-          </Text>
+          <View className="flex-row items-center gap-1">
+            <Text
+              className="font-sans-semibold text-[16px] leading-[1.4]"
+              style={{ color: theme.text }}
+              numberOfLines={1}
+            >
+              {displayName}
+            </Text>
+            {isVip && (
+              <Ionicons name="shield-checkmark" size={16} color={theme.primary} />
+            )}
+          </View>
           {languages.length > 0 && (
             <View className="flex-row gap-1.5" style={{ paddingTop: 3 }}>
               {spokenLanguages.length > 0 && (

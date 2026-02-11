@@ -164,6 +164,7 @@ export default function CommunityScreen() {
               personalityType={user.personalityType}
               city={user.city}
               isOnline={user.isOnline}
+              isVip={user.isVip}
               onPress={() =>
                 router.push({
                   pathname: "/profile/[id]",

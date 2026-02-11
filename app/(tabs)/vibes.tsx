@@ -166,6 +166,7 @@ export default function VibesScreen() {
               authorAvatarUrl={vibe.author.avatarUrl}
               authorCountryCode={vibe.author.countryCode}
               authorLanguages={vibe.author.languages}
+              authorIsVip={vibe.author.isVip}
               content={vibe.content ?? ""}
               likes={vibe.likesCount}
               comments={vibe.commentsCount}

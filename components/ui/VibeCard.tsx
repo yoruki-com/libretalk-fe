@@ -8,6 +8,7 @@ interface VibeCardProps {
   authorAvatarUrl?: string | null;
   authorCountryCode?: string | null;
   authorLanguages?: UserBadgeLanguage[];
+  authorIsVip?: boolean;
   content: string;
   mention?: string;
   likes: number;
@@ -27,6 +28,7 @@ export function VibeCard({
   authorAvatarUrl,
   authorCountryCode,
   authorLanguages = [],
+  authorIsVip = false,
   content,
   mention,
   likes,
@@ -61,6 +63,7 @@ export function VibeCard({
             avatarUrl={authorAvatarUrl}
             countryCode={authorCountryCode}
             languages={authorLanguages}
+            isVip={authorIsVip}
             onPress={onAuthorPress}
           />
         </View>

@@ -12,6 +12,7 @@ interface UserBadgeProps {
   avatarUrl?: string | null;
   countryCode?: string | null;
   languages?: UserBadgeLanguage[];
+  isVip?: boolean;
   onPress?: () => void;
   size?: "default" | "compact";
 }
@@ -21,6 +22,7 @@ export function UserBadge({
   avatarUrl,
   countryCode,
   languages = [],
+  isVip = false,
   onPress,
   size = "default",
 }: UserBadgeProps) {
@@ -68,13 +70,22 @@ export function UserBadge({
       {/* Name & Language Chips */}
       <View className="flex-1">
         {displayName && (
-          <Text
-            className={`font-sans-semibold ${compact ? "text-[14px]" : "text-[16px]"} leading-[1.4]`}
-            style={{ color: theme.text }}
-            numberOfLines={1}
-          >
-            {displayName}
-          </Text>
+          <View className="flex-row items-center gap-1">
+            <Text
+              className={`font-sans-semibold ${compact ? "text-[14px]" : "text-[16px]"} leading-[1.4]`}
+              style={{ color: theme.text }}
+              numberOfLines={1}
+            >
+              {displayName}
+            </Text>
+            {isVip && (
+              <Ionicons
+                name="shield-checkmark"
+                size={compact ? 13 : 16}
+                color={theme.primary}
+              />
+            )}
+          </View>
         )}
         {languages.length > 0 && (
           <View className={`flex-row ${compact ? "gap-1" : "gap-1.5"}`} style={{ paddingTop: compact ? 1 : 2 }}>

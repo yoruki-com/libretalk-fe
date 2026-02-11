@@ -14,6 +14,7 @@ export interface VibeAuthor {
   displayName: string;
   avatarUrl: string | null;
   countryCode: string | null;
+  isVip: boolean;
   languages: VibeAuthorLanguage[];
   role: string | null;
 }

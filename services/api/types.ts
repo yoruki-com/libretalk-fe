@@ -55,6 +55,7 @@ export interface User {
   lastSeenAt: string | null;
   isProfilePublic: boolean;
   isActive: boolean;
+  isVip: boolean;
   createdAt: string;
   updatedAt: string;
 }
