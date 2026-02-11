@@ -8,6 +8,8 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useConversations } from "@/hooks/useConversations";
 import type { Conversation } from "@/services/api";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback, useRef } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { RefreshableScrollView } from "@/components/ui";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -72,6 +74,20 @@ export default function ChatListScreen() {
     enabled: isAuthenticated && !!profile?.publicId,
     userPublicId: profile?.publicId,
   });
+
+  // Refresh conversations when tab regains focus (e.g. coming back from chat detail)
+  const isFirstFocus = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      if (isAuthenticated && profile?.publicId) {
+        refresh();
+      }
+    }, [isAuthenticated, profile?.publicId, refresh])
+  );
 
   const handleChatPress = (chatId: string) => {
     router.push(`/chat/${chatId}`);
