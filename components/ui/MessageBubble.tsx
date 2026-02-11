@@ -1,7 +1,8 @@
 import { View, Text } from "react-native";
-import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import type { ComponentType } from "react";
+import type { SvgProps } from "react-native-svg";
 
 interface ImageItem {
   uri: string;
@@ -20,7 +21,7 @@ interface MessageBubbleProps {
   isRead?: boolean;
   images?: ImageItem[];
   file?: FileAttachment;
-  stickerSource?: number;
+  StickerComponent?: ComponentType<SvgProps>;
 }
 
 export function MessageBubble({
@@ -30,7 +31,7 @@ export function MessageBubble({
   isRead = false,
   images,
   file,
-  stickerSource,
+  StickerComponent,
 }: MessageBubbleProps) {
   const { theme } = useTheme();
 
@@ -62,12 +63,8 @@ export function MessageBubble({
         </View>
 
         {/* Sticker */}
-        {stickerSource != null ? (
-          <Image
-            source={stickerSource}
-            style={{ width: 150, height: 150 }}
-            contentFit="contain"
-          />
+        {StickerComponent ? (
+          <StickerComponent width={150} height={150} />
         ) : (
           /* Message content */
           <View

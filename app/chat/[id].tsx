@@ -235,9 +235,9 @@ export default function ChatScreen() {
                   time={formatTime(msg.createdAt)}
                   isMe={msg.sender.publicId === currentUserPublicId}
                   isRead={msg.status === "READ"}
-                  stickerSource={
+                  StickerComponent={
                     msg.type === "STICKER" && msg.content
-                      ? getStickerById(msg.content)?.source
+                      ? getStickerById(msg.content)?.Component
                       : undefined
                   }
                   images={

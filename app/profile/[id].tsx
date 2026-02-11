@@ -1,10 +1,12 @@
 import { CountryFlag, DropdownMenu, type DropdownMenuItem, VibeCard } from "@/components/ui";
 import { useTheme } from "@/contexts/ThemeContext";
-import type { UserMe } from "@/services/api/types";
+import type { Conversation, UserMe } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
 import type { Vibe } from "@/services/api/vibes";
 import { vibesApi } from "@/services/api/vibes";
 import { likesApi } from "@/services/api/likes";
+import { conversationsApi } from "@/services/api/conversations";
+import { getRandomHelloSticker } from "@/constants/stickers";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -44,6 +46,8 @@ export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ProfileTab>("vibes");
   const [bioExpanded, setBioExpanded] = useState(false);
+  const [existingConversation, setExistingConversation] = useState<Conversation | null>(null);
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   const fetchUser = useCallback(async () => {
     if (!id) return;
@@ -68,6 +72,26 @@ export default function ProfileScreen() {
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  // Check if there's an existing conversation with this user
+  useEffect(() => {
+    async function checkExistingConversation() {
+      if (!currentUser?.publicId || !id || isOwnProfile) return;
+
+      try {
+        const response = await conversationsApi.getByUser(currentUser.publicId);
+        const conversation = response.data.find(
+          (conv) =>
+            !conv.isGroup &&
+            conv.participants.some((p) => p.publicId === id)
+        );
+        setExistingConversation(conversation ?? null);
+      } catch (err) {
+        console.error("[Profile] Failed to check existing conversation:", err);
+      }
+    }
+    checkExistingConversation();
+  }, [currentUser?.publicId, id, isOwnProfile]);
 
   // Refresh vibes when screen regains focus (sync likes from other pages)
   const isFirstFocus = useRef(true);
@@ -132,6 +156,40 @@ export default function ProfileScreen() {
     },
     [vibes, currentUser?.publicId]
   );
+
+  const handleChatPress = useCallback(async () => {
+    if (!id) return;
+
+    // If there's an existing conversation, navigate to it
+    if (existingConversation) {
+      router.push({
+        pathname: "/chat/[id]",
+        params: { id: existingConversation.publicId },
+      });
+      return;
+    }
+
+    // Otherwise, create a new conversation and send a wave sticker
+    setIsChatLoading(true);
+    try {
+      const { data: conversation } = await conversationsApi.create({
+        participantIds: [id],
+      });
+      const sticker = getRandomHelloSticker();
+      await conversationsApi.messages.send(conversation.publicId, {
+        type: "STICKER",
+        content: sticker.id,
+      });
+      router.push({
+        pathname: "/chat/[id]",
+        params: { id: conversation.publicId },
+      });
+    } catch (err) {
+      console.error("[Profile] Failed to start chat:", err);
+    } finally {
+      setIsChatLoading(false);
+    }
+  }, [id, existingConversation, router]);
 
   if (isLoading) {
     return (
@@ -586,12 +644,18 @@ export default function ProfileScreen() {
             </Text>
           </Pressable>
           <Pressable
+            onPress={handleChatPress}
+            disabled={isChatLoading}
             className="flex-1 items-center rounded-full py-3 active:opacity-70"
-            style={{ backgroundColor: theme.primary }}
+            style={{ backgroundColor: theme.primary, opacity: isChatLoading ? 0.7 : 1 }}
           >
-            <Text className="font-sans-semibold text-[15px] text-white">
-              {t("profile.sayHi")}
-            </Text>
+            {isChatLoading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text className="font-sans-semibold text-[15px] text-white">
+                {existingConversation ? t("profile.chat") : t("profile.sayHi")}
+              </Text>
+            )}
           </Pressable>
         </View>
       )}
