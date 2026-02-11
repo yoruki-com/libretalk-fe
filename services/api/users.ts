@@ -32,8 +32,8 @@ export const usersApi = {
   },
 
   // Get user by ID
-  async getById(publicId: string): Promise<ApiResponse<User>> {
-    return apiClient.get(`/users/${publicId}`);
+  async getById(publicId: string, viewerPublicId?: string): Promise<ApiResponse<User>> {
+    return apiClient.get(`/users/${publicId}`, viewerPublicId ? { viewerPublicId } : undefined);
   },
 
   // Get user by username

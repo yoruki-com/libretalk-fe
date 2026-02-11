@@ -5,6 +5,7 @@ import { usersApi } from "@/services/api/users";
 import type { Vibe } from "@/services/api/vibes";
 import { vibesApi } from "@/services/api/vibes";
 import { likesApi } from "@/services/api/likes";
+import { followsApi } from "@/services/api/follows";
 import { conversationsApi } from "@/services/api/conversations";
 import { getRandomHelloSticker } from "@/constants/stickers";
 import { Ionicons } from "@expo/vector-icons";
@@ -53,7 +54,7 @@ export default function ProfileScreen() {
     if (!id) return;
     setIsLoading(true);
     try {
-      const res = await usersApi.getById(id);
+      const res = await usersApi.getById(id, currentUser?.publicId);
       setUser(res.data as UserMe);
 
       try {
@@ -67,7 +68,7 @@ export default function ProfileScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [id, currentUser?.publicId]);
 
   useEffect(() => {
     fetchUser();
@@ -156,6 +157,52 @@ export default function ProfileScreen() {
     },
     [vibes, currentUser?.publicId]
   );
+
+  const toggleFollow = useCallback(async () => {
+    if (!user || !currentUser?.publicId) return;
+
+    const wasFollowing = user.isFollowing;
+    // Optimistic update
+    setUser((prev) =>
+      prev
+        ? {
+            ...prev,
+            isFollowing: !wasFollowing,
+            followersCount: wasFollowing
+              ? prev.followersCount - 1
+              : prev.followersCount + 1,
+          }
+        : prev
+    );
+
+    try {
+      const result = await followsApi.toggleFollow(user.publicId, currentUser.publicId);
+      // Sync with server
+      setUser((prev) =>
+        prev
+          ? {
+              ...prev,
+              isFollowing: result.data.following,
+              followersCount: result.data.followersCount,
+              followingCount: result.data.followingCount,
+            }
+          : prev
+      );
+    } catch {
+      // Revert on error
+      setUser((prev) =>
+        prev
+          ? {
+              ...prev,
+              isFollowing: wasFollowing,
+              followersCount: wasFollowing
+                ? prev.followersCount + 1
+                : prev.followersCount - 1,
+            }
+          : prev
+      );
+    }
+  }, [user, currentUser?.publicId]);
 
   const handleChatPress = useCallback(async () => {
     if (!id) return;
@@ -419,7 +466,7 @@ export default function ProfileScreen() {
               className="font-sans-semibold text-[14px]"
               style={{ color: theme.text }}
             >
-              0
+              {user.followingCount}
             </Text>
             <Text
               className="font-sans text-[13px]"
@@ -433,7 +480,7 @@ export default function ProfileScreen() {
               className="font-sans-semibold text-[14px]"
               style={{ color: theme.text }}
             >
-              0
+              {user.followersCount}
             </Text>
             <Text
               className="font-sans text-[13px]"
@@ -633,14 +680,19 @@ export default function ProfileScreen() {
           }}
         >
           <Pressable
-            className="flex-1 items-center rounded-full border py-3 active:opacity-70"
-            style={{ borderColor: theme.primary }}
+            onPress={toggleFollow}
+            className="flex-1 items-center rounded-full py-3 active:opacity-70"
+            style={
+              user?.isFollowing
+                ? { backgroundColor: theme.primary }
+                : { borderWidth: 1, borderColor: theme.primary }
+            }
           >
             <Text
               className="font-sans-semibold text-[15px]"
-              style={{ color: theme.primary }}
+              style={{ color: user?.isFollowing ? "#FFFFFF" : theme.primary }}
             >
-              {t("profile.follow")}
+              {user?.isFollowing ? t("profile.unfollow") : t("profile.follow")}
             </Text>
           </Pressable>
           <Pressable

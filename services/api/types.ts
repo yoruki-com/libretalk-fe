@@ -56,6 +56,9 @@ export interface User {
   isProfilePublic: boolean;
   isActive: boolean;
   isVip: boolean;
+  followersCount: number;
+  followingCount: number;
+  isFollowing: boolean;
   createdAt: string;
   updatedAt: string;
 }
