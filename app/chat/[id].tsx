@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { ChatHeader } from "@/components/ui/ChatHeader";
 import { ChatInput } from "@/components/ui/ChatInput";
 import { MessageBubble } from "@/components/ui/MessageBubble";
@@ -30,73 +31,85 @@ function formatTime(isoString: string): string {
 }
 
 // Helper to format date for separator
-function formatDateSeparator(isoString: string): string {
-  const date = new Date(isoString);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+function useFormatDateSeparator() {
+  const { t } = useTranslation();
 
-  if (date.toDateString() === today.toDateString()) {
-    return "Today";
-  }
-  if (date.toDateString() === yesterday.toDateString()) {
-    return "Yesterday";
-  }
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
-  });
+  return (isoString: string): string => {
+    const date = new Date(isoString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return t("chat.today");
+    }
+    if (date.toDateString() === yesterday.toDateString()) {
+      return t("chat.yesterday");
+    }
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
+    });
+  };
 }
 
 // Helper to get last seen text
-function getLastSeenText(lastSeenAt: string | null, isOnline: boolean): string {
-  if (isOnline) return "Online";
-  if (!lastSeenAt) return "Offline";
+function useGetLastSeenText() {
+  const { t } = useTranslation();
 
-  const lastSeen = new Date(lastSeenAt);
-  const now = new Date();
-  const diffMs = now.getTime() - lastSeen.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
+  return (lastSeenAt: string | null, isOnline: boolean): string => {
+    if (isOnline) return t("chat.online");
+    if (!lastSeenAt) return t("chat.offline");
 
-  if (diffMins < 1) return "Last seen just now";
-  if (diffMins < 60) return `Last seen ${diffMins} min ago`;
-  if (diffHours < 24)
-    return `Last seen ${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-  return `Last seen ${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    const lastSeen = new Date(lastSeenAt);
+    const now = new Date();
+    const diffMs = now.getTime() - lastSeen.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return t("chat.lastSeenNow");
+    if (diffMins < 60) return t("chat.lastSeenMinutes", { count: diffMins });
+    if (diffHours < 24) return t("chat.lastSeenHours", { count: diffHours });
+    return t("chat.lastSeenDays", { count: diffDays });
+  };
 }
 
 // Group messages by date
-function groupMessagesByDate(
-  messages: Message[],
-): { date: string; messages: Message[] }[] {
-  const groups: Map<string, Message[]> = new Map();
+function useGroupMessagesByDate() {
+  const formatDateSeparator = useFormatDateSeparator();
 
-  // Messages come sorted desc, we need to reverse for display
-  const sortedMessages = [...messages].reverse();
+  return (messages: Message[]): { date: string; messages: Message[] }[] => {
+    const groups: Map<string, Message[]> = new Map();
 
-  for (const message of sortedMessages) {
-    const dateKey = formatDateSeparator(message.createdAt);
-    const existing = groups.get(dateKey) || [];
-    groups.set(dateKey, [...existing, message]);
-  }
+    // Messages come sorted desc, we need to reverse for display
+    const sortedMessages = [...messages].reverse();
 
-  return Array.from(groups.entries()).map(([date, msgs]) => ({
-    date,
-    messages: msgs,
-  }));
+    for (const message of sortedMessages) {
+      const dateKey = formatDateSeparator(message.createdAt);
+      const existing = groups.get(dateKey) || [];
+      groups.set(dateKey, [...existing, message]);
+    }
+
+    return Array.from(groups.entries()).map(([date, msgs]) => ({
+      date,
+      messages: msgs,
+    }));
+  };
 }
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState("");
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
   const { profile } = useCurrentUser(isAuthenticated);
   const currentUserPublicId = profile?.publicId ?? "";
+  const getLastSeenText = useGetLastSeenText();
+  const groupMessagesByDate = useGroupMessagesByDate();
 
   const { conversation, messages, isLoading, error, sendMessage } =
     useConversation({
@@ -116,7 +129,7 @@ export default function ChatScreen() {
   // Group messages by date
   const messageGroups = useMemo(
     () => groupMessagesByDate(messages),
-    [messages],
+    [messages, groupMessagesByDate],
   );
 
   const handleBack = () => {
@@ -170,8 +183,8 @@ export default function ChatScreen() {
 
   // Determine display values
   const displayName = conversation?.isGroup
-    ? conversation.name || "Group Chat"
-    : otherParticipant?.displayName || "Chat";
+    ? conversation.name || t("chat.groupChat")
+    : otherParticipant?.displayName || t("tabs.chat");
 
   const displayAvatar = conversation?.isGroup
     ? conversation.avatarUrl ?? undefined

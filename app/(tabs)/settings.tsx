@@ -2,32 +2,34 @@ import { View, Text, ScrollView, Switch, Alert, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { ProfileCard } from "@/components/ui/ProfileCard";
 import { SettingsMenuGroup } from "@/components/ui/SettingsMenuGroup";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 
-const primaryMenuItems = [
-  { icon: "laptop-outline" as const, label: "Connected Device" },
-  { icon: "time-outline" as const, label: "Recent Activities" },
-  { icon: "document-text-outline" as const, label: "Draft Chatter Box" },
-];
-
-const settingsMenuItems = [
-  { icon: "person-outline" as const, label: "Account" },
-  { icon: "lock-closed-outline" as const, label: "Privacy" },
-  { icon: "chatbubbles-outline" as const, label: "Chat & Community" },
-  { icon: "notifications-outline" as const, label: "Notification" },
-  { icon: "server-outline" as const, label: "Storage & Data" },
-  { icon: "information-circle-outline" as const, label: "Recent Updates" },
-];
-
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme, isDark, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
+
+  const primaryMenuItems = [
+    { icon: "laptop-outline" as const, label: t("settings.connectedDevice") },
+    { icon: "time-outline" as const, label: t("settings.recentActivities") },
+    { icon: "document-text-outline" as const, label: t("settings.draftChatterBox") },
+  ];
+
+  const settingsMenuItems = [
+    { icon: "person-outline" as const, label: t("settings.account") },
+    { icon: "lock-closed-outline" as const, label: t("settings.privacy") },
+    { icon: "chatbubbles-outline" as const, label: t("settings.chatCommunity") },
+    { icon: "notifications-outline" as const, label: t("settings.notification") },
+    { icon: "server-outline" as const, label: t("settings.storageData") },
+    { icon: "information-circle-outline" as const, label: t("settings.recentUpdates") },
+  ];
 
   const handleQRPress = () => {
     console.log("QR pressed");
@@ -38,23 +40,20 @@ export default function SettingsScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert("Esci", "Sei sicuro di voler uscire dal tuo account?", [
+    Alert.alert(t("auth.logoutTitle"), t("auth.logoutConfirm"), [
       {
-        text: "Annulla",
+        text: t("common.cancel"),
         style: "cancel",
       },
       {
-        text: "Esci",
+        text: t("auth.logout"),
         style: "destructive",
         onPress: async () => {
           try {
             await signOut();
             router.replace("/(auth)/login");
           } catch (error) {
-            Alert.alert(
-              "Errore",
-              "Si è verificato un errore durante il logout."
-            );
+            Alert.alert(t("common.error"), t("auth.logoutError"));
             console.error("Logout error:", error);
           }
         },
@@ -73,7 +72,7 @@ export default function SettingsScreen() {
           className="font-sans-semibold text-heading-4 font-semibold"
           style={{ color: theme.text }}
         >
-          Setting Menu
+          {t("settings.title")}
         </Text>
         <SearchInput />
       </View>
@@ -86,7 +85,7 @@ export default function SettingsScreen() {
       >
         {/* Profile Card */}
         <ProfileCard
-          name={user?.name ?? user?.email ?? "Utente"}
+          name={user?.name ?? user?.email ?? t("common.user")}
           subtitle={user?.email ?? ""}
           avatar={user?.avatar}
           contactsCount={356}
@@ -115,13 +114,13 @@ export default function SettingsScreen() {
                 className="font-sans-semibold text-base"
                 style={{ color: theme.text }}
               >
-                Dark Mode
+                {t("settings.darkMode")}
               </Text>
               <Text
                 className="font-sans text-sm"
                 style={{ color: theme.textSecondary }}
               >
-                {isDark ? "On" : "Off"}
+                {isDark ? t("settings.on") : t("settings.off")}
               </Text>
             </View>
           </View>
@@ -150,7 +149,7 @@ export default function SettingsScreen() {
             className="font-sans-semibold text-base"
             style={{ color: theme.error }}
           >
-            Esci dall'account
+            {t("settings.logoutButton")}
           </Text>
         </Pressable>
       </ScrollView>

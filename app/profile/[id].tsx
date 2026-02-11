@@ -11,6 +11,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Image,
@@ -30,6 +31,7 @@ export default function ProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const { isAuthenticated } = useAuth();
   const { profile: currentUser } = useCurrentUser(isAuthenticated);
@@ -146,7 +148,7 @@ export default function ProfileScreen() {
         className="flex-1 items-center justify-center"
         style={{ backgroundColor: theme.background }}
       >
-        <Text style={{ color: theme.textSecondary }}>User not found</Text>
+        <Text style={{ color: theme.textSecondary }}>{t("profile.userNotFound")}</Text>
       </View>
     );
   }
@@ -157,6 +159,12 @@ export default function ProfileScreen() {
   const shouldTruncateBio = bioText.length > 120;
   const totalLikes = vibes.reduce((sum, v) => sum + v.likesCount, 0);
   const totalComments = vibes.reduce((sum, v) => sum + v.commentsCount, 0);
+
+  const tabs = [
+    { key: "profile" as const, label: t("profile.tabProfile") },
+    { key: "vibes" as const, label: t("profile.tabVibes") },
+    { key: "honor" as const, label: t("profile.tabHonor") },
+  ];
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.background }}>
@@ -288,7 +296,7 @@ export default function ProfileScreen() {
                   className="font-sans text-[12px]"
                   style={{ color: theme.success }}
                 >
-                  Active now
+                  {t("profile.activeNow")}
                 </Text>
               </View>
             )}
@@ -361,7 +369,7 @@ export default function ProfileScreen() {
               className="font-sans text-[13px]"
               style={{ color: theme.textSecondary }}
             >
-              Following
+              {t("profile.following")}
             </Text>
           </View>
           <View className="flex-row items-center gap-1">
@@ -375,7 +383,7 @@ export default function ProfileScreen() {
               className="font-sans text-[13px]"
               style={{ color: theme.textSecondary }}
             >
-              Followers
+              {t("profile.followers")}
             </Text>
           </View>
           <View className="flex-row items-center gap-1">
@@ -389,7 +397,7 @@ export default function ProfileScreen() {
               className="font-sans text-[13px]"
               style={{ color: theme.textSecondary }}
             >
-              Streak
+              {t("profile.streak")}
             </Text>
           </View>
         </View>
@@ -410,7 +418,7 @@ export default function ProfileScreen() {
                   className="font-sans-semibold text-[13px] mt-0.5"
                   style={{ color: theme.primary }}
                 >
-                  More
+                  {t("common.more")}
                 </Text>
               </Pressable>
             )}
@@ -422,13 +430,7 @@ export default function ProfileScreen() {
           className="mt-4 flex-row"
           style={{ borderBottomWidth: 1, borderBottomColor: theme.border }}
         >
-          {(
-            [
-              { key: "profile", label: "Profile" },
-              { key: "vibes", label: "Vibes" },
-              { key: "honor", label: "Honor" },
-            ] as const
-          ).map((tab) => {
+          {tabs.map((tab) => {
             const isActive = activeTab === tab.key;
             return (
               <Pressable
@@ -470,7 +472,7 @@ export default function ProfileScreen() {
                 >
                   {vibes.length}
                 </Text>{" "}
-                Vibes
+                {t("profile.tabVibes")}
               </Text>
               <Text
                 className="font-sans text-[13px]"
@@ -482,7 +484,7 @@ export default function ProfileScreen() {
                 >
                   {totalLikes}
                 </Text>{" "}
-                Likes
+                {t("profile.likes")}
               </Text>
               <Text
                 className="font-sans text-[13px]"
@@ -494,7 +496,7 @@ export default function ProfileScreen() {
                 >
                   {totalComments}
                 </Text>{" "}
-                Comments
+                {t("profile.comments")}
               </Text>
             </View>
 
@@ -529,7 +531,7 @@ export default function ProfileScreen() {
                   className="py-8 text-center font-sans text-[14px]"
                   style={{ color: theme.textSecondary }}
                 >
-                  No vibes yet
+                  {t("vibes.noVibesYet")}
                 </Text>
               )}
             </View>
@@ -542,7 +544,7 @@ export default function ProfileScreen() {
               className="font-sans text-[14px]"
               style={{ color: theme.textSecondary }}
             >
-              Profile details coming soon
+              {t("profile.profileComingSoon")}
             </Text>
           </View>
         )}
@@ -553,7 +555,7 @@ export default function ProfileScreen() {
               className="font-sans text-[14px]"
               style={{ color: theme.textSecondary }}
             >
-              Honor board coming soon
+              {t("profile.honorComingSoon")}
             </Text>
           </View>
         )}
@@ -579,7 +581,7 @@ export default function ProfileScreen() {
               className="font-sans-semibold text-[15px]"
               style={{ color: theme.primary }}
             >
-              Follow
+              {t("profile.follow")}
             </Text>
           </Pressable>
           <Pressable
@@ -587,7 +589,7 @@ export default function ProfileScreen() {
             style={{ backgroundColor: theme.primary }}
           >
             <Text className="font-sans-semibold text-[15px] text-white">
-              Say Hi
+              {t("profile.sayHi")}
             </Text>
           </Pressable>
         </View>

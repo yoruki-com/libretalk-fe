@@ -1,6 +1,7 @@
 import { View, Text, Alert, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
 import { AuthButton } from "@/components/ui/AuthButton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +10,7 @@ import * as AppleAuthentication from "expo-apple-authentication";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { signInWithApple, signInWithGoogle, signInWithEmail } = useAuth();
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
@@ -17,10 +19,7 @@ export default function LoginScreen() {
     try {
       await signInWithApple();
     } catch (error) {
-      Alert.alert(
-        "Errore",
-        "Si è verificato un errore durante l'accesso con Apple."
-      );
+      Alert.alert(t("common.error"), t("auth.errorApple"));
     } finally {
       setIsLoading(null);
     }
@@ -31,10 +30,7 @@ export default function LoginScreen() {
     try {
       await signInWithGoogle();
     } catch (error) {
-      Alert.alert(
-        "Errore",
-        "Si è verificato un errore durante l'accesso con Google."
-      );
+      Alert.alert(t("common.error"), t("auth.errorGoogle"));
     } finally {
       setIsLoading(null);
     }
@@ -45,7 +41,7 @@ export default function LoginScreen() {
     try {
       await signInWithEmail();
     } catch (error) {
-      Alert.alert("Errore", "Si è verificato un errore durante l'accesso.");
+      Alert.alert(t("common.error"), t("auth.errorEmail"));
     } finally {
       setIsLoading(null);
     }
@@ -73,7 +69,7 @@ export default function LoginScreen() {
 
         {/* Headline */}
         <Text className="mb-8 text-center font-sans-semibold text-heading-4 text-dark">
-          Accedi per iniziare le tue conversazioni!
+          {t("auth.loginHeadline")}
         </Text>
 
         {/* Buttons */}
@@ -114,7 +110,7 @@ export default function LoginScreen() {
           {/* Divider */}
           <View className="my-2 flex-row items-center gap-4">
             <View className="h-px flex-1 bg-gray-200" />
-            <Text className="text-sm text-gray-500">oppure</Text>
+            <Text className="text-sm text-gray-500">{t("common.or")}</Text>
             <View className="h-px flex-1 bg-gray-200" />
           </View>
 
@@ -128,9 +124,9 @@ export default function LoginScreen() {
 
           {/* Terms */}
           <Text className="mt-4 text-center text-body-small text-dark opacity-60">
-            Continuando, accetti i{" "}
-            <Text className="font-sans-semibold">Termini di Servizio</Text> e l'
-            <Text className="font-sans-semibold">Informativa sulla Privacy</Text>
+            {t("auth.termsText")}{" "}
+            <Text className="font-sans-semibold">{t("auth.termsOfService")}</Text> {t("auth.and")}
+            <Text className="font-sans-semibold">{t("auth.privacyPolicy")}</Text>
           </Text>
         </View>
       </View>

@@ -2,12 +2,14 @@ import { View, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
 
 export default function GetStarted() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const handleGoogleLogin = () => {
     console.log("Google login pressed");
@@ -41,7 +43,7 @@ export default function GetStarted() {
 
         {/* Headline */}
         <Text className="mb-8 text-center font-sans-semibold text-heading-4 text-dark">
-          Platform for Seamless Messaging and Connected Conversations!
+          {t("auth.getStartedHeadline")}
         </Text>
 
         {/* Form */}
@@ -51,9 +53,9 @@ export default function GetStarted() {
 
           {/* Terms */}
           <Text className="mt-2 text-center text-body-small text-dark opacity-80">
-            By continuing, you agree to the{" "}
-            <Text className="font-sans-semibold">Terms of Service</Text> &{" "}
-            <Text className="font-sans-semibold">Privacy Policy</Text>
+            {t("auth.termsText")}{" "}
+            <Text className="font-sans-semibold">{t("auth.termsOfService")}</Text> {t("auth.and")}{" "}
+            <Text className="font-sans-semibold">{t("auth.privacyPolicy")}</Text>
           </Text>
         </View>
       </View>

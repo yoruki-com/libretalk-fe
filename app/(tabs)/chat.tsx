@@ -10,27 +10,32 @@ import type { Conversation } from "@/services/api";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Text, View } from "react-native";
 import { RefreshableScrollView } from "@/components/ui";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Helper to format time for display
-function formatTime(dateString: string | null): string {
-  if (!dateString) return "";
+function useFormatTime() {
+  const { t } = useTranslation();
 
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return (dateString: string | null): string => {
+    if (!dateString) return "";
 
-  if (diffDays === 0) {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  } else if (diffDays === 1) {
-    return "Yesterday";
-  } else if (diffDays < 7) {
-    return date.toLocaleDateString([], { weekday: "long" });
-  }
-  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    } else if (diffDays === 1) {
+      return t("chat.yesterday");
+    } else if (diffDays < 7) {
+      return date.toLocaleDateString([], { weekday: "long" });
+    }
+    return date.toLocaleDateString([], { month: "short", day: "numeric" });
+  };
 }
 
 // Get the other participants (exclude the current user)
@@ -39,11 +44,11 @@ function getOtherParticipants(conversation: Conversation, currentUserPublicId: s
 }
 
 // Get display name for conversation
-function getConversationDisplayName(conversation: Conversation, currentUserPublicId: string): string {
+function getConversationDisplayName(conversation: Conversation, currentUserPublicId: string, groupLabel: string): string {
   if (conversation.isGroup) {
     if (conversation.name) return conversation.name;
     const others = getOtherParticipants(conversation, currentUserPublicId);
-    return others.map((p) => p.displayName).join(", ") || "Group";
+    return others.map((p) => p.displayName).join(", ") || groupLabel;
   }
   const other = getOtherParticipants(conversation, currentUserPublicId)[0];
   return other?.displayName ?? "Unknown";
@@ -66,9 +71,11 @@ function isConversationOnline(conversation: Conversation, currentUserPublicId: s
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
   const { profile } = useCurrentUser(isAuthenticated);
+  const formatTime = useFormatTime();
 
   const { conversations, isLoading, error, refresh } = useConversations({
     enabled: isAuthenticated && !!profile?.publicId,
@@ -118,7 +125,7 @@ export default function ChatListScreen() {
       {error && conversations.length === 0 && (
         <View className="flex-1 items-center justify-center px-4">
           <Text style={{ color: theme.textSecondary, textAlign: "center" }}>
-            Unable to load conversations. Pull to refresh.
+            {t("chat.loadError")}
           </Text>
         </View>
       )}
@@ -129,10 +136,10 @@ export default function ChatListScreen() {
         {conversations.map((conversation) => (
           <ChatCard
             key={conversation.publicId}
-            name={getConversationDisplayName(conversation, profile!.publicId)}
+            name={getConversationDisplayName(conversation, profile!.publicId, t("chat.groupChat"))}
             message={
               conversation.lastMessage?.type === "STICKER"
-                ? "Sticker"
+                ? t("chat.sticker")
                 : (conversation.lastMessage?.content ?? "")
             }
             time={formatTime(conversation.lastMessageAt)}
@@ -157,7 +164,7 @@ export default function ChatListScreen() {
         {!isLoading && conversations.length === 0 && !error && (
           <View className="items-center justify-center py-8">
             <Text style={{ color: theme.textSecondary, textAlign: "center" }}>
-              No conversations yet. Start chatting!
+              {t("chat.noConversations")}
             </Text>
           </View>
         )}

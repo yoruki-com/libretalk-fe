@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { SearchBar, CategoryChips, CommunityCard, RefreshableScrollView } from "@/components/ui";
 import { useCommunity } from "@/hooks/useCommunity";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -10,16 +11,10 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { conversationsApi } from "@/services/api";
 import { getRandomHelloSticker } from "@/constants/stickers";
 
-const communityFilters = [
-  { id: "all", emoji: "🌍", label: "All" },
-  { id: "online", emoji: "🟢", label: "Online" },
-  { id: "nearby", emoji: "📍", label: "Nearby" },
-  { id: "new", emoji: "✨", label: "New" },
-];
-
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
   const { profile } = useCurrentUser(isAuthenticated);
@@ -31,6 +26,13 @@ export default function CommunityScreen() {
     setFilter,
     refresh,
   } = useCommunity({ enabled: isAuthenticated });
+
+  const communityFilters = [
+    { id: "all", emoji: "\uD83C\uDF0D", label: t("community.filterAll") },
+    { id: "online", emoji: "\uD83D\uDFE2", label: t("community.filterOnline") },
+    { id: "nearby", emoji: "\uD83D\uDCCD", label: t("community.filterNearby") },
+    { id: "new", emoji: "\u2728", label: t("community.filterNew") },
+  ];
 
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,14 +88,14 @@ export default function CommunityScreen() {
             className="font-sans-semibold text-[24px] leading-[32px]"
             style={{ color: theme.text }}
           >
-            Community
+            {t("community.title")}
           </Text>
         </View>
 
         {/* Search */}
         <View className="px-4 pb-4">
           <SearchBar
-            placeholder="Search people..."
+            placeholder={t("community.searchPlaceholder")}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onFilterPress={() => {}}
@@ -132,7 +134,7 @@ export default function CommunityScreen() {
               style={{ color: theme.primary, fontWeight: "600" }}
               onPress={refresh}
             >
-              Try Again
+              {t("common.tryAgain")}
             </Text>
           </View>
         )}
@@ -143,7 +145,7 @@ export default function CommunityScreen() {
             <Text
               style={{ color: theme.textSecondary, textAlign: "center" }}
             >
-              No people found
+              {t("community.noResults")}
             </Text>
           </View>
         )}

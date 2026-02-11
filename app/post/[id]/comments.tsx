@@ -11,6 +11,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { VibeCard, CommentCard, CommentInput } from "@/components/ui";
 import { useComments } from "@/hooks/useComments";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -38,6 +39,7 @@ export default function CommentsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
   const { profile } = useCurrentUser(isAuthenticated);
@@ -109,7 +111,7 @@ export default function CommentsScreen() {
           <Ionicons name="arrow-back" size={24} color={theme.icon} />
         </Pressable>
         <Text className="font-sans-semibold text-[16px]" style={{ color: theme.text }}>
-          Comments
+          {t("comments.title")}
         </Text>
         <View className="w-8" />
       </View>
@@ -128,7 +130,7 @@ export default function CommentsScreen() {
             {error.message}
           </Text>
           <Pressable onPress={refresh}>
-            <Text style={{ color: theme.primary, fontWeight: "600" }}>Try Again</Text>
+            <Text style={{ color: theme.primary, fontWeight: "600" }}>{t("common.tryAgain")}</Text>
           </Pressable>
         </View>
       )}
@@ -163,8 +165,8 @@ export default function CommentsScreen() {
             <View className="flex-row items-center justify-between px-4 py-2">
               <Text className="font-sans-semibold text-[14px]" style={{ color: theme.text }}>
                 {comments.length > 0
-                  ? `${comments.length} Comment${comments.length > 1 ? "s" : ""}`
-                  : "Comments"}
+                  ? t("comments.count", { count: comments.length })
+                  : t("comments.title")}
               </Text>
             </View>
 
@@ -173,10 +175,10 @@ export default function CommentsScreen() {
               <View className="items-center py-10">
                 <Ionicons name="chatbubble-outline" size={48} color={theme.border} />
                 <Text className="mt-3 font-sans text-[14px]" style={{ color: theme.textSecondary }}>
-                  No comments yet
+                  {t("comments.noComments")}
                 </Text>
                 <Text className="mt-1 font-sans text-[12px]" style={{ color: theme.textTertiary }}>
-                  Be the first to comment!
+                  {t("comments.beFirst")}
                 </Text>
               </View>
             ) : (

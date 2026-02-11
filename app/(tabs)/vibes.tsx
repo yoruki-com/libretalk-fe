@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import {
   LocationHeader,
   SearchBar,
@@ -18,16 +19,10 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const deviceCountryCode = getLocales()[0]?.regionCode ?? null;
 
-const feedFilters = [
-  { id: "recent", emoji: "🕐", label: "Recent" },
-  { id: "for-you", emoji: "✨", label: "For You" },
-  { id: "nearby", emoji: "📍", label: "Nearby" },
-  { id: "following", emoji: "👥", label: "Following" },
-];
-
 export default function VibesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const { isAuthenticated, user: authUser } = useAuth();
   const { profile } = useCurrentUser(isAuthenticated);
@@ -40,6 +35,13 @@ export default function VibesScreen() {
     setSearch,
     refresh,
   } = useVibes({ enabled: isAuthenticated, userPublicId: profile?.publicId });
+
+  const feedFilters = [
+    { id: "recent", emoji: "\uD83D\uDD50", label: t("vibes.filterRecent") },
+    { id: "for-you", emoji: "\u2728", label: t("vibes.filterForYou") },
+    { id: "nearby", emoji: "\uD83D\uDCCD", label: t("vibes.filterNearby") },
+    { id: "following", emoji: "\uD83D\uDC65", label: t("vibes.filterFollowing") },
+  ];
 
   // Refresh vibes when tab regains focus (sync likes from other pages)
   const isFirstFocus = useRef(true);
@@ -110,7 +112,7 @@ export default function VibesScreen() {
         {/* Search */}
         <View className="px-4 pb-4">
           <SearchBar
-            placeholder="Search vibes..."
+            placeholder={t("vibes.searchPlaceholder")}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onFilterPress={() => {}}
@@ -143,7 +145,7 @@ export default function VibesScreen() {
               style={{ color: theme.primary, fontWeight: "600" }}
               onPress={refresh}
             >
-              Try Again
+              {t("common.tryAgain")}
             </Text>
           </View>
         )}
@@ -152,7 +154,7 @@ export default function VibesScreen() {
         {!isLoading && !error && vibes.length === 0 && (
           <View className="flex-1 items-center justify-center py-20">
             <Text style={{ color: theme.textSecondary, textAlign: "center" }}>
-              No vibes found
+              {t("vibes.noResults")}
             </Text>
           </View>
         )}
