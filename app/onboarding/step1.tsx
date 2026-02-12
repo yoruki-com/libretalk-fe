@@ -4,7 +4,7 @@ import { usersApi } from "@/services/api/users";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -42,14 +42,18 @@ export default function OnboardingStep1() {
     }
   }, [profile]);
 
-  const handleDateChange = (_event: unknown, selectedDate?: Date) => {
-    if (Platform.OS === "android") {
-      setShowDatePicker(false);
-    }
-    if (selectedDate) {
-      setDateOfBirth(selectedDate);
-    }
-  };
+  const handleDateChange = useCallback(
+    (event: { type: string; nativeEvent: { timestamp: number } }, selectedDate?: Date) => {
+      if (Platform.OS === "android") {
+        setShowDatePicker(false);
+      }
+      if (event.type === "dismissed") return;
+
+      const date = selectedDate ?? new Date(event.nativeEvent.timestamp);
+      setDateOfBirth(date);
+    },
+    [],
+  );
 
   const isValid = displayName.trim().length > 0 && dateOfBirth !== null && city.trim().length > 0;
 

@@ -13,6 +13,7 @@ import {
   setTokenGetter,
   clearTokenGetter,
 } from "@/services/api/client";
+import { resetCurrentUserCache } from "@/hooks/useCurrentUser";
 
 const AUTH0_DOMAIN = process.env.EXPO_PUBLIC_AUTH0_DOMAIN!;
 const AUTH0_CLIENT_ID = process.env.EXPO_PUBLIC_AUTH0_CLIENT_ID!;
@@ -279,12 +280,14 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setAccessToken(null);
       setIsAuthenticated(false);
+      resetCurrentUserCache();
     } catch (error) {
       console.error("Sign out error:", error);
       // Reset state even if clearSession fails
       setUser(null);
       setAccessToken(null);
       setIsAuthenticated(false);
+      resetCurrentUserCache();
     }
   }, [clearSession]);
 

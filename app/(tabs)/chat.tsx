@@ -133,28 +133,28 @@ export default function ChatListScreen() {
       {/* Chat List */}
       <RefreshableScrollView className="mt-4 flex-1" onRefresh={refresh}>
         <ArchiveRow count={0} onPress={handleArchivePress} />
-        {conversations.map((conversation) => (
+        {profile && conversations.map((conversation) => (
           <ChatCard
             key={conversation.publicId}
-            name={getConversationDisplayName(conversation, profile!.publicId, t("chat.groupChat"))}
+            name={getConversationDisplayName(conversation, profile.publicId, t("chat.groupChat"))}
             message={
               conversation.lastMessage?.type === "STICKER"
                 ? t("chat.sticker")
                 : (conversation.lastMessage?.content ?? "")
             }
             time={formatTime(conversation.lastMessageAt)}
-            avatar={getConversationAvatar(conversation, profile!.publicId)}
+            avatar={getConversationAvatar(conversation, profile.publicId)}
             unreadCount={0}
             isMyTurn={
               !!conversation.lastMessage &&
-              conversation.lastMessage.sender.publicId !== profile!.publicId
+              conversation.lastMessage.sender.publicId !== profile.publicId
             }
             isRead={
               !!conversation.lastMessage &&
-              conversation.lastMessage.sender.publicId === profile!.publicId &&
+              conversation.lastMessage.sender.publicId === profile.publicId &&
               conversation.lastMessage.status === "READ"
             }
-            isOnline={isConversationOnline(conversation, profile!.publicId)}
+            isOnline={isConversationOnline(conversation, profile.publicId)}
             isGroup={conversation.isGroup}
             onPress={() => handleChatPress(conversation.publicId)}
           />
