@@ -28,7 +28,10 @@ export default function EditProfileScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { profile, refresh } = useCurrentUser();
-  const { pendingAvatarUri, isUploading, pickAvatar, uploadAvatar } = useAvatarUpload();
+  const { pickAndUpload, isUploading } = useAvatarUpload({
+    onSuccess: () => refresh(),
+    onError: (error) => Alert.alert(t("common.error"), error.message),
+  });
 
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -53,12 +56,6 @@ export default function EditProfileScreen() {
     if (!profile) return;
     setIsSaving(true);
     try {
-      let avatarUrl: string | undefined;
-      if (pendingAvatarUri) {
-        const url = await uploadAvatar();
-        if (url) avatarUrl = url;
-      }
-
       const data: UpdateUserDto = {
         displayName: displayName.trim() || undefined,
         bio: bio.trim() || null,
@@ -67,9 +64,8 @@ export default function EditProfileScreen() {
         gender: gender ?? null,
         jobTitle: jobTitle.trim() || null,
         city: city.trim() || null,
-        ...(avatarUrl !== undefined && { avatarUrl }),
       };
-      await usersApi.updateMe(data);
+      await usersApi.update(profile.publicId, data);
       await refresh();
       router.back();
     } catch {
@@ -151,10 +147,10 @@ export default function EditProfileScreen() {
       >
         {/* Avatar Section */}
         <View className="items-center py-4">
-          <Pressable onPress={pickAvatar} disabled={isUploading} className="active:opacity-70">
-            {(pendingAvatarUri ?? profile.avatarUrl) ? (
+          <Pressable onPress={pickAndUpload} disabled={isUploading} className="active:opacity-70">
+            {profile.avatarUrl ? (
               <Image
-                source={{ uri: pendingAvatarUri ?? profile.avatarUrl! }}
+                source={{ uri: profile.avatarUrl }}
                 className="h-24 w-24 rounded-full"
                 resizeMode="cover"
               />
