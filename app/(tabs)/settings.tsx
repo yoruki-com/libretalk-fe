@@ -2,6 +2,7 @@ import { ProfileCard } from "@/components/ui/ProfileCard";
 import { SettingsMenuGroup } from "@/components/ui/SettingsMenuGroup";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -13,7 +14,8 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme, isDark, toggleTheme } = useTheme();
-  const { user, signOut } = useAuth();
+  const { user, isAuthenticated, signOut } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated);
 
   const primaryMenuItems = [
     { icon: "laptop-outline" as const, label: t("settings.connectedDevice") },
@@ -95,9 +97,9 @@ export default function SettingsScreen() {
       >
         {/* Profile Card */}
         <ProfileCard
-          name={user?.name ?? user?.email ?? t("common.user")}
+          name={profile?.displayName ?? user?.name ?? user?.email ?? t("common.user")}
           subtitle={user?.email ?? ""}
-          avatar={user?.avatar}
+          avatar={profile?.avatarUrl ?? undefined}
           onQRPress={handleQRPress}
           onContactsPress={handleContactsPress}
         />
