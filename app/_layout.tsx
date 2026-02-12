@@ -13,6 +13,7 @@ import {
 import { useEffect } from "react";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CurrentUserProvider } from "@/contexts/CurrentUserContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -58,9 +59,11 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <ThemeProvider>
-        <RootLayoutContent />
-      </ThemeProvider>
+      <CurrentUserProvider>
+        <ThemeProvider>
+          <RootLayoutContent />
+        </ThemeProvider>
+      </CurrentUserProvider>
     </AuthProvider>
   );
 }

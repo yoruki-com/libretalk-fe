@@ -2,21 +2,16 @@ import { useState, useCallback } from "react";
 import ImageCropPicker from "react-native-image-crop-picker";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { uploadsApi } from "@/services/api/uploads";
-import { usersApi } from "@/services/api/users";
 
 const OUTPUT_SIZE = 512;
 
-interface UseAvatarUploadOptions {
-  onSuccess?: (publicUrl: string) => void;
-  onError?: (error: Error) => void;
-}
-
-export function useAvatarUpload(options?: UseAvatarUploadOptions) {
+export function useAvatarUpload() {
+  const [pendingAvatarUri, setPendingAvatarUri] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const pickAndUpload = useCallback(async () => {
+  /** Opens the gallery with circular crop. Returns the local URI for preview. */
+  const pickAvatar = useCallback(async () => {
     try {
-      // Open gallery with circular crop overlay (saves as square 1:1)
       const image = await ImageCropPicker.openPicker({
         width: OUTPUT_SIZE,
         height: OUTPUT_SIZE,
@@ -26,41 +21,52 @@ export function useAvatarUpload(options?: UseAvatarUploadOptions) {
         compressImageQuality: 1,
       });
 
-      setIsUploading(true);
-
-      // Resize and compress
+      // Resize and compress locally
       const manipulated = await manipulateAsync(
         image.path,
         [{ resize: { width: OUTPUT_SIZE, height: OUTPUT_SIZE } }],
         { compress: 0.8, format: SaveFormat.JPEG }
       );
 
-      // Get presigned URL from backend
+      setPendingAvatarUri(manipulated.uri);
+      return manipulated.uri;
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      if (err.code === "E_PICKER_CANCELLED") return null;
+      throw error;
+    }
+  }, []);
+
+  /** Uploads the pending avatar to S3. Returns the public CloudFront URL. */
+  const uploadAvatar = useCallback(async (): Promise<string | null> => {
+    if (!pendingAvatarUri) return null;
+
+    setIsUploading(true);
+    try {
       const contentType = "image/jpeg" as const;
       const { data } = await uploadsApi.getPresignedUrl({
         folder: "avatars",
         contentType,
       });
 
-      // Upload directly to S3
-      await uploadsApi.uploadToS3(data.uploadUrl, manipulated.uri, contentType);
+      await uploadsApi.uploadToS3(data.uploadUrl, pendingAvatarUri, contentType);
 
-      // Update user profile with the new avatar URL
-      await usersApi.updateMe({ avatarUrl: data.publicUrl });
-
-      options?.onSuccess?.(data.publicUrl);
-    } catch (error: unknown) {
-      // User cancelled the picker
-      const err = error as { code?: string };
-      if (err.code === "E_PICKER_CANCELLED") return;
-
-      options?.onError?.(
-        error instanceof Error ? error : new Error("Upload failed")
-      );
+      setPendingAvatarUri(null);
+      return data.publicUrl;
     } finally {
       setIsUploading(false);
     }
-  }, [options]);
+  }, [pendingAvatarUri]);
 
-  return { pickAndUpload, isUploading };
+  const clearPendingAvatar = useCallback(() => {
+    setPendingAvatarUri(null);
+  }, []);
+
+  return {
+    pendingAvatarUri,
+    isUploading,
+    pickAvatar,
+    uploadAvatar,
+    clearPendingAvatar,
+  };
 }
