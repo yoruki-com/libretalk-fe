@@ -14,8 +14,10 @@ interface CommunityCardProps {
   city?: string | null;
   isOnline?: boolean;
   isVip?: boolean;
+  hasExistingChat?: boolean;
   onPress?: () => void;
   onWavePress?: () => void;
+  onChatPress?: () => void;
 }
 
 export function CommunityCard({
@@ -29,8 +31,10 @@ export function CommunityCard({
   city,
   isOnline = false,
   isVip = false,
+  hasExistingChat = false,
   onPress,
   onWavePress,
+  onChatPress,
 }: CommunityCardProps) {
   const { theme, isDark } = useTheme();
 
@@ -152,18 +156,32 @@ export function CommunityCard({
           )}
         </View>
 
-        {/* Wave Button */}
-        <Pressable
-          onPress={onWavePress}
-          className="items-center justify-center rounded-full active:opacity-70"
-          style={{
-            width: 36,
-            height: 36,
-            backgroundColor: theme.primary,
-          }}
-        >
-          <Text className="text-[18px]">{"\u{1F44B}"}</Text>
-        </Pressable>
+        {/* Wave / Chat Button */}
+        {hasExistingChat ? (
+          <Pressable
+            onPress={onChatPress}
+            className="items-center justify-center rounded-full active:opacity-70"
+            style={{
+              width: 36,
+              height: 36,
+              backgroundColor: theme.primary,
+            }}
+          >
+            <Ionicons name="chatbubble" size={18} color="#FFFFFF" />
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={onWavePress}
+            className="items-center justify-center rounded-full active:opacity-70"
+            style={{
+              width: 36,
+              height: 36,
+              backgroundColor: theme.primary,
+            }}
+          >
+            <Text className="text-[18px]">{"\u{1F44B}"}</Text>
+          </Pressable>
+        )}
       </View>
 
       {/* Interest Tags */}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { conversationsApi } from "@/services/api";
 import { getRandomHelloSticker } from "@/constants/stickers";
+import type { Conversation } from "@/services/api/types";
 
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
@@ -36,6 +37,46 @@ export default function CommunityScreen() {
 
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  // Fetch existing conversations to know which users already have a chat
+  const fetchConversations = useCallback(async () => {
+    if (!profile?.publicId) return;
+    try {
+      const response = await conversationsApi.getByUser(profile.publicId);
+      setConversations(response.data);
+    } catch (err) {
+      console.error("Failed to fetch conversations:", err);
+    }
+  }, [profile?.publicId]);
+
+  useEffect(() => {
+    fetchConversations();
+  }, [fetchConversations]);
+
+  // Map: otherUserPublicId → conversationPublicId (for 1:1 chats only)
+  const existingChatMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const conv of conversations) {
+      if (conv.isGroup) continue;
+      for (const p of conv.participants) {
+        if (p.publicId !== profile?.publicId) {
+          map.set(p.publicId, conv.publicId);
+        }
+      }
+    }
+    return map;
+  }, [conversations, profile?.publicId]);
+
+  const handleChatPress = useCallback(
+    (conversationPublicId: string) => {
+      router.push({
+        pathname: "/chat/[id]",
+        params: { id: conversationPublicId },
+      } as never);
+    },
+    [router]
+  );
 
   const handleWavePress = useCallback(
     async (userPublicId: string) => {
@@ -53,11 +94,13 @@ export default function CommunityScreen() {
           pathname: "/chat/[id]",
           params: { id: conversation.publicId },
         } as never);
+        // Refresh conversations so the card switches to chat icon on return
+        fetchConversations();
       } catch (err) {
         console.error("Failed to wave:", err);
       }
     },
-    [profile, router]
+    [profile, router, fetchConversations]
   );
 
   const handleFilterChange = (filterId: string) => {
@@ -152,30 +195,35 @@ export default function CommunityScreen() {
 
         {/* User Cards */}
         <View className="gap-4 px-4">
-          {users.map((user) => (
-            <CommunityCard
-              key={user.publicId}
-              displayName={user.displayName}
-              avatarUrl={user.avatarUrl}
-              countryCode={user.country?.code}
-              languages={user.languages?.map((l) => ({
-                code: l.code,
-                isLearning: l.isLearning,
-              }))}
-              bio={user.bio}
-              personalityType={user.personalityType}
-              city={user.city}
-              isOnline={user.isOnline}
-              isVip={user.isVip}
-              onPress={() =>
-                router.push({
-                  pathname: "/profile/[id]",
-                  params: { id: user.publicId },
-                })
-              }
-              onWavePress={() => handleWavePress(user.publicId)}
-            />
-          ))}
+          {users.map((user) => {
+            const existingChatId = existingChatMap.get(user.publicId);
+            return (
+              <CommunityCard
+                key={user.publicId}
+                displayName={user.displayName}
+                avatarUrl={user.avatarUrl}
+                countryCode={user.country?.code}
+                languages={user.languages?.map((l) => ({
+                  code: l.code,
+                  isLearning: l.isLearning,
+                }))}
+                bio={user.bio}
+                personalityType={user.personalityType}
+                city={user.city}
+                isOnline={user.isOnline}
+                isVip={user.isVip}
+                hasExistingChat={!!existingChatId}
+                onPress={() =>
+                  router.push({
+                    pathname: "/profile/[id]",
+                    params: { id: user.publicId },
+                  })
+                }
+                onWavePress={() => handleWavePress(user.publicId)}
+                onChatPress={() => existingChatId && handleChatPress(existingChatId)}
+              />
+            );
+          })}
         </View>
       </RefreshableScrollView>
     </View>
