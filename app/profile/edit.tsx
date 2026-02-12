@@ -1,5 +1,6 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { usersApi } from "@/services/api/users";
 import type { Gender, UpdateUserDto } from "@/services/api/types";
 import type { Theme } from "@/constants/theme";
@@ -27,6 +28,10 @@ export default function EditProfileScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { profile, refresh } = useCurrentUser();
+  const { pickAndUpload, isUploading } = useAvatarUpload({
+    onSuccess: () => refresh(),
+    onError: (error) => Alert.alert(t("common.error"), error.message),
+  });
 
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -142,7 +147,7 @@ export default function EditProfileScreen() {
       >
         {/* Avatar Section */}
         <View className="items-center py-4">
-          <View>
+          <Pressable onPress={pickAndUpload} disabled={isUploading} className="active:opacity-70">
             {profile.avatarUrl ? (
               <Image
                 source={{ uri: profile.avatarUrl }}
@@ -165,9 +170,13 @@ export default function EditProfileScreen() {
               className="absolute bottom-0 right-0 h-8 w-8 items-center justify-center rounded-full"
               style={{ backgroundColor: theme.primary }}
             >
-              <Ionicons name="camera" size={16} color="#FFFFFF" />
+              {isUploading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="camera" size={16} color="#FFFFFF" />
+              )}
             </View>
-          </View>
+          </Pressable>
         </View>
 
         {/* About Me */}

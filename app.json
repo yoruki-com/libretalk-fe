@@ -51,6 +51,13 @@
         }
       ],
       "expo-apple-authentication",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow LibreTalk to access your photos to set your profile picture.",
+          "cameraPermission": "Allow LibreTalk to take photos to set your profile picture."
+        }
+      ],
       "./plugins/withAuth0SchemeFixPlugin"
     ],
     "experiments": {
