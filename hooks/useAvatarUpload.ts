@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react";
-import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
+import ImageCropPicker from "react-native-image-crop-picker";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { uploadsApi } from "@/services/api/uploads";
 import { usersApi } from "@/services/api/users";
-import { setAvatarCropCallback } from "@/lib/avatar-crop-callback";
+
+const OUTPUT_SIZE = 512;
 
 interface UseAvatarUploadOptions {
   onSuccess?: (publicUrl: string) => void;
@@ -12,54 +13,54 @@ interface UseAvatarUploadOptions {
 
 export function useAvatarUpload(options?: UseAvatarUploadOptions) {
   const [isUploading, setIsUploading] = useState(false);
-  const router = useRouter();
 
   const pickAndUpload = useCallback(async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      options?.onError?.(new Error("Permission to access photos was denied"));
-      return;
-    }
+    try {
+      // Open gallery with circular crop overlay (saves as square 1:1)
+      const image = await ImageCropPicker.openPicker({
+        width: OUTPUT_SIZE,
+        height: OUTPUT_SIZE,
+        cropping: true,
+        cropperCircleOverlay: true,
+        mediaType: "photo",
+        compressImageQuality: 1,
+      });
 
-    const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: false,
-      quality: 1,
-    });
-
-    if (pickerResult.canceled || !pickerResult.assets[0]) return;
-
-    const sourceUri = pickerResult.assets[0].uri;
-
-    setAvatarCropCallback(async (croppedUri: string) => {
       setIsUploading(true);
-      try {
-        const contentType = "image/jpeg" as const;
-        const { data } = await uploadsApi.getPresignedUrl({
-          folder: "avatars",
-          contentType,
-        });
 
-        await uploadsApi.uploadToS3(data.uploadUrl, croppedUri, contentType);
+      // Resize and compress
+      const manipulated = await manipulateAsync(
+        image.path,
+        [{ resize: { width: OUTPUT_SIZE, height: OUTPUT_SIZE } }],
+        { compress: 0.8, format: SaveFormat.JPEG }
+      );
 
-        await usersApi.updateMe({ avatarUrl: data.publicUrl });
+      // Get presigned URL from backend
+      const contentType = "image/jpeg" as const;
+      const { data } = await uploadsApi.getPresignedUrl({
+        folder: "avatars",
+        contentType,
+      });
 
-        options?.onSuccess?.(data.publicUrl);
-      } catch (error) {
-        options?.onError?.(
-          error instanceof Error ? error : new Error("Upload failed")
-        );
-      } finally {
-        setIsUploading(false);
-      }
-    });
+      // Upload directly to S3
+      await uploadsApi.uploadToS3(data.uploadUrl, manipulated.uri, contentType);
 
-    router.push({
-      pathname: "/profile/crop-avatar",
-      params: { uri: sourceUri },
-    } as never);
-  }, [router, options]);
+      // Update user profile with the new avatar URL
+      await usersApi.updateMe({ avatarUrl: data.publicUrl });
+
+      options?.onSuccess?.(data.publicUrl);
+    } catch (error: unknown) {
+      // User cancelled the picker
+      const err = error as { code?: string };
+      if (err.code === "E_PICKER_CANCELLED") return;
+
+      options?.onError?.(
+        error instanceof Error ? error : new Error("Upload failed")
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  }, [options]);
 
   return { pickAndUpload, isUploading };
 }
