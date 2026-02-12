@@ -31,6 +31,7 @@ function RootLayoutContent() {
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" options={{ gestureEnabled: false }} />
         <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
         <Stack.Screen name="get-started" />
       </Stack>
     </>

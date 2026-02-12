@@ -2,6 +2,8 @@
 export { apiClient, ApiError } from "./client";
 export { conversationsApi } from "./conversations";
 export { usersApi } from "./users";
+export { languagesApi } from "./languages";
+export { passionsApi } from "./passions";
 export { vibesApi, commentsApi } from "./vibes";
 export { likesApi } from "./likes";
 export { promotionsApi } from "./promotions";

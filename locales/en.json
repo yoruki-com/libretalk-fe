@@ -168,6 +168,33 @@
     "saved": "Profile updated!",
     "saveError": "Failed to update profile"
   },
+  "onboarding": {
+    "step1Title": "Tell us about yourself",
+    "step1Subtitle": "Let's start with the basics",
+    "displayName": "Your name",
+    "displayNamePlaceholder": "How should we call you?",
+    "dateOfBirth": "Date of birth",
+    "dateOfBirthPlaceholder": "Select your date of birth",
+    "city": "City",
+    "cityPlaceholder": "Where do you live?",
+    "step2Title": "Languages",
+    "step2Subtitle": "Select a language you speak and one you want to learn",
+    "iSpeak": "I speak",
+    "iWantToLearn": "I want to learn",
+    "searchLanguage": "Search language...",
+    "step3Title": "Your interests",
+    "step3Subtitle": "Tell us what you're passionate about",
+    "hobbies": "Hobbies & Interests",
+    "mbti": "Personality Type (MBTI)",
+    "mbtiOptional": "Optional - select your personality type",
+    "jobTitle": "Job",
+    "jobOptional": "Optional - what do you do?",
+    "jobPlaceholder": "e.g. Software Engineer",
+    "otherCategory": "Other",
+    "complete": "Complete",
+    "saveError": "Failed to save. Please try again.",
+    "loadError": "Failed to load data. Please try again."
+  },
   "menu": {
     "reportThis": "Report this"
   }

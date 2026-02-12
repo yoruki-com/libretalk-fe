@@ -58,6 +58,7 @@ export interface User {
   lastSeenAt: string | null;
   isProfilePublic: boolean;
   isActive: boolean;
+  onboardingCompleted: boolean;
   isVip: boolean;
   followersCount: number;
   followingCount: number;
@@ -94,6 +95,7 @@ export interface UpdateUserDto {
   city?: string | null;
   timezone?: string | null;
   isProfilePublic?: boolean;
+  onboardingCompleted?: boolean;
 }
 
 // User Language Types
@@ -107,8 +109,30 @@ export interface UserLanguage {
   isLearning: boolean;
 }
 
+// Language Reference Type
+export interface Language {
+  publicId: string;
+  code: string;
+  name: string;
+  nativeName: string;
+  isActive: boolean;
+}
+
+// Passion Types
+export interface Passion {
+  publicId: string;
+  name: string;
+  icon: string | null;
+  category: string | null;
+}
+
 export interface UserMe extends User {
   languages: UserLanguage[];
+  passions: Passion[];
+}
+
+export interface UpdateUserPassionsDto {
+  passionIds: string[];
 }
 
 export interface UpdateUserLanguagesDto {

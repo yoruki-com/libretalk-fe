@@ -8,6 +8,7 @@ import type {
   CreateUserDto,
   UpdateUserDto,
   UpdateUserLanguagesDto,
+  UpdateUserPassionsDto,
 } from "./types";
 
 export const usersApi = {
@@ -64,9 +65,19 @@ export const usersApi = {
     return apiClient.post(`/users/${publicId}/last-seen`);
   },
 
+  // Update current user's profile
+  async updateMe(data: UpdateUserDto): Promise<ApiResponse<UserMe>> {
+    return apiClient.patch("/users/me", data);
+  },
+
   // Update current user's languages
   async updateMyLanguages(data: UpdateUserLanguagesDto): Promise<ApiResponse<UserMe>> {
     return apiClient.put("/users/me/languages", data);
+  },
+
+  // Update current user's passions
+  async updateMyPassions(data: UpdateUserPassionsDto): Promise<ApiResponse<UserMe>> {
+    return apiClient.put("/users/me/passions", data);
   },
 
   // Delete a user

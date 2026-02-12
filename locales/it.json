@@ -168,6 +168,33 @@
     "saved": "Profilo aggiornato!",
     "saveError": "Impossibile aggiornare il profilo"
   },
+  "onboarding": {
+    "step1Title": "Parlaci di te",
+    "step1Subtitle": "Iniziamo dalle basi",
+    "displayName": "Il tuo nome",
+    "displayNamePlaceholder": "Come dovremmo chiamarti?",
+    "dateOfBirth": "Data di nascita",
+    "dateOfBirthPlaceholder": "Seleziona la tua data di nascita",
+    "city": "Citta'",
+    "cityPlaceholder": "Dove vivi?",
+    "step2Title": "Lingue",
+    "step2Subtitle": "Seleziona una lingua che parli e una che vuoi imparare",
+    "iSpeak": "Parlo",
+    "iWantToLearn": "Voglio imparare",
+    "searchLanguage": "Cerca lingua...",
+    "step3Title": "I tuoi interessi",
+    "step3Subtitle": "Dicci cosa ti appassiona",
+    "hobbies": "Hobby e interessi",
+    "mbti": "Tipo di personalita' (MBTI)",
+    "mbtiOptional": "Opzionale - seleziona il tuo tipo di personalita'",
+    "jobTitle": "Lavoro",
+    "jobOptional": "Opzionale - cosa fai?",
+    "jobPlaceholder": "es. Ingegnere Informatico",
+    "otherCategory": "Altro",
+    "complete": "Completa",
+    "saveError": "Salvataggio fallito. Riprova.",
+    "loadError": "Caricamento fallito. Riprova."
+  },
   "menu": {
     "reportThis": "Segnala"
   }
