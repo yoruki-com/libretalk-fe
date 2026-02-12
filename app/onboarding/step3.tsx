@@ -1,4 +1,5 @@
 import { useTheme } from "@/contexts/ThemeContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usersApi } from "@/services/api/users";
 import { passionsApi } from "@/services/api/passions";
 import type { Passion, PersonalityType } from "@/services/api/types";
@@ -30,6 +31,7 @@ export default function OnboardingStep3() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
+  const { refresh: refreshProfile } = useCurrentUser();
 
   const [passions, setPassions] = useState<Passion[]>([]);
   const [isLoadingPassions, setIsLoadingPassions] = useState(true);
@@ -91,6 +93,7 @@ export default function OnboardingStep3() {
         onboardingCompleted: true,
       });
 
+      await refreshProfile();
       router.replace("/(tabs)/chat" as never);
     } catch {
       Alert.alert(t("common.error"), t("onboarding.saveError"));

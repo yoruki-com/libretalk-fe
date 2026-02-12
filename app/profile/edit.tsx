@@ -234,19 +234,40 @@ export default function EditProfileScreen() {
         {/* Interests */}
         <SectionHeader label={t("editProfile.interests")} theme={theme} />
         <SectionCard theme={theme}>
-          <IconRow
-            icon="musical-notes"
-            iconBg="#6C5CE7"
-            label={t("editProfile.hobbies")}
-            theme={theme}
-          />
-          <Divider theme={theme} />
-          <IconRow
-            icon="airplane"
-            iconBg="#0984E3"
-            label={t("editProfile.travelDestinations")}
-            theme={theme}
-          />
+          <View className="px-4 py-3">
+            {profile.passions && profile.passions.length > 0 ? (
+              <View className="flex-row flex-wrap gap-2">
+                {profile.passions.map((passion) => (
+                  <View
+                    key={passion.publicId}
+                    className="flex-row items-center rounded-full px-3 py-1.5"
+                    style={{
+                      backgroundColor: theme.primary + "15",
+                      borderWidth: 1,
+                      borderColor: theme.primary + "30",
+                    }}
+                  >
+                    {passion.icon && (
+                      <Text className="mr-1 text-[13px]">{passion.icon}</Text>
+                    )}
+                    <Text
+                      className="font-sans text-[13px]"
+                      style={{ color: theme.primary }}
+                    >
+                      {passion.name}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text
+                className="font-sans text-[14px]"
+                style={{ color: theme.textTertiary }}
+              >
+                —
+              </Text>
+            )}
+          </View>
         </SectionCard>
 
         {/* Personal Info */}
