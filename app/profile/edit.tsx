@@ -1,13 +1,18 @@
-import { useTheme } from "@/contexts/ThemeContext";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useAvatarUpload } from "@/hooks/useAvatarUpload";
-import { usersApi } from "@/services/api/users";
-import { languagesApi } from "@/services/api/languages";
-import type { Gender, Language, LanguageProficiency, UpdateUserDto } from "@/services/api/types";
-import { MbtiPicker } from "@/components/ui/MbtiPicker";
 import { CityPicker } from "@/components/ui/CityPicker";
-import type { Theme } from "@/constants/theme";
+import { MbtiPicker } from "@/components/ui/MbtiPicker";
 import { Routes } from "@/constants/routes";
+import type { Theme } from "@/constants/theme";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useAvatarUpload } from "@/hooks/useAvatarUpload";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { languagesApi } from "@/services/api/languages";
+import type {
+  Gender,
+  Language,
+  LanguageProficiency,
+  UpdateUserDto,
+} from "@/services/api/types";
+import { usersApi } from "@/services/api/users";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -34,7 +39,8 @@ export default function EditProfileScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { profile, refresh } = useCurrentUser();
-  const { pendingAvatarUri, isUploading, pickAvatar, uploadAvatar } = useAvatarUpload();
+  const { pendingAvatarUri, isUploading, pickAvatar, uploadAvatar } =
+    useAvatarUpload();
 
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
@@ -47,16 +53,31 @@ export default function EditProfileScreen() {
   // Language editing state
   const [allLanguages, setAllLanguages] = useState<Language[]>([]);
   const [selectedNative, setSelectedNative] = useState<Language | null>(null);
-  const [selectedLearning, setSelectedLearning] = useState<Language | null>(null);
-  const [nativeProficiency, setNativeProficiency] = useState<LanguageProficiency>("NATIVE");
-  const [learningProficiency, setLearningProficiency] = useState<LanguageProficiency>("BEGINNER");
+  const [selectedLearning, setSelectedLearning] = useState<Language | null>(
+    null,
+  );
+  const [nativeProficiency, setNativeProficiency] =
+    useState<LanguageProficiency>("NATIVE");
+  const [learningProficiency, setLearningProficiency] =
+    useState<LanguageProficiency>("BEGINNER");
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const [languageModalTarget, setLanguageModalTarget] = useState<"native" | "learning">("native");
+  const [languageModalTarget, setLanguageModalTarget] = useState<
+    "native" | "learning"
+  >("native");
   const [languageSearch, setLanguageSearch] = useState("");
   const [languagesChanged, setLanguagesChanged] = useState(false);
 
-  const nativeProficiencyOptions: LanguageProficiency[] = ["NATIVE", "FLUENT", "ADVANCED"];
-  const learningProficiencyOptions: LanguageProficiency[] = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "FLUENT"];
+  const nativeProficiencyOptions: LanguageProficiency[] = [
+    "NATIVE",
+    "FLUENT",
+    "ADVANCED",
+  ];
+  const learningProficiencyOptions: LanguageProficiency[] = [
+    "BEGINNER",
+    "INTERMEDIATE",
+    "ADVANCED",
+    "FLUENT",
+  ];
 
   const [mbtiModalVisible, setMbtiModalVisible] = useState(false);
   const [cityModalVisible, setCityModalVisible] = useState(false);
@@ -74,18 +95,33 @@ export default function EditProfileScreen() {
       const native = profile.languages?.find((l) => !l.isLearning);
       const learning = profile.languages?.find((l) => l.isLearning);
       if (native) {
-        setSelectedNative({ publicId: "", code: native.code, name: native.name, nativeName: native.nativeName, isActive: true });
+        setSelectedNative({
+          publicId: "",
+          code: native.code,
+          name: native.name,
+          nativeName: native.nativeName,
+          isActive: true,
+        });
         setNativeProficiency(native.proficiency);
       }
       if (learning) {
-        setSelectedLearning({ publicId: "", code: learning.code, name: learning.name, nativeName: learning.nativeName, isActive: true });
+        setSelectedLearning({
+          publicId: "",
+          code: learning.code,
+          name: learning.name,
+          nativeName: learning.nativeName,
+          isActive: true,
+        });
         setLearningProficiency(learning.proficiency);
       }
     }
   }, [profile]);
 
   useEffect(() => {
-    languagesApi.getActive().then((res) => setAllLanguages(res.data)).catch(() => {});
+    languagesApi
+      .getActive()
+      .then((res) => setAllLanguages(res.data))
+      .catch(() => {});
   }, []);
 
   const handleSave = async () => {
@@ -113,8 +149,16 @@ export default function EditProfileScreen() {
       if (languagesChanged && selectedNative && selectedLearning) {
         await usersApi.updateMyLanguages({
           languages: [
-            { code: selectedNative.code, proficiency: nativeProficiency, isLearning: false },
-            { code: selectedLearning.code, proficiency: learningProficiency, isLearning: true },
+            {
+              code: selectedNative.code,
+              proficiency: nativeProficiency,
+              isLearning: false,
+            },
+            {
+              code: selectedLearning.code,
+              proficiency: learningProficiency,
+              isLearning: true,
+            },
           ],
         });
       }
@@ -158,7 +202,12 @@ export default function EditProfileScreen() {
     );
   });
 
-  const genderOptions: Gender[] = ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"];
+  const genderOptions: Gender[] = [
+    "MALE",
+    "FEMALE",
+    "OTHER",
+    "PREFER_NOT_TO_SAY",
+  ];
 
   const handleGenderPress = () => {
     const labels = genderOptions.map((g) => t(`editProfile.gender_${g}`));
@@ -169,24 +218,22 @@ export default function EditProfileScreen() {
         { options: [...labels, cancelLabel], cancelButtonIndex: labels.length },
         (index) => {
           if (index < genderOptions.length) setGender(genderOptions[index]);
-        }
+        },
       );
     } else {
-      Alert.alert(
-        t("editProfile.gender"),
-        undefined,
-        [
-          ...genderOptions.map((g, i) => ({
-            text: labels[i],
-            onPress: () => setGender(g),
-          })),
-          { text: cancelLabel, style: "cancel" as const },
-        ]
-      );
+      Alert.alert(t("editProfile.gender"), undefined, [
+        ...genderOptions.map((g, i) => ({
+          text: labels[i],
+          onPress: () => setGender(g),
+        })),
+        { text: cancelLabel, style: "cancel" as const },
+      ]);
     }
   };
 
-  const zodiacSign = profile?.dateOfBirth ? getZodiacSign(profile.dateOfBirth, t) : null;
+  const zodiacSign = profile?.dateOfBirth
+    ? getZodiacSign(profile.dateOfBirth, t)
+    : null;
 
   if (!profile) {
     return (
@@ -225,7 +272,11 @@ export default function EditProfileScreen() {
       >
         {/* Avatar Section */}
         <View className="items-center py-4">
-          <Pressable onPress={pickAvatar} disabled={isUploading} className="active:opacity-70">
+          <Pressable
+            onPress={pickAvatar}
+            disabled={isUploading}
+            className="active:opacity-70"
+          >
             {(pendingAvatarUri ?? profile.avatarUrl) ? (
               <Image
                 source={{ uri: (pendingAvatarUri ?? profile.avatarUrl)! }}
@@ -237,11 +288,7 @@ export default function EditProfileScreen() {
                 className="h-24 w-24 items-center justify-center rounded-full"
                 style={{ backgroundColor: theme.surface }}
               >
-                <Ionicons
-                  name="person"
-                  size={40}
-                  color={theme.iconSecondary}
-                />
+                <Ionicons name="person" size={40} color={theme.iconSecondary} />
               </View>
             )}
             <View
@@ -293,11 +340,17 @@ export default function EditProfileScreen() {
             >
               <Text
                 className="font-sans text-[15px]"
-                style={{ color: selectedNative ? theme.text : theme.textTertiary }}
+                style={{
+                  color: selectedNative ? theme.text : theme.textTertiary,
+                }}
               >
                 {selectedNative?.name ?? "—"}
               </Text>
-              <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
+              <Ionicons
+                name="chevron-forward"
+                size={14}
+                color={theme.textTertiary}
+              />
             </Pressable>
           </FieldRow>
           {selectedNative && (
@@ -309,17 +362,24 @@ export default function EditProfileScreen() {
                     return (
                       <Pressable
                         key={level}
-                        onPress={() => { setNativeProficiency(level); setLanguagesChanged(true); }}
+                        onPress={() => {
+                          setNativeProficiency(level);
+                          setLanguagesChanged(true);
+                        }}
                         className="items-center rounded-full px-3 py-1.5"
                         style={{
-                          backgroundColor: isActive ? theme.primary + "15" : theme.card,
+                          backgroundColor: isActive
+                            ? theme.primary + "15"
+                            : theme.card,
                           borderWidth: 1,
                           borderColor: isActive ? theme.primary : theme.border,
                         }}
                       >
                         <Text
                           className="font-sans-semibold text-[12px]"
-                          style={{ color: isActive ? theme.primary : theme.text }}
+                          style={{
+                            color: isActive ? theme.primary : theme.text,
+                          }}
                         >
                           {t(`onboarding.proficiency_${level}`)}
                         </Text>
@@ -338,11 +398,17 @@ export default function EditProfileScreen() {
             >
               <Text
                 className="font-sans text-[15px]"
-                style={{ color: selectedLearning ? theme.text : theme.textTertiary }}
+                style={{
+                  color: selectedLearning ? theme.text : theme.textTertiary,
+                }}
               >
                 {selectedLearning?.name ?? "—"}
               </Text>
-              <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
+              <Ionicons
+                name="chevron-forward"
+                size={14}
+                color={theme.textTertiary}
+              />
             </Pressable>
           </FieldRow>
           {selectedLearning && (
@@ -354,17 +420,24 @@ export default function EditProfileScreen() {
                     return (
                       <Pressable
                         key={level}
-                        onPress={() => { setLearningProficiency(level); setLanguagesChanged(true); }}
+                        onPress={() => {
+                          setLearningProficiency(level);
+                          setLanguagesChanged(true);
+                        }}
                         className="items-center rounded-full px-3 py-1.5"
                         style={{
-                          backgroundColor: isActive ? theme.primary + "15" : theme.card,
+                          backgroundColor: isActive
+                            ? theme.primary + "15"
+                            : theme.card,
                           borderWidth: 1,
                           borderColor: isActive ? theme.primary : theme.border,
                         }}
                       >
                         <Text
                           className="font-sans-semibold text-[12px]"
-                          style={{ color: isActive ? theme.primary : theme.text }}
+                          style={{
+                            color: isActive ? theme.primary : theme.text,
+                          }}
                         >
                           {t(`onboarding.proficiency_${level}`)}
                         </Text>
@@ -379,7 +452,10 @@ export default function EditProfileScreen() {
 
         {/* Interests */}
         <SectionHeader label={t("editProfile.interests")} theme={theme} />
-        <Pressable onPress={() => router.push(Routes.PROFILE_PASSIONS as never)} className="active:opacity-70">
+        <Pressable
+          onPress={() => router.push(Routes.PROFILE_PASSIONS as never)}
+          className="active:opacity-70"
+        >
           <SectionCard theme={theme}>
             <View className="flex-row items-center px-4 py-3">
               <View className="flex-1">
@@ -396,7 +472,9 @@ export default function EditProfileScreen() {
                         }}
                       >
                         {passion.icon && (
-                          <Text className="mr-1 text-[13px]">{passion.icon}</Text>
+                          <Text className="mr-1 text-[13px]">
+                            {passion.icon}
+                          </Text>
                         )}
                         <Text
                           className="font-sans text-[13px]"
@@ -416,14 +494,21 @@ export default function EditProfileScreen() {
                   </Text>
                 )}
               </View>
-              <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={theme.textTertiary}
+              />
             </View>
           </SectionCard>
         </Pressable>
 
         {/* Personal Info */}
         <SectionHeader label={t("editProfile.personalInfo")} theme={theme} />
-        <Pressable onPress={() => setMbtiModalVisible(true)} className="active:opacity-70">
+        <Pressable
+          onPress={() => setMbtiModalVisible(true)}
+          className="active:opacity-70"
+        >
           <SectionCard theme={theme}>
             <IconRow
               icon="happy-outline"
@@ -433,7 +518,9 @@ export default function EditProfileScreen() {
             >
               <Text
                 className="font-sans text-[15px]"
-                style={{ color: personalityType ? theme.text : theme.textTertiary }}
+                style={{
+                  color: personalityType ? theme.text : theme.textTertiary,
+                }}
               >
                 {personalityType || "—"}
               </Text>
@@ -441,7 +528,10 @@ export default function EditProfileScreen() {
           </SectionCard>
         </Pressable>
 
-        <Pressable onPress={() => setCityModalVisible(true)} className="active:opacity-70">
+        <Pressable
+          onPress={() => setCityModalVisible(true)}
+          className="active:opacity-70"
+        >
           <SectionCard theme={theme}>
             <IconRow
               icon="home"
@@ -456,7 +546,6 @@ export default function EditProfileScreen() {
                 >
                   {city || "—"}
                 </Text>
-                <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} style={{ marginLeft: 4 }} />
               </View>
             </IconRow>
           </SectionCard>
@@ -504,14 +593,21 @@ export default function EditProfileScreen() {
           </FieldRow>
           <Divider theme={theme} />
           <FieldRow label={t("editProfile.gender")} theme={theme}>
-            <Pressable onPress={handleGenderPress} className="flex-row items-center justify-between active:opacity-70">
+            <Pressable
+              onPress={handleGenderPress}
+              className="flex-row items-center justify-between active:opacity-70"
+            >
               <Text
                 className="font-sans text-[15px]"
                 style={{ color: theme.text }}
               >
                 {gender ? t(`editProfile.gender_${gender}`) : "—"}
               </Text>
-              <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
+              <Ionicons
+                name="chevron-forward"
+                size={14}
+                color={theme.textTertiary}
+              />
             </Pressable>
           </FieldRow>
           <Divider theme={theme} />
@@ -567,9 +663,15 @@ export default function EditProfileScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setLanguageModalVisible(false)}
       >
-        <View className="flex-1" style={{ backgroundColor: theme.background, paddingTop: insets.top }}>
+        <View
+          className="flex-1"
+          style={{ backgroundColor: theme.background, paddingTop: insets.top }}
+        >
           <View className="flex-row items-center px-4 py-3">
-            <Pressable onPress={() => setLanguageModalVisible(false)} className="active:opacity-70">
+            <Pressable
+              onPress={() => setLanguageModalVisible(false)}
+              className="active:opacity-70"
+            >
               <Ionicons name="close" size={24} color={theme.text} />
             </Pressable>
             <Text
@@ -583,9 +685,18 @@ export default function EditProfileScreen() {
           <View className="px-4 pb-3">
             <View
               className="flex-row items-center rounded-2xl px-4 py-3"
-              style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.border }}
+              style={{
+                backgroundColor: theme.card,
+                borderWidth: 1,
+                borderColor: theme.border,
+              }}
             >
-              <Ionicons name="search" size={18} color={theme.textTertiary} style={{ marginRight: 8 }} />
+              <Ionicons
+                name="search"
+                size={18}
+                color={theme.textTertiary}
+                style={{ marginRight: 8 }}
+              />
               <TextInput
                 value={languageSearch}
                 onChangeText={setLanguageSearch}
@@ -602,14 +713,18 @@ export default function EditProfileScreen() {
             keyExtractor={(item) => item.code}
             renderItem={({ item }) => {
               const currentSelected =
-                languageModalTarget === "native" ? selectedNative : selectedLearning;
+                languageModalTarget === "native"
+                  ? selectedNative
+                  : selectedLearning;
               const isSelected = currentSelected?.code === item.code;
               return (
                 <Pressable
                   onPress={() => handleLanguageSelect(item)}
                   className="flex-row items-center rounded-2xl px-4 py-3"
                   style={{
-                    backgroundColor: isSelected ? theme.primary + "15" : theme.card,
+                    backgroundColor: isSelected
+                      ? theme.primary + "15"
+                      : theme.card,
                     borderWidth: 1,
                     borderColor: isSelected ? theme.primary : theme.border,
                     marginBottom: 8,
@@ -630,7 +745,11 @@ export default function EditProfileScreen() {
                     </Text>
                   </View>
                   {isSelected && (
-                    <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={22}
+                      color={theme.primary}
+                    />
                   )}
                 </Pressable>
               );
@@ -648,9 +767,15 @@ export default function EditProfileScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setMbtiModalVisible(false)}
       >
-        <View className="flex-1" style={{ backgroundColor: theme.background, paddingTop: insets.top }}>
+        <View
+          className="flex-1"
+          style={{ backgroundColor: theme.background, paddingTop: insets.top }}
+        >
           <View className="flex-row items-center px-4 py-3">
-            <Pressable onPress={() => setMbtiModalVisible(false)} className="active:opacity-70">
+            <Pressable
+              onPress={() => setMbtiModalVisible(false)}
+              className="active:opacity-70"
+            >
               <Ionicons name="close" size={24} color={theme.text} />
             </Pressable>
             <Text
@@ -688,9 +813,15 @@ export default function EditProfileScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setCityModalVisible(false)}
       >
-        <View className="flex-1" style={{ backgroundColor: theme.background, paddingTop: insets.top }}>
+        <View
+          className="flex-1"
+          style={{ backgroundColor: theme.background, paddingTop: insets.top }}
+        >
           <View className="flex-row items-center px-4 py-3">
-            <Pressable onPress={() => setCityModalVisible(false)} className="active:opacity-70">
+            <Pressable
+              onPress={() => setCityModalVisible(false)}
+              className="active:opacity-70"
+            >
               <Ionicons name="close" size={24} color={theme.text} />
             </Pressable>
             <Text
@@ -852,16 +983,25 @@ function getZodiacSign(dateStr: string, t: (key: string) => string): string {
   const day = date.getDate();
 
   const signs: [number, number, string][] = [
-    [1, 20, "capricorn"], [2, 19, "aquarius"], [3, 20, "pisces"],
-    [4, 20, "aries"], [5, 21, "taurus"], [6, 21, "gemini"],
-    [7, 22, "cancer"], [8, 23, "leo"], [9, 23, "virgo"],
-    [10, 23, "libra"], [11, 22, "scorpio"], [12, 22, "sagittarius"],
+    [1, 20, "capricorn"],
+    [2, 19, "aquarius"],
+    [3, 20, "pisces"],
+    [4, 20, "aries"],
+    [5, 21, "taurus"],
+    [6, 21, "gemini"],
+    [7, 22, "cancer"],
+    [8, 23, "leo"],
+    [9, 23, "virgo"],
+    [10, 23, "libra"],
+    [11, 22, "scorpio"],
+    [12, 22, "sagittarius"],
   ];
 
   for (let i = 0; i < signs.length; i++) {
     const [m, d] = signs[i];
     if (month === m && day <= d) return t(`editProfile.zodiac_${signs[i][2]}`);
-    if (month === m && day > d) return t(`editProfile.zodiac_${signs[(i + 1) % 12][2]}`);
+    if (month === m && day > d)
+      return t(`editProfile.zodiac_${signs[(i + 1) % 12][2]}`);
   }
   return t("editProfile.zodiac_capricorn");
 }
