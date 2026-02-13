@@ -1,10 +1,10 @@
 import {
+  Divider,
+  FieldRow,
+  getZodiacSign,
+  IconRow,
   SectionCard,
   SectionHeader,
-  FieldRow,
-  IconRow,
-  Divider,
-  getZodiacSign,
 } from "@/components/ui/edit-profile";
 import { MbtiPicker } from "@/components/ui/MbtiPicker";
 import { Routes } from "@/constants/routes";
@@ -600,6 +600,7 @@ export default function EditProfileScreen() {
             icon="home"
             iconBg="#00B894"
             label={t("editProfile.myCity")}
+            rightIconIsVisible={false}
             theme={theme}
           >
             <View className="flex-row items-center">
