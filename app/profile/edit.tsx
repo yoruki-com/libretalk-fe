@@ -4,6 +4,7 @@ import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { usersApi } from "@/services/api/users";
 import { languagesApi } from "@/services/api/languages";
 import type { Gender, Language, LanguageProficiency, UpdateUserDto } from "@/services/api/types";
+import { MbtiPicker } from "@/components/ui/MbtiPicker";
 import type { Theme } from "@/constants/theme";
 import { Routes } from "@/constants/routes";
 import { Ionicons } from "@expo/vector-icons";
@@ -55,6 +56,8 @@ export default function EditProfileScreen() {
 
   const nativeProficiencyOptions: LanguageProficiency[] = ["NATIVE", "FLUENT", "ADVANCED"];
   const learningProficiencyOptions: LanguageProficiency[] = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "FLUENT"];
+
+  const [mbtiModalVisible, setMbtiModalVisible] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -418,26 +421,23 @@ export default function EditProfileScreen() {
 
         {/* Personal Info */}
         <SectionHeader label={t("editProfile.personalInfo")} theme={theme} />
-        <SectionCard theme={theme}>
-          <IconRow
-            icon="happy-outline"
-            iconBg="#6C5CE7"
-            label={t("editProfile.myMbti")}
-            value={personalityType || undefined}
-            theme={theme}
-          >
-            <TextInput
-              value={personalityType}
-              onChangeText={setPersonalityType}
-              className="font-sans text-[15px]"
-              style={{ color: theme.text, padding: 0, minWidth: 60 }}
-              placeholder="—"
-              placeholderTextColor={theme.textTertiary}
-              autoCapitalize="characters"
-              maxLength={4}
-            />
-          </IconRow>
-        </SectionCard>
+        <Pressable onPress={() => setMbtiModalVisible(true)} className="active:opacity-70">
+          <SectionCard theme={theme}>
+            <IconRow
+              icon="happy-outline"
+              iconBg="#6C5CE7"
+              label={t("editProfile.myMbti")}
+              theme={theme}
+            >
+              <Text
+                className="font-sans text-[15px]"
+                style={{ color: personalityType ? theme.text : theme.textTertiary }}
+              >
+                {personalityType || "—"}
+              </Text>
+            </IconRow>
+          </SectionCard>
+        </Pressable>
 
         <SectionCard theme={theme}>
           <IconRow
@@ -632,6 +632,46 @@ export default function EditProfileScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           />
+        </View>
+      </Modal>
+      {/* MBTI Picker Modal */}
+      <Modal
+        visible={mbtiModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setMbtiModalVisible(false)}
+      >
+        <View className="flex-1" style={{ backgroundColor: theme.background, paddingTop: insets.top }}>
+          <View className="flex-row items-center px-4 py-3">
+            <Pressable onPress={() => setMbtiModalVisible(false)} className="active:opacity-70">
+              <Ionicons name="close" size={24} color={theme.text} />
+            </Pressable>
+            <Text
+              className="flex-1 text-center font-sans-semibold text-[18px]"
+              style={{ color: theme.text }}
+            >
+              {t("editProfile.myMbti")}
+            </Text>
+            <View className="w-6" />
+          </View>
+          <ScrollView
+            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text
+              className="mb-4 font-sans text-[15px]"
+              style={{ color: theme.textSecondary }}
+            >
+              {t("onboarding.mbtiOptional")}
+            </Text>
+            <MbtiPicker
+              selected={(personalityType as any) || null}
+              onSelect={(type) => {
+                setPersonalityType(type ?? "");
+                setMbtiModalVisible(false);
+              }}
+            />
+          </ScrollView>
         </View>
       </Modal>
     </View>

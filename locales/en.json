@@ -201,6 +201,7 @@
     "jobTitle": "Job",
     "jobOptional": "Optional - what do you do?",
     "jobPlaceholder": "e.g. Software Engineer",
+    "passionsCount": "{{count}} / {{max}} selected",
     "otherCategory": "Other",
     "complete": "Complete",
     "saveError": "Failed to save. Please try again.",

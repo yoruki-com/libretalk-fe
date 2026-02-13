@@ -1,13 +1,14 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usersApi } from "@/services/api/users";
-import { passionsApi } from "@/services/api/passions";
-import type { Passion, PersonalityType } from "@/services/api/types";
+import type { PersonalityType } from "@/services/api/types";
+import { PassionPicker } from "@/components/ui/PassionPicker";
+import { MbtiPicker } from "@/components/ui/MbtiPicker";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Routes } from "@/constants/routes";
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -20,13 +21,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const MBTI_TYPES: PersonalityType[] = [
-  "INTJ", "INTP", "ENTJ", "ENTP",
-  "INFJ", "INFP", "ENFJ", "ENFP",
-  "ISTJ", "ISFJ", "ESTJ", "ESFJ",
-  "ISTP", "ISFP", "ESTP", "ESFP",
-];
-
 export default function OnboardingStep3() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -34,37 +28,10 @@ export default function OnboardingStep3() {
   const { theme } = useTheme();
   const { refresh: refreshProfile } = useCurrentUser();
 
-  const [passions, setPassions] = useState<Passion[]>([]);
-  const [isLoadingPassions, setIsLoadingPassions] = useState(true);
   const [selectedPassionIds, setSelectedPassionIds] = useState<Set<string>>(new Set());
   const [selectedMbti, setSelectedMbti] = useState<PersonalityType | null>(null);
   const [jobTitle, setJobTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    loadPassions();
-  }, []);
-
-  const loadPassions = async () => {
-    try {
-      const response = await passionsApi.getActive();
-      setPassions(response.data);
-    } catch {
-      Alert.alert(t("common.error"), t("onboarding.loadError"));
-    } finally {
-      setIsLoadingPassions(false);
-    }
-  };
-
-  const groupedPassions = useMemo(() => {
-    const groups: Record<string, Passion[]> = {};
-    for (const passion of passions) {
-      const category = passion.category ?? t("onboarding.otherCategory");
-      if (!groups[category]) groups[category] = [];
-      groups[category].push(passion);
-    }
-    return groups;
-  }, [passions, t]);
 
   const togglePassion = (publicId: string) => {
     setSelectedPassionIds((prev) => {
@@ -102,17 +69,6 @@ export default function OnboardingStep3() {
       setIsSaving(false);
     }
   };
-
-  if (isLoadingPassions) {
-    return (
-      <View
-        className="flex-1 items-center justify-center"
-        style={{ backgroundColor: theme.background }}
-      >
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
-    );
-  }
 
   return (
     <View
@@ -157,43 +113,10 @@ export default function OnboardingStep3() {
         >
           {t("onboarding.hobbies")}
         </Text>
-        {Object.entries(groupedPassions).map(([category, items]) => (
-          <View key={category} className="mb-4">
-            <Text
-              className="mb-2 font-sans-semibold text-[13px] uppercase tracking-wider"
-              style={{ color: theme.textSecondary }}
-            >
-              {category}
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
-              {items.map((passion) => {
-                const isSelected = selectedPassionIds.has(passion.publicId);
-                return (
-                  <Pressable
-                    key={passion.publicId}
-                    onPress={() => togglePassion(passion.publicId)}
-                    className="flex-row items-center rounded-full px-4 py-2"
-                    style={{
-                      backgroundColor: isSelected ? theme.primary + "15" : theme.card,
-                      borderWidth: 1,
-                      borderColor: isSelected ? theme.primary : theme.border,
-                    }}
-                  >
-                    {passion.icon && (
-                      <Text className="mr-1.5 text-[14px]">{passion.icon}</Text>
-                    )}
-                    <Text
-                      className="font-sans text-[14px]"
-                      style={{ color: isSelected ? theme.primary : theme.text }}
-                    >
-                      {passion.name}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-        ))}
+        <PassionPicker
+          selectedIds={selectedPassionIds}
+          onToggle={togglePassion}
+        />
 
         {/* MBTI */}
         <Text
@@ -208,30 +131,8 @@ export default function OnboardingStep3() {
         >
           {t("onboarding.mbtiOptional")}
         </Text>
-        <View className="mb-6 flex-row flex-wrap gap-2">
-          {MBTI_TYPES.map((type) => {
-            const isSelected = selectedMbti === type;
-            return (
-              <Pressable
-                key={type}
-                onPress={() => setSelectedMbti(isSelected ? null : type)}
-                className="items-center justify-center rounded-xl px-4 py-2.5"
-                style={{
-                  backgroundColor: isSelected ? theme.primary : theme.card,
-                  borderWidth: 1,
-                  borderColor: isSelected ? theme.primary : theme.border,
-                  minWidth: 72,
-                }}
-              >
-                <Text
-                  className="font-sans-semibold text-[14px]"
-                  style={{ color: isSelected ? "#FFFFFF" : theme.text }}
-                >
-                  {type}
-                </Text>
-              </Pressable>
-            );
-          })}
+        <View className="mb-6">
+          <MbtiPicker selected={selectedMbti} onSelect={setSelectedMbti} />
         </View>
 
         {/* Job Title */}

@@ -1,11 +1,10 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usersApi } from "@/services/api/users";
-import { passionsApi } from "@/services/api/passions";
-import type { Passion } from "@/services/api/types";
+import { PassionPicker } from "@/components/ui/PassionPicker";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -24,34 +23,14 @@ export default function EditPassionsScreen() {
   const { theme } = useTheme();
   const { profile, refresh } = useCurrentUser();
 
-  const [passions, setPassions] = useState<Passion[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    passionsApi
-      .getActive()
-      .then((res) => setPassions(res.data))
-      .catch(() => Alert.alert(t("common.error"), t("onboarding.loadError")))
-      .finally(() => setIsLoading(false));
-  }, []);
 
   useEffect(() => {
     if (profile?.passions) {
       setSelectedIds(new Set(profile.passions.map((p) => p.publicId)));
     }
   }, [profile]);
-
-  const groupedPassions = useMemo(() => {
-    const groups: Record<string, Passion[]> = {};
-    for (const passion of passions) {
-      const category = passion.category ?? t("onboarding.otherCategory");
-      if (!groups[category]) groups[category] = [];
-      groups[category].push(passion);
-    }
-    return groups;
-  }, [passions, t]);
 
   const togglePassion = (publicId: string) => {
     setSelectedIds((prev) => {
@@ -80,17 +59,6 @@ export default function EditPassionsScreen() {
       setIsSaving(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <View
-        className="flex-1 items-center justify-center"
-        style={{ backgroundColor: theme.background }}
-      >
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
-    );
-  }
 
   return (
     <View
@@ -123,43 +91,7 @@ export default function EditPassionsScreen() {
           {t("editProfile.passionsSubtitle")}
         </Text>
 
-        {Object.entries(groupedPassions).map(([category, items]) => (
-          <View key={category} className="mb-4">
-            <Text
-              className="mb-2 font-sans-semibold text-[13px] uppercase tracking-wider"
-              style={{ color: theme.textSecondary }}
-            >
-              {category}
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
-              {items.map((passion) => {
-                const isSelected = selectedIds.has(passion.publicId);
-                return (
-                  <Pressable
-                    key={passion.publicId}
-                    onPress={() => togglePassion(passion.publicId)}
-                    className="flex-row items-center rounded-full px-4 py-2"
-                    style={{
-                      backgroundColor: isSelected ? theme.primary + "15" : theme.card,
-                      borderWidth: 1,
-                      borderColor: isSelected ? theme.primary : theme.border,
-                    }}
-                  >
-                    {passion.icon && (
-                      <Text className="mr-1.5 text-[14px]">{passion.icon}</Text>
-                    )}
-                    <Text
-                      className="font-sans text-[14px]"
-                      style={{ color: isSelected ? theme.primary : theme.text }}
-                    >
-                      {passion.name}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-        ))}
+        <PassionPicker selectedIds={selectedIds} onToggle={togglePassion} />
       </ScrollView>
 
       {/* Save Button */}
