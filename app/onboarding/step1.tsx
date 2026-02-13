@@ -2,6 +2,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usersApi } from "@/services/api/users";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
+import { CityPicker } from "@/components/ui/CityPicker";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Routes } from "@/constants/routes";
@@ -192,20 +193,11 @@ export default function OnboardingStep1() {
           >
             {t("onboarding.city")}
           </Text>
-          <View
-            className="rounded-2xl px-4 py-3"
-            style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.border }}
-          >
-            <TextInput
-              value={city}
-              onChangeText={setCity}
-              placeholder={t("onboarding.cityPlaceholder")}
-              placeholderTextColor={theme.textTertiary}
-              className="font-sans text-[16px]"
-              style={{ color: theme.text, padding: 0 }}
-              maxLength={100}
-            />
-          </View>
+          <CityPicker
+            value={city}
+            onSelect={setCity}
+            placeholder={t("onboarding.cityPlaceholder")}
+          />
         </View>
       </ScrollView>
 

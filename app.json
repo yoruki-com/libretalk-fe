@@ -65,7 +65,8 @@
           "cameraPermission": "Allow LibreTalk to take photos to set your profile picture."
         }
       ],
-      "./plugins/withAuth0SchemeFixPlugin"
+      "./plugins/withAuth0SchemeFixPlugin",
+      "@rnmapbox/maps"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -5,6 +5,7 @@ import { usersApi } from "@/services/api/users";
 import { languagesApi } from "@/services/api/languages";
 import type { Gender, Language, LanguageProficiency, UpdateUserDto } from "@/services/api/types";
 import { MbtiPicker } from "@/components/ui/MbtiPicker";
+import { CityPicker } from "@/components/ui/CityPicker";
 import type { Theme } from "@/constants/theme";
 import { Routes } from "@/constants/routes";
 import { Ionicons } from "@expo/vector-icons";
@@ -58,6 +59,7 @@ export default function EditProfileScreen() {
   const learningProficiencyOptions: LanguageProficiency[] = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "FLUENT"];
 
   const [mbtiModalVisible, setMbtiModalVisible] = useState(false);
+  const [cityModalVisible, setCityModalVisible] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -439,22 +441,27 @@ export default function EditProfileScreen() {
           </SectionCard>
         </Pressable>
 
+        <Pressable onPress={() => setCityModalVisible(true)} className="active:opacity-70">
+          <SectionCard theme={theme}>
+            <IconRow
+              icon="home"
+              iconBg="#00B894"
+              label={t("editProfile.myCity")}
+              theme={theme}
+            >
+              <View className="flex-row items-center">
+                <Text
+                  className="font-sans text-[15px]"
+                  style={{ color: city ? theme.text : theme.textTertiary }}
+                >
+                  {city || "—"}
+                </Text>
+                <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} style={{ marginLeft: 4 }} />
+              </View>
+            </IconRow>
+          </SectionCard>
+        </Pressable>
         <SectionCard theme={theme}>
-          <IconRow
-            icon="home"
-            iconBg="#00B894"
-            label={t("editProfile.myCity")}
-            theme={theme}
-          >
-            <TextInput
-              value={city}
-              onChangeText={setCity}
-              className="font-sans text-[15px]"
-              style={{ color: theme.text, padding: 0, minWidth: 60 }}
-              placeholder="—"
-              placeholderTextColor={theme.textTertiary}
-            />
-          </IconRow>
           <Divider theme={theme} />
           <IconRow
             icon="briefcase"
@@ -672,6 +679,37 @@ export default function EditProfileScreen() {
               }}
             />
           </ScrollView>
+        </View>
+      </Modal>
+      {/* City Picker Modal */}
+      <Modal
+        visible={cityModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setCityModalVisible(false)}
+      >
+        <View className="flex-1" style={{ backgroundColor: theme.background, paddingTop: insets.top }}>
+          <View className="flex-row items-center px-4 py-3">
+            <Pressable onPress={() => setCityModalVisible(false)} className="active:opacity-70">
+              <Ionicons name="close" size={24} color={theme.text} />
+            </Pressable>
+            <Text
+              className="flex-1 text-center font-sans-semibold text-[18px]"
+              style={{ color: theme.text }}
+            >
+              {t("editProfile.myCity")}
+            </Text>
+            <View className="w-6" />
+          </View>
+          <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
+            <CityPicker
+              value={city}
+              onSelect={(selected) => {
+                setCity(selected);
+                if (selected) setCityModalVisible(false);
+              }}
+            />
+          </View>
         </View>
       </Modal>
     </View>

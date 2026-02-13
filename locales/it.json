@@ -202,6 +202,8 @@
     "jobOptional": "Opzionale - cosa fai?",
     "jobPlaceholder": "es. Ingegnere Informatico",
     "passionsCount": "{{count}} / {{max}} selezionati",
+    "citySearchPlaceholder": "Cerca città...",
+    "noCity": "Nessuna città trovata",
     "otherCategory": "Altro",
     "complete": "Completa",
     "saveError": "Salvataggio fallito. Riprova.",
