@@ -27,13 +27,11 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   FlatList,
   Image,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -275,28 +273,7 @@ export default function EditProfileScreen() {
     "OTHER",
     "PREFER_NOT_TO_SAY",
   ];
-
-  const handleGenderPress = () => {
-    const labels = genderOptions.map((g) => t(`editProfile.gender_${g}`));
-    const cancelLabel = t("common.cancel");
-
-    if (Platform.OS === "ios") {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options: [...labels, cancelLabel], cancelButtonIndex: labels.length },
-        (index) => {
-          if (index < genderOptions.length) setGender(genderOptions[index]);
-        },
-      );
-    } else {
-      Alert.alert(t("editProfile.gender"), undefined, [
-        ...genderOptions.map((g, i) => ({
-          text: labels[i],
-          onPress: () => setGender(g),
-        })),
-        { text: cancelLabel, style: "cancel" as const },
-      ]);
-    }
-  };
+  const [genderOpen, setGenderOpen] = useState(false);
 
   const zodiacSign = profile?.dateOfBirth
     ? getZodiacSign(profile.dateOfBirth, t)
@@ -659,21 +636,60 @@ export default function EditProfileScreen() {
         <SectionCard theme={theme}>
           <FieldRow label={t("editProfile.gender")} theme={theme}>
             <Pressable
-              onPress={handleGenderPress}
+              onPress={() => setGenderOpen((v) => !v)}
               className="flex-row items-center justify-between active:opacity-70"
             >
               <Text
                 className="font-sans text-[15px]"
-                style={{ color: theme.text }}
+                style={{ color: gender ? theme.text : theme.textTertiary }}
               >
                 {gender ? t(`editProfile.gender_${gender}`) : "—"}
               </Text>
               <Ionicons
-                name="chevron-forward"
+                name={genderOpen ? "chevron-up" : "chevron-down"}
                 size={14}
                 color={theme.textTertiary}
               />
             </Pressable>
+            {genderOpen && (
+              <View
+                className="mt-2 overflow-hidden rounded-xl"
+                style={{
+                  backgroundColor: theme.background,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                }}
+              >
+                {genderOptions.map((g, index) => {
+                  const isSelected = gender === g;
+                  return (
+                    <Pressable
+                      key={g}
+                      onPress={() => {
+                        setGender(g);
+                        setGenderOpen(false);
+                      }}
+                      className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
+                      style={{
+                        backgroundColor: isSelected ? theme.primary + "10" : undefined,
+                        borderTopWidth: index > 0 ? 1 : 0,
+                        borderTopColor: theme.border,
+                      }}
+                    >
+                      <Text
+                        className="font-sans text-[14px]"
+                        style={{ color: isSelected ? theme.primary : theme.text }}
+                      >
+                        {t(`editProfile.gender_${g}`)}
+                      </Text>
+                      {isSelected && (
+                        <Ionicons name="checkmark" size={18} color={theme.primary} />
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
           </FieldRow>
           <Divider theme={theme} />
           <FieldRow label={t("editProfile.dateOfBirth")} theme={theme}>
