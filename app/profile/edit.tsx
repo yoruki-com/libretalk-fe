@@ -2,8 +2,10 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { usersApi } from "@/services/api/users";
-import type { Gender, UpdateUserDto } from "@/services/api/types";
+import { languagesApi } from "@/services/api/languages";
+import type { Gender, Language, LanguageProficiency, UpdateUserDto } from "@/services/api/types";
 import type { Theme } from "@/constants/theme";
+import { Routes } from "@/constants/routes";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -12,7 +14,9 @@ import {
   ActionSheetIOS,
   ActivityIndicator,
   Alert,
+  FlatList,
   Image,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -38,6 +42,20 @@ export default function EditProfileScreen() {
   const [city, setCity] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Language editing state
+  const [allLanguages, setAllLanguages] = useState<Language[]>([]);
+  const [selectedNative, setSelectedNative] = useState<Language | null>(null);
+  const [selectedLearning, setSelectedLearning] = useState<Language | null>(null);
+  const [nativeProficiency, setNativeProficiency] = useState<LanguageProficiency>("NATIVE");
+  const [learningProficiency, setLearningProficiency] = useState<LanguageProficiency>("BEGINNER");
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [languageModalTarget, setLanguageModalTarget] = useState<"native" | "learning">("native");
+  const [languageSearch, setLanguageSearch] = useState("");
+  const [languagesChanged, setLanguagesChanged] = useState(false);
+
+  const nativeProficiencyOptions: LanguageProficiency[] = ["NATIVE", "FLUENT", "ADVANCED"];
+  const learningProficiencyOptions: LanguageProficiency[] = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "FLUENT"];
+
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.displayName ?? "");
@@ -46,8 +64,24 @@ export default function EditProfileScreen() {
       setJobTitle(profile.jobTitle ?? "");
       setGender(profile.gender);
       setCity(profile.city ?? "");
+
+      // Initialize language state from profile
+      const native = profile.languages?.find((l) => !l.isLearning);
+      const learning = profile.languages?.find((l) => l.isLearning);
+      if (native) {
+        setSelectedNative({ publicId: "", code: native.code, name: native.name, nativeName: native.nativeName, isActive: true });
+        setNativeProficiency(native.proficiency);
+      }
+      if (learning) {
+        setSelectedLearning({ publicId: "", code: learning.code, name: learning.name, nativeName: learning.nativeName, isActive: true });
+        setLearningProficiency(learning.proficiency);
+      }
     }
   }, [profile]);
+
+  useEffect(() => {
+    languagesApi.getActive().then((res) => setAllLanguages(res.data)).catch(() => {});
+  }, []);
 
   const handleSave = async () => {
     if (!profile) return;
@@ -70,6 +104,16 @@ export default function EditProfileScreen() {
         ...(avatarUrl !== undefined && { avatarUrl }),
       };
       await usersApi.updateMe(data);
+
+      if (languagesChanged && selectedNative && selectedLearning) {
+        await usersApi.updateMyLanguages({
+          languages: [
+            { code: selectedNative.code, proficiency: nativeProficiency, isLearning: false },
+            { code: selectedLearning.code, proficiency: learningProficiency, isLearning: true },
+          ],
+        });
+      }
+
       await refresh();
       router.back();
     } catch {
@@ -78,6 +122,36 @@ export default function EditProfileScreen() {
       setIsSaving(false);
     }
   };
+
+  const openLanguageModal = (target: "native" | "learning") => {
+    setLanguageModalTarget(target);
+    setLanguageSearch("");
+    setLanguageModalVisible(true);
+  };
+
+  const handleLanguageSelect = (lang: Language) => {
+    if (languageModalTarget === "native") {
+      setSelectedNative(lang);
+    } else {
+      setSelectedLearning(lang);
+    }
+    setLanguagesChanged(true);
+    setLanguageModalVisible(false);
+  };
+
+  const filteredModalLanguages = allLanguages.filter((lang) => {
+    const q = languageSearch.toLowerCase();
+    const isOtherSelected =
+      languageModalTarget === "native"
+        ? selectedLearning?.code === lang.code
+        : selectedNative?.code === lang.code;
+    if (isOtherSelected) return false;
+    return (
+      lang.name.toLowerCase().includes(q) ||
+      lang.nativeName.toLowerCase().includes(q) ||
+      lang.code.toLowerCase().includes(q)
+    );
+  });
 
   const genderOptions: Gender[] = ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"];
 
@@ -119,11 +193,6 @@ export default function EditProfileScreen() {
       </View>
     );
   }
-
-  const nativeLanguages =
-    profile.languages?.filter((l) => !l.isLearning) ?? [];
-  const learningLanguages =
-    profile.languages?.filter((l) => l.isLearning) ?? [];
 
   return (
     <View
@@ -213,62 +282,139 @@ export default function EditProfileScreen() {
         <SectionHeader label={t("editProfile.languages")} theme={theme} />
         <SectionCard theme={theme}>
           <FieldRow label={t("editProfile.native")} theme={theme}>
-            <Text
-              className="font-sans text-[15px]"
-              style={{ color: theme.text }}
+            <Pressable
+              onPress={() => openLanguageModal("native")}
+              className="flex-row items-center justify-between active:opacity-70"
             >
-              {nativeLanguages.map((l) => l.name).join(", ") || "—"}
-            </Text>
+              <Text
+                className="font-sans text-[15px]"
+                style={{ color: selectedNative ? theme.text : theme.textTertiary }}
+              >
+                {selectedNative?.name ?? "—"}
+              </Text>
+              <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
+            </Pressable>
           </FieldRow>
+          {selectedNative && (
+            <View className="px-4 pb-3">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-2">
+                  {nativeProficiencyOptions.map((level) => {
+                    const isActive = nativeProficiency === level;
+                    return (
+                      <Pressable
+                        key={level}
+                        onPress={() => { setNativeProficiency(level); setLanguagesChanged(true); }}
+                        className="items-center rounded-full px-3 py-1.5"
+                        style={{
+                          backgroundColor: isActive ? theme.primary + "15" : theme.card,
+                          borderWidth: 1,
+                          borderColor: isActive ? theme.primary : theme.border,
+                        }}
+                      >
+                        <Text
+                          className="font-sans-semibold text-[12px]"
+                          style={{ color: isActive ? theme.primary : theme.text }}
+                        >
+                          {t(`onboarding.proficiency_${level}`)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+          )}
           <Divider theme={theme} />
           <FieldRow label={t("editProfile.learning")} theme={theme}>
-            <Text
-              className="font-sans text-[15px]"
-              style={{ color: theme.text }}
+            <Pressable
+              onPress={() => openLanguageModal("learning")}
+              className="flex-row items-center justify-between active:opacity-70"
             >
-              {learningLanguages.map((l) => l.name).join(", ") || "—"}
-            </Text>
+              <Text
+                className="font-sans text-[15px]"
+                style={{ color: selectedLearning ? theme.text : theme.textTertiary }}
+              >
+                {selectedLearning?.name ?? "—"}
+              </Text>
+              <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
+            </Pressable>
           </FieldRow>
+          {selectedLearning && (
+            <View className="px-4 pb-3">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-2">
+                  {learningProficiencyOptions.map((level) => {
+                    const isActive = learningProficiency === level;
+                    return (
+                      <Pressable
+                        key={level}
+                        onPress={() => { setLearningProficiency(level); setLanguagesChanged(true); }}
+                        className="items-center rounded-full px-3 py-1.5"
+                        style={{
+                          backgroundColor: isActive ? theme.primary + "15" : theme.card,
+                          borderWidth: 1,
+                          borderColor: isActive ? theme.primary : theme.border,
+                        }}
+                      >
+                        <Text
+                          className="font-sans-semibold text-[12px]"
+                          style={{ color: isActive ? theme.primary : theme.text }}
+                        >
+                          {t(`onboarding.proficiency_${level}`)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+          )}
         </SectionCard>
 
         {/* Interests */}
         <SectionHeader label={t("editProfile.interests")} theme={theme} />
-        <SectionCard theme={theme}>
-          <View className="px-4 py-3">
-            {profile.passions && profile.passions.length > 0 ? (
-              <View className="flex-row flex-wrap gap-2">
-                {profile.passions.map((passion) => (
-                  <View
-                    key={passion.publicId}
-                    className="flex-row items-center rounded-full px-3 py-1.5"
-                    style={{
-                      backgroundColor: theme.primary + "15",
-                      borderWidth: 1,
-                      borderColor: theme.primary + "30",
-                    }}
-                  >
-                    {passion.icon && (
-                      <Text className="mr-1 text-[13px]">{passion.icon}</Text>
-                    )}
-                    <Text
-                      className="font-sans text-[13px]"
-                      style={{ color: theme.primary }}
-                    >
-                      {passion.name}
-                    </Text>
+        <Pressable onPress={() => router.push(Routes.PROFILE_PASSIONS as never)} className="active:opacity-70">
+          <SectionCard theme={theme}>
+            <View className="flex-row items-center px-4 py-3">
+              <View className="flex-1">
+                {profile.passions && profile.passions.length > 0 ? (
+                  <View className="flex-row flex-wrap gap-2">
+                    {profile.passions.map((passion) => (
+                      <View
+                        key={passion.publicId}
+                        className="flex-row items-center rounded-full px-3 py-1.5"
+                        style={{
+                          backgroundColor: theme.primary + "15",
+                          borderWidth: 1,
+                          borderColor: theme.primary + "30",
+                        }}
+                      >
+                        {passion.icon && (
+                          <Text className="mr-1 text-[13px]">{passion.icon}</Text>
+                        )}
+                        <Text
+                          className="font-sans text-[13px]"
+                          style={{ color: theme.primary }}
+                        >
+                          {passion.name}
+                        </Text>
+                      </View>
+                    ))}
                   </View>
-                ))}
+                ) : (
+                  <Text
+                    className="font-sans text-[14px]"
+                    style={{ color: theme.textTertiary }}
+                  >
+                    {t("editProfile.addPassions")}
+                  </Text>
+                )}
               </View>
-            ) : (
-              <Text
-                className="font-sans text-[14px]"
-                style={{ color: theme.textTertiary }}
-              >
-                —
-              </Text>
-            )}
-          </View>
-        </SectionCard>
+              <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
+            </View>
+          </SectionCard>
+        </Pressable>
 
         {/* Personal Info */}
         <SectionHeader label={t("editProfile.personalInfo")} theme={theme} />
@@ -407,6 +553,87 @@ export default function EditProfileScreen() {
           )}
         </Pressable>
       </View>
+      {/* Language Picker Modal */}
+      <Modal
+        visible={languageModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <View className="flex-1" style={{ backgroundColor: theme.background, paddingTop: insets.top }}>
+          <View className="flex-row items-center px-4 py-3">
+            <Pressable onPress={() => setLanguageModalVisible(false)} className="active:opacity-70">
+              <Ionicons name="close" size={24} color={theme.text} />
+            </Pressable>
+            <Text
+              className="flex-1 text-center font-sans-semibold text-[18px]"
+              style={{ color: theme.text }}
+            >
+              {t("editProfile.selectLanguage")}
+            </Text>
+            <View className="w-6" />
+          </View>
+          <View className="px-4 pb-3">
+            <View
+              className="flex-row items-center rounded-2xl px-4 py-3"
+              style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.border }}
+            >
+              <Ionicons name="search" size={18} color={theme.textTertiary} style={{ marginRight: 8 }} />
+              <TextInput
+                value={languageSearch}
+                onChangeText={setLanguageSearch}
+                placeholder={t("onboarding.searchLanguage")}
+                placeholderTextColor={theme.textTertiary}
+                className="flex-1 font-sans text-[15px]"
+                style={{ color: theme.text, padding: 0 }}
+                autoFocus
+              />
+            </View>
+          </View>
+          <FlatList
+            data={filteredModalLanguages}
+            keyExtractor={(item) => item.code}
+            renderItem={({ item }) => {
+              const currentSelected =
+                languageModalTarget === "native" ? selectedNative : selectedLearning;
+              const isSelected = currentSelected?.code === item.code;
+              return (
+                <Pressable
+                  onPress={() => handleLanguageSelect(item)}
+                  className="flex-row items-center rounded-2xl px-4 py-3"
+                  style={{
+                    backgroundColor: isSelected ? theme.primary + "15" : theme.card,
+                    borderWidth: 1,
+                    borderColor: isSelected ? theme.primary : theme.border,
+                    marginBottom: 8,
+                  }}
+                >
+                  <View className="flex-1">
+                    <Text
+                      className="font-sans-semibold text-[15px]"
+                      style={{ color: isSelected ? theme.primary : theme.text }}
+                    >
+                      {item.name}
+                    </Text>
+                    <Text
+                      className="font-sans text-[13px]"
+                      style={{ color: theme.textSecondary }}
+                    >
+                      {item.nativeName}
+                    </Text>
+                  </View>
+                  {isSelected && (
+                    <Ionicons name="checkmark-circle" size={22} color={theme.primary} />
+                  )}
+                </Pressable>
+              );
+            }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          />
+        </View>
+      </Modal>
     </View>
   );
 }

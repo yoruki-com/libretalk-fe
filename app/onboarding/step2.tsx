@@ -1,7 +1,7 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { usersApi } from "@/services/api/users";
 import { languagesApi } from "@/services/api/languages";
-import type { Language } from "@/services/api/types";
+import type { Language, LanguageProficiency } from "@/services/api/types";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -13,6 +13,7 @@ import {
   Alert,
   FlatList,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -30,8 +31,13 @@ export default function OnboardingStep2() {
   const [search, setSearch] = useState("");
   const [selectedNative, setSelectedNative] = useState<Language | null>(null);
   const [selectedLearning, setSelectedLearning] = useState<Language | null>(null);
+  const [nativeProficiency, setNativeProficiency] = useState<LanguageProficiency>("NATIVE");
+  const [learningProficiency, setLearningProficiency] = useState<LanguageProficiency>("BEGINNER");
   const [activeSection, setActiveSection] = useState<"native" | "learning">("native");
   const [isSaving, setIsSaving] = useState(false);
+
+  const nativeProficiencyOptions: LanguageProficiency[] = ["NATIVE", "FLUENT", "ADVANCED"];
+  const learningProficiencyOptions: LanguageProficiency[] = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "FLUENT"];
 
   useEffect(() => {
     loadLanguages();
@@ -60,14 +66,18 @@ export default function OnboardingStep2() {
   const handleSelect = (lang: Language) => {
     if (activeSection === "native") {
       setSelectedNative(lang);
-      if (!selectedLearning) {
-        setActiveSection("learning");
-        setSearch("");
-      }
     } else {
       setSelectedLearning(lang);
     }
     setSearch("");
+  };
+
+  const handleNativeProficiency = (level: LanguageProficiency) => {
+    setNativeProficiency(level);
+    if (!selectedLearning) {
+      setActiveSection("learning");
+      setSearch("");
+    }
   };
 
   const isValid = selectedNative !== null && selectedLearning !== null;
@@ -80,12 +90,12 @@ export default function OnboardingStep2() {
         languages: [
           {
             code: selectedNative!.code,
-            proficiency: "NATIVE",
+            proficiency: nativeProficiency,
             isLearning: false,
           },
           {
             code: selectedLearning!.code,
-            proficiency: "BEGINNER",
+            proficiency: learningProficiency,
             isLearning: true,
           },
         ],
@@ -220,6 +230,55 @@ export default function OnboardingStep2() {
           </Text>
         </Pressable>
       </View>
+
+      {/* Proficiency Selector */}
+      {((activeSection === "native" && selectedNative) ||
+        (activeSection === "learning" && selectedLearning)) && (
+        <View className="mb-3 px-6">
+          <Text
+            className="mb-2 font-sans-semibold text-[13px]"
+            style={{ color: theme.textSecondary }}
+          >
+            {t("onboarding.proficiency")}
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View className="flex-row gap-2">
+              {(activeSection === "native"
+                ? nativeProficiencyOptions
+                : learningProficiencyOptions
+              ).map((level) => {
+                const isActive =
+                  activeSection === "native"
+                    ? nativeProficiency === level
+                    : learningProficiency === level;
+                return (
+                  <Pressable
+                    key={level}
+                    onPress={() =>
+                      activeSection === "native"
+                        ? handleNativeProficiency(level)
+                        : setLearningProficiency(level)
+                    }
+                    className="items-center rounded-full px-4 py-2"
+                    style={{
+                      backgroundColor: isActive ? theme.primary + "15" : theme.card,
+                      borderWidth: 1,
+                      borderColor: isActive ? theme.primary : theme.border,
+                    }}
+                  >
+                    <Text
+                      className="font-sans-semibold text-[13px]"
+                      style={{ color: isActive ? theme.primary : theme.text }}
+                    >
+                      {t(`onboarding.proficiency_${level}`)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </ScrollView>
+        </View>
+      )}
 
       {/* Search */}
       <View className="px-6 pb-3">

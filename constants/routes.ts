@@ -8,6 +8,7 @@ export const Routes = {
   CHAT: "/chat/[id]",
   PROFILE: "/profile/[id]",
   PROFILE_EDIT: "/profile/edit",
+  PROFILE_PASSIONS: "/profile/passions",
   POST_COMMENTS: "/post/[id]/comments",
   VIP: "/vip",
   PROMO: "/promo/[slug]",
