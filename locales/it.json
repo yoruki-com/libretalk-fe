@@ -169,6 +169,10 @@
     "zodiac_capricorn": "Capricorno",
     "zodiac_aquarius": "Acquario",
     "zodiac_pisces": "Pesci",
+    "locateMe": "Localizzami",
+    "locationDenied": "Permesso di localizzazione negato. Abilitalo nelle Impostazioni.",
+    "locationNotFound": "Impossibile determinare la tua città. Riprova.",
+    "locationError": "Impossibile ottenere la tua posizione. Riprova.",
     "saveChanges": "Salva modifiche",
     "saved": "Profilo aggiornato!",
     "saveError": "Impossibile aggiornare il profilo"

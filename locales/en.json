@@ -169,6 +169,10 @@
     "zodiac_capricorn": "Capricorn",
     "zodiac_aquarius": "Aquarius",
     "zodiac_pisces": "Pisces",
+    "locateMe": "Locate me",
+    "locationDenied": "Location permission was denied. Please enable it in Settings.",
+    "locationNotFound": "Could not determine your city. Please try again.",
+    "locationError": "Failed to get your location. Please try again.",
     "saveChanges": "Save Changes",
     "saved": "Profile updated!",
     "saveError": "Failed to update profile"

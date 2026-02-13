@@ -118,6 +118,15 @@ export interface Language {
   isActive: boolean;
 }
 
+// Country Types
+export interface Country {
+  publicId: string;
+  code: string;
+  name: string;
+  nativeName: string;
+  isActive: boolean;
+}
+
 // Passion Types
 export interface Passion {
   publicId: string;

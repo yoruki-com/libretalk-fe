@@ -2,6 +2,7 @@
 export { apiClient, ApiError } from "./client";
 export { conversationsApi } from "./conversations";
 export { usersApi } from "./users";
+export { countriesApi } from "./countries";
 export { languagesApi } from "./languages";
 export { passionsApi } from "./passions";
 export { vibesApi, commentsApi } from "./vibes";

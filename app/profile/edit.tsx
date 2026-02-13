@@ -1,18 +1,20 @@
-import { CityPicker } from "@/components/ui/CityPicker";
 import { MbtiPicker } from "@/components/ui/MbtiPicker";
 import { Routes } from "@/constants/routes";
 import type { Theme } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { countriesApi } from "@/services/api/countries";
 import { languagesApi } from "@/services/api/languages";
 import type {
+  Country,
   Gender,
   Language,
   LanguageProficiency,
   UpdateUserDto,
 } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
+import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -80,7 +82,8 @@ export default function EditProfileScreen() {
   ];
 
   const [mbtiModalVisible, setMbtiModalVisible] = useState(false);
-  const [cityModalVisible, setCityModalVisible] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+  const [countryId, setCountryId] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -124,6 +127,61 @@ export default function EditProfileScreen() {
       .catch(() => {});
   }, []);
 
+  const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN;
+
+  const handleLocate = async () => {
+    setIsLocating(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(t("common.error"), t("editProfile.locationDenied"));
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+
+      // Reverse geocode with Mapbox
+      const params = new URLSearchParams({
+        longitude: longitude.toString(),
+        latitude: latitude.toString(),
+        types: "place",
+        limit: "1",
+        access_token: MAPBOX_TOKEN ?? "",
+      });
+      const res = await fetch(
+        `https://api.mapbox.com/search/geocode/v6/reverse?${params}`,
+      );
+      const data = await res.json();
+      const feature = data.features?.[0];
+      if (!feature) {
+        Alert.alert(t("common.error"), t("editProfile.locationNotFound"));
+        return;
+      }
+
+      const cityName = feature.properties.name;
+      const countryName = feature.properties.context?.country?.name;
+      const countryCode = feature.properties.context?.country?.country_code?.toUpperCase();
+
+      setCity(countryName ? `${cityName}, ${countryName}` : cityName);
+
+      // Resolve country publicId from code
+      if (countryCode) {
+        const countriesRes = await countriesApi.getActive();
+        const match = countriesRes.data.find(
+          (c: Country) => c.code.toUpperCase() === countryCode,
+        );
+        if (match) {
+          setCountryId(match.publicId);
+        }
+      }
+    } catch {
+      Alert.alert(t("common.error"), t("editProfile.locationError"));
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!profile) return;
     setIsSaving(true);
@@ -142,6 +200,7 @@ export default function EditProfileScreen() {
         gender: gender ?? null,
         jobTitle: jobTitle.trim() || null,
         city: city.trim() || null,
+        ...(countryId !== null && { countryId }),
         ...(avatarUrl !== undefined && { avatarUrl }),
       };
       await usersApi.updateMe(data);
@@ -528,29 +587,52 @@ export default function EditProfileScreen() {
           </SectionCard>
         </Pressable>
 
-        <Pressable
-          onPress={() => setCityModalVisible(true)}
-          className="active:opacity-70"
-        >
-          <SectionCard theme={theme}>
-            <IconRow
-              icon="home"
-              iconBg="#00B894"
-              label={t("editProfile.myCity")}
-              theme={theme}
-            >
-              <View className="flex-row items-center">
-                <Text
-                  className="font-sans text-[15px]"
-                  style={{ color: city ? theme.text : theme.textTertiary }}
-                >
-                  {city || "—"}
-                </Text>
-              </View>
-            </IconRow>
-          </SectionCard>
-        </Pressable>
         <SectionCard theme={theme}>
+          <IconRow
+            icon="home"
+            iconBg="#00B894"
+            label={t("editProfile.myCity")}
+            theme={theme}
+          >
+            <View className="flex-row items-center gap-2">
+              <Text
+                className="flex-1 font-sans text-[15px]"
+                style={{ color: city ? theme.text : theme.textTertiary }}
+                numberOfLines={1}
+              >
+                {city || "—"}
+              </Text>
+              <Pressable
+                onPress={handleLocate}
+                disabled={isLocating}
+                className="flex-row items-center rounded-full px-3 py-1.5 active:opacity-70"
+                style={{
+                  backgroundColor: theme.primary + "15",
+                  borderWidth: 1,
+                  borderColor: theme.primary,
+                }}
+              >
+                {isLocating ? (
+                  <ActivityIndicator size="small" color={theme.primary} />
+                ) : (
+                  <>
+                    <Ionicons
+                      name="locate"
+                      size={14}
+                      color={theme.primary}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      className="font-sans-semibold text-[12px]"
+                      style={{ color: theme.primary }}
+                    >
+                      {t("editProfile.locateMe")}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            </View>
+          </IconRow>
           <Divider theme={theme} />
           <IconRow
             icon="briefcase"
@@ -583,15 +665,6 @@ export default function EditProfileScreen() {
         </SectionCard>
 
         <SectionCard theme={theme}>
-          <FieldRow label={t("editProfile.country")} theme={theme}>
-            <Text
-              className="font-sans text-[15px]"
-              style={{ color: theme.text }}
-            >
-              {profile.country?.name ?? "—"}
-            </Text>
-          </FieldRow>
-          <Divider theme={theme} />
           <FieldRow label={t("editProfile.gender")} theme={theme}>
             <Pressable
               onPress={handleGenderPress}
@@ -804,43 +877,6 @@ export default function EditProfileScreen() {
               }}
             />
           </ScrollView>
-        </View>
-      </Modal>
-      {/* City Picker Modal */}
-      <Modal
-        visible={cityModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setCityModalVisible(false)}
-      >
-        <View
-          className="flex-1"
-          style={{ backgroundColor: theme.background, paddingTop: insets.top }}
-        >
-          <View className="flex-row items-center px-4 py-3">
-            <Pressable
-              onPress={() => setCityModalVisible(false)}
-              className="active:opacity-70"
-            >
-              <Ionicons name="close" size={24} color={theme.text} />
-            </Pressable>
-            <Text
-              className="flex-1 text-center font-sans-semibold text-[18px]"
-              style={{ color: theme.text }}
-            >
-              {t("editProfile.myCity")}
-            </Text>
-            <View className="w-6" />
-          </View>
-          <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
-            <CityPicker
-              value={city}
-              onSelect={(selected) => {
-                setCity(selected);
-                if (selected) setCityModalVisible(false);
-              }}
-            />
-          </View>
         </View>
       </Modal>
     </View>
