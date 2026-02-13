@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
+import { Routes } from "@/constants/routes";
 
 export default function GetStarted() {
   const insets = useSafeAreaInsets();
@@ -13,12 +14,12 @@ export default function GetStarted() {
 
   const handleGoogleLogin = () => {
     console.log("Google login pressed");
-    router.replace("/(tabs)/chat");
+    router.replace(Routes.TABS_CHAT);
   };
 
   const handleAppleLogin = () => {
     console.log("Apple login pressed");
-    router.replace("/(tabs)/chat");
+    router.replace(Routes.TABS_CHAT);
   };
 
   return (

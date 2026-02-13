@@ -8,6 +8,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useConversations } from "@/hooks/useConversations";
 import type { Conversation } from "@/services/api";
 import { useRouter } from "expo-router";
+import { Routes } from "@/constants/routes";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -97,7 +98,7 @@ export default function ChatListScreen() {
   );
 
   const handleChatPress = (chatId: string) => {
-    router.push(`/chat/${chatId}`);
+    router.push({ pathname: Routes.CHAT, params: { id: chatId } } as never);
   };
 
   const handleArchivePress = () => {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, ActivityIndicator, Alert } from "react-native";
 import { useRouter } from "expo-router";
+import { Routes } from "@/constants/routes";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -59,7 +60,7 @@ export default function VibesScreen() {
 
   const handleCommentPress = (postId: string) => {
     router.push({
-      pathname: "/post/[id]/comments",
+      pathname: Routes.POST_COMMENTS,
       params: { id: postId },
     });
   };
@@ -103,7 +104,7 @@ export default function VibesScreen() {
             onNotificationPress={() => {}}
             onAvatarPress={() => {
               if (profile?.publicId) {
-                router.push({ pathname: "/profile/[id]", params: { id: profile.publicId } });
+                router.push({ pathname: Routes.PROFILE, params: { id: profile.publicId } });
               }
             }}
           />
@@ -176,7 +177,7 @@ export default function VibesScreen() {
               isLiked={vibe.isLiked}
               onLikePress={() => toggleLike(vibe.publicId)}
               onPress={() => {}}
-              onAuthorPress={() => router.push({ pathname: "/profile/[id]", params: { id: vibe.author.publicId } })}
+              onAuthorPress={() => router.push({ pathname: Routes.PROFILE, params: { id: vibe.author.publicId } })}
               onCommentPress={() => handleCommentPress(vibe.publicId)}
               onReportPress={() => {
                 Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);

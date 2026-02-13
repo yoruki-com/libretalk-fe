@@ -1,13 +1,14 @@
 import { Redirect, Stack } from "expo-router";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { Routes } from "@/constants/routes";
 
 export default function AuthLayout() {
   const { theme } = useTheme();
   const { isAuthenticated, isLoading } = useAuth();
 
   if (!isLoading && isAuthenticated) {
-    return <Redirect href="/" />;
+    return <Redirect href={Routes.ROOT} />;
   }
 
   return (

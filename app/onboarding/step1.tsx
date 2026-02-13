@@ -4,6 +4,7 @@ import { usersApi } from "@/services/api/users";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Routes } from "@/constants/routes";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -66,7 +67,7 @@ export default function OnboardingStep1() {
         dateOfBirth: dateOfBirth!.toISOString(),
         city: city.trim(),
       });
-      router.push("/onboarding/step2" as never);
+      router.push(Routes.ONBOARDING_STEP2 as never);
     } catch {
       Alert.alert(t("common.error"), t("onboarding.saveError"));
     } finally {

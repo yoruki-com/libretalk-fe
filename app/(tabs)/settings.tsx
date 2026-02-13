@@ -5,6 +5,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Routes } from "@/constants/routes";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -49,7 +50,7 @@ export default function SettingsScreen() {
   };
 
   const handleContactsPress = () => {
-    router.push("/profile/edit" as never);
+    router.push(Routes.PROFILE_EDIT as never);
   };
 
   const handleLogout = () => {
@@ -64,7 +65,7 @@ export default function SettingsScreen() {
         onPress: async () => {
           try {
             await signOut();
-            router.replace("/(auth)/login");
+            router.replace(Routes.AUTH_LOGIN);
           } catch (error) {
             Alert.alert(t("common.error"), t("auth.logoutError"));
             console.error("Logout error:", error);

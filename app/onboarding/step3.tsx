@@ -6,6 +6,7 @@ import type { Passion, PersonalityType } from "@/services/api/types";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Routes } from "@/constants/routes";
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -94,7 +95,7 @@ export default function OnboardingStep3() {
       });
 
       await refreshProfile();
-      router.replace("/(tabs)/chat" as never);
+      router.replace(Routes.TABS_CHAT as never);
     } catch {
       Alert.alert(t("common.error"), t("onboarding.saveError"));
     } finally {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
+import { Routes } from "@/constants/routes";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { SearchBar, CategoryChips, CommunityCard, RefreshableScrollView } from "@/components/ui";
@@ -71,7 +72,7 @@ export default function CommunityScreen() {
   const handleChatPress = useCallback(
     (conversationPublicId: string) => {
       router.push({
-        pathname: "/chat/[id]",
+        pathname: Routes.CHAT,
         params: { id: conversationPublicId },
       } as never);
     },
@@ -91,7 +92,7 @@ export default function CommunityScreen() {
           content: sticker.id,
         });
         router.push({
-          pathname: "/chat/[id]",
+          pathname: Routes.CHAT,
           params: { id: conversation.publicId },
         } as never);
         // Refresh conversations so the card switches to chat icon on return
@@ -215,7 +216,7 @@ export default function CommunityScreen() {
                 hasExistingChat={!!existingChatId}
                 onPress={() =>
                   router.push({
-                    pathname: "/profile/[id]",
+                    pathname: Routes.PROFILE,
                     params: { id: user.publicId },
                   })
                 }

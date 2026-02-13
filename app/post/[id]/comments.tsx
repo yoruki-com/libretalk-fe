@@ -10,6 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Routes } from "@/constants/routes";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -157,7 +158,7 @@ export default function CommentsScreen() {
                   comments={post.commentsCount}
                   shares={0}
                   isLiked={post.isLiked}
-                  onAuthorPress={() => router.push({ pathname: "/profile/[id]", params: { id: post.author.publicId } })}
+                  onAuthorPress={() => router.push({ pathname: Routes.PROFILE, params: { id: post.author.publicId } })}
                   onReportPress={() => {
                     Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
                   }}
@@ -198,7 +199,7 @@ export default function CommentsScreen() {
                     likes={comment.likesCount}
                     isLiked={comment.isLiked}
                     onLikePress={() => toggleLike(comment.publicId)}
-                    onAuthorPress={() => {}}
+                    onAuthorPress={() => router.push({ pathname: Routes.PROFILE, params: { id: comment.author.publicId } })}
                     onReplyPress={() => {}}
                     onReportPress={() => {
                       Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);

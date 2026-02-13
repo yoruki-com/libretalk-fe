@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Routes } from "@/constants/routes";
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ChatHeader } from "@/components/ui/ChatHeader";
@@ -211,7 +212,7 @@ export default function ChatScreen() {
         onProfilePress={() => {
           if (otherParticipant?.publicId) {
             router.push({
-              pathname: "/profile/[id]",
+              pathname: Routes.PROFILE,
               params: { id: otherParticipant.publicId },
             });
           }

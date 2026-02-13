@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from "react-native";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { Routes } from "@/constants/routes";
 
 export default function Index() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
@@ -27,14 +28,14 @@ export default function Index() {
 
   // Not authenticated
   if (!isAuthenticated) {
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href={Routes.AUTH_LOGIN} />;
   }
 
   // Authenticated but hasn't completed onboarding
   if (profile && !profile.onboardingCompleted) {
-    return <Redirect href={"/onboarding/step1" as never} />;
+    return <Redirect href={Routes.ONBOARDING_STEP1 as never} />;
   }
 
   // Authenticated and onboarding complete
-  return <Redirect href="/(tabs)/chat" />;
+  return <Redirect href={Routes.TABS_CHAT} />;
 }

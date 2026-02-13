@@ -5,6 +5,7 @@ import type { Language } from "@/services/api/types";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Routes } from "@/constants/routes";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -89,7 +90,7 @@ export default function OnboardingStep2() {
           },
         ],
       });
-      router.push("/onboarding/step3" as never);
+      router.push(Routes.ONBOARDING_STEP3 as never);
     } catch {
       Alert.alert(t("common.error"), t("onboarding.saveError"));
     } finally {

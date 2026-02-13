@@ -1,6 +1,7 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
+import { Routes } from "@/constants/routes";
 
 interface HeaderProps {
   title?: string;
@@ -15,7 +16,7 @@ export function Header({ title = "Chat", onVipPress }: HeaderProps) {
     if (onVipPress) {
       onVipPress();
     } else {
-      router.push("/vip");
+      router.push(Routes.VIP);
     }
   };
 

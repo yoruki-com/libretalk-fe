@@ -1,4 +1,5 @@
 import { CountryFlag, DropdownMenu, type DropdownMenuItem, VibeCard } from "@/components/ui";
+import { Routes } from "@/constants/routes";
 import { useTheme } from "@/contexts/ThemeContext";
 import type { Conversation, UserMe } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
@@ -210,7 +211,7 @@ export default function ProfileScreen() {
     // If there's an existing conversation, navigate to it
     if (existingConversation) {
       router.push({
-        pathname: "/chat/[id]",
+        pathname: Routes.CHAT,
         params: { id: existingConversation.publicId },
       });
       return;
@@ -228,7 +229,7 @@ export default function ProfileScreen() {
         content: sticker.id,
       });
       router.push({
-        pathname: "/chat/[id]",
+        pathname: Routes.CHAT,
         params: { id: conversation.publicId },
       });
     } catch (err) {
@@ -622,7 +623,7 @@ export default function ProfileScreen() {
                     onLikePress={() => toggleLike(vibe.publicId)}
                     onCommentPress={() =>
                       router.push({
-                        pathname: "/post/[id]/comments",
+                        pathname: Routes.POST_COMMENTS,
                         params: { id: vibe.publicId },
                       })
                     }
