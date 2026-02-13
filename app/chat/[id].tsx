@@ -18,87 +18,9 @@ import { useConversation } from "@/hooks/useConversation";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
-import type { Message } from "@/services/api";
+import { formatMessageTime } from "@/utils/time";
+import { useGetLastSeenText, useGroupMessagesByDate } from "@/hooks/useChatHelpers";
 import { getStickerById } from "@/constants/stickers";
-
-// Helper to format time from ISO string
-function formatTime(isoString: string): string {
-  const date = new Date(isoString);
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
-
-// Helper to format date for separator
-function useFormatDateSeparator() {
-  const { t } = useTranslation();
-
-  return (isoString: string): string => {
-    const date = new Date(isoString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return t("chat.today");
-    }
-    if (date.toDateString() === yesterday.toDateString()) {
-      return t("chat.yesterday");
-    }
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
-    });
-  };
-}
-
-// Helper to get last seen text
-function useGetLastSeenText() {
-  const { t } = useTranslation();
-
-  return (lastSeenAt: string | null, isOnline: boolean): string => {
-    if (isOnline) return t("chat.online");
-    if (!lastSeenAt) return t("chat.offline");
-
-    const lastSeen = new Date(lastSeenAt);
-    const now = new Date();
-    const diffMs = now.getTime() - lastSeen.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return t("chat.lastSeenNow");
-    if (diffMins < 60) return t("chat.lastSeenMinutes", { count: diffMins });
-    if (diffHours < 24) return t("chat.lastSeenHours", { count: diffHours });
-    return t("chat.lastSeenDays", { count: diffDays });
-  };
-}
-
-// Group messages by date
-function useGroupMessagesByDate() {
-  const formatDateSeparator = useFormatDateSeparator();
-
-  return (messages: Message[]): { date: string; messages: Message[] }[] => {
-    const groups: Map<string, Message[]> = new Map();
-
-    // Messages come sorted desc, we need to reverse for display
-    const sortedMessages = [...messages].reverse();
-
-    for (const message of sortedMessages) {
-      const dateKey = formatDateSeparator(message.createdAt);
-      const existing = groups.get(dateKey) || [];
-      groups.set(dateKey, [...existing, message]);
-    }
-
-    return Array.from(groups.entries()).map(([date, msgs]) => ({
-      date,
-      messages: msgs,
-    }));
-  };
-}
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -233,7 +155,7 @@ export default function ChatScreen() {
                 <MessageBubble
                   key={msg.publicId}
                   message={msg.type !== "STICKER" ? (msg.content || undefined) : undefined}
-                  time={formatTime(msg.createdAt)}
+                  time={formatMessageTime(msg.createdAt)}
                   isMe={msg.sender.publicId === currentUserPublicId}
                   isRead={msg.status === "READ"}
                   StickerComponent={

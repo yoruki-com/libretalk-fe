@@ -1,6 +1,13 @@
+import {
+  SectionCard,
+  SectionHeader,
+  FieldRow,
+  IconRow,
+  Divider,
+  getZodiacSign,
+} from "@/components/ui/edit-profile";
 import { MbtiPicker } from "@/components/ui/MbtiPicker";
 import { Routes } from "@/constants/routes";
-import type { Theme } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -14,8 +21,8 @@ import type {
   UpdateUserDto,
 } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
-import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -161,7 +168,8 @@ export default function EditProfileScreen() {
 
       const cityName = feature.properties.name;
       const countryName = feature.properties.context?.country?.name;
-      const countryCode = feature.properties.context?.country?.country_code?.toUpperCase();
+      const countryCode =
+        feature.properties.context?.country?.country_code?.toUpperCase();
 
       setCity(countryName ? `${cityName}, ${countryName}` : cityName);
 
@@ -594,7 +602,7 @@ export default function EditProfileScreen() {
             label={t("editProfile.myCity")}
             theme={theme}
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center">
               <Text
                 className="flex-1 font-sans text-[15px]"
                 style={{ color: city ? theme.text : theme.textTertiary }}
@@ -605,30 +613,13 @@ export default function EditProfileScreen() {
               <Pressable
                 onPress={handleLocate}
                 disabled={isLocating}
-                className="flex-row items-center rounded-full px-3 py-1.5 active:opacity-70"
-                style={{
-                  backgroundColor: theme.primary + "15",
-                  borderWidth: 1,
-                  borderColor: theme.primary,
-                }}
+                className="ml-2 active:opacity-70"
+                hitSlop={8}
               >
                 {isLocating ? (
                   <ActivityIndicator size="small" color={theme.primary} />
                 ) : (
-                  <>
-                    <Ionicons
-                      name="locate"
-                      size={14}
-                      color={theme.primary}
-                      style={{ marginRight: 4 }}
-                    />
-                    <Text
-                      className="font-sans-semibold text-[12px]"
-                      style={{ color: theme.primary }}
-                    >
-                      {t("editProfile.locateMe")}
-                    </Text>
-                  </>
+                  <Ionicons name="locate" size={22} color={theme.primary} />
                 )}
               </Pressable>
             </View>
@@ -881,163 +872,4 @@ export default function EditProfileScreen() {
       </Modal>
     </View>
   );
-}
-
-/* ── Sub-components ─────────────────────────────────────── */
-
-function SectionCard({
-  children,
-  theme,
-}: {
-  children: React.ReactNode;
-  theme: Pick<Theme, "card" | "border">;
-}) {
-  return (
-    <View
-      className="overflow-hidden rounded-2xl"
-      style={{
-        backgroundColor: theme.card,
-        borderWidth: 1,
-        borderColor: theme.border,
-      }}
-    >
-      {children}
-    </View>
-  );
-}
-
-function SectionHeader({
-  label,
-  theme,
-}: {
-  label: string;
-  theme: Pick<Theme, "text">;
-}) {
-  return (
-    <Text
-      className="font-sans-semibold text-[16px]"
-      style={{ color: theme.text }}
-    >
-      {label}
-    </Text>
-  );
-}
-
-function FieldRow({
-  label,
-  children,
-  theme,
-}: {
-  label: string;
-  children: React.ReactNode;
-  theme: Pick<Theme, "textSecondary">;
-}) {
-  return (
-    <View className="gap-1 px-4 py-3">
-      <Text
-        className="font-sans text-[12px]"
-        style={{ color: theme.textSecondary }}
-      >
-        {label}
-      </Text>
-      {children}
-    </View>
-  );
-}
-
-function IconRow({
-  icon,
-  iconBg,
-  label,
-  value,
-  children,
-  onPress,
-  theme,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  iconBg: string;
-  label: string;
-  value?: string;
-  children?: React.ReactNode;
-  onPress?: () => void;
-  theme: Pick<Theme, "text" | "textSecondary" | "textTertiary">;
-}) {
-  const content = (
-    <View className="flex-row items-center gap-3 px-4 py-3">
-      <View
-        className="h-10 w-10 items-center justify-center rounded-xl"
-        style={{ backgroundColor: iconBg }}
-      >
-        <Ionicons name={icon} size={20} color="#FFFFFF" />
-      </View>
-      <View className="flex-1">
-        {children ? (
-          <>
-            <Text
-              className="font-sans text-[12px]"
-              style={{ color: theme.textSecondary }}
-            >
-              {label}
-            </Text>
-            {children}
-          </>
-        ) : (
-          <Text
-            className="font-sans text-[15px]"
-            style={{ color: value ? theme.text : theme.textSecondary }}
-          >
-            {value ?? label}
-          </Text>
-        )}
-      </View>
-      <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
-    </View>
-  );
-
-  if (onPress) {
-    return (
-      <Pressable onPress={onPress} className="active:opacity-70">
-        {content}
-      </Pressable>
-    );
-  }
-  return content;
-}
-
-function Divider({ theme }: { theme: Pick<Theme, "border"> }) {
-  return (
-    <View
-      className="mx-4"
-      style={{ height: 1, backgroundColor: theme.border }}
-    />
-  );
-}
-
-function getZodiacSign(dateStr: string, t: (key: string) => string): string {
-  const date = new Date(dateStr);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-
-  const signs: [number, number, string][] = [
-    [1, 20, "capricorn"],
-    [2, 19, "aquarius"],
-    [3, 20, "pisces"],
-    [4, 20, "aries"],
-    [5, 21, "taurus"],
-    [6, 21, "gemini"],
-    [7, 22, "cancer"],
-    [8, 23, "leo"],
-    [9, 23, "virgo"],
-    [10, 23, "libra"],
-    [11, 22, "scorpio"],
-    [12, 22, "sagittarius"],
-  ];
-
-  for (let i = 0; i < signs.length; i++) {
-    const [m, d] = signs[i];
-    if (month === m && day <= d) return t(`editProfile.zodiac_${signs[i][2]}`);
-    if (month === m && day > d)
-      return t(`editProfile.zodiac_${signs[(i + 1) % 12][2]}`);
-  }
-  return t("editProfile.zodiac_capricorn");
 }

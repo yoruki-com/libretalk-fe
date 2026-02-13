@@ -20,22 +20,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { vibesApi, type Vibe } from "@/services/api/vibes";
-
-// Helper to format relative time
-function formatRelativeTime(isoString: string): string {
-  const date = new Date(isoString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 1) return "now";
-  if (diffMins < 60) return `${diffMins}m`;
-  if (diffHours < 24) return `${diffHours}h`;
-  if (diffDays < 7) return `${diffDays}d`;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
+import { formatRelativeTime } from "@/utils/time";
 
 export default function CommentsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

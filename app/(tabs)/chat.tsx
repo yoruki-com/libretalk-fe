@@ -6,68 +6,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useConversations } from "@/hooks/useConversations";
-import type { Conversation } from "@/services/api";
 import { useRouter } from "expo-router";
 import { Routes } from "@/constants/routes";
+import { formatChatListTime } from "@/utils/time";
+import {
+  getOtherParticipants,
+  getConversationDisplayName,
+  getConversationAvatar,
+  isConversationOnline,
+} from "@/utils/conversation";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Text, View } from "react-native";
 import { RefreshableScrollView } from "@/components/ui";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-// Helper to format time for display
-function useFormatTime() {
-  const { t } = useTranslation();
-
-  return (dateString: string | null): string => {
-    if (!dateString) return "";
-
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    } else if (diffDays === 1) {
-      return t("chat.yesterday");
-    } else if (diffDays < 7) {
-      return date.toLocaleDateString([], { weekday: "long" });
-    }
-    return date.toLocaleDateString([], { month: "short", day: "numeric" });
-  };
-}
-
-// Get the other participants (exclude the current user)
-function getOtherParticipants(conversation: Conversation, currentUserPublicId: string) {
-  return conversation.participants.filter((p) => p.publicId !== currentUserPublicId);
-}
-
-// Get display name for conversation
-function getConversationDisplayName(conversation: Conversation, currentUserPublicId: string, groupLabel: string): string {
-  if (conversation.isGroup) {
-    if (conversation.name) return conversation.name;
-    const others = getOtherParticipants(conversation, currentUserPublicId);
-    return others.map((p) => p.displayName).join(", ") || groupLabel;
-  }
-  const other = getOtherParticipants(conversation, currentUserPublicId)[0];
-  return other?.displayName ?? "Unknown";
-}
-
-// Get avatar for conversation
-function getConversationAvatar(conversation: Conversation, currentUserPublicId: string): string | undefined {
-  if (conversation.isGroup) return conversation.avatarUrl ?? undefined;
-  const other = getOtherParticipants(conversation, currentUserPublicId)[0];
-  return other?.avatarUrl ?? undefined;
-}
-
-// Check if any participant is online (for 1:1 chats)
-function isConversationOnline(conversation: Conversation, currentUserPublicId: string): boolean {
-  if (conversation.isGroup) return false;
-  const other = getOtherParticipants(conversation, currentUserPublicId)[0];
-  return other?.isOnline ?? false;
-}
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
@@ -76,7 +29,7 @@ export default function ChatListScreen() {
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
   const { profile } = useCurrentUser(isAuthenticated);
-  const formatTime = useFormatTime();
+  const yesterdayLabel = t("chat.yesterday");
 
   const { conversations, isLoading, error, refresh } = useConversations({
     enabled: isAuthenticated && !!profile?.publicId,
@@ -143,7 +96,7 @@ export default function ChatListScreen() {
                 ? t("chat.sticker")
                 : (conversation.lastMessage?.content ?? "")
             }
-            time={formatTime(conversation.lastMessageAt)}
+            time={formatChatListTime(conversation.lastMessageAt, { yesterday: yesterdayLabel })}
             avatar={getConversationAvatar(conversation, profile.publicId)}
             unreadCount={0}
             isMyTurn={
