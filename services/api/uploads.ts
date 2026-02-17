@@ -1,3 +1,4 @@
+import axios from "axios";
 import { apiClient } from "./client";
 import type { ApiResponse } from "./types";
 
@@ -24,19 +25,12 @@ export const uploadsApi = {
     fileUri: string,
     contentType: string
   ): Promise<void> {
-    const response = await fetch(fileUri);
-    const blob = await response.blob();
+    // Read the file as a blob from the local URI
+    const fileResponse = await axios.get(fileUri, { responseType: "blob" });
 
-    const uploadResponse = await fetch(presignedUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": contentType,
-      },
-      body: blob,
+    // Upload to S3
+    await axios.put(presignedUrl, fileResponse.data, {
+      headers: { "Content-Type": contentType },
     });
-
-    if (!uploadResponse.ok) {
-      throw new Error(`S3 upload failed with status ${uploadResponse.status}`);
-    }
   },
 };

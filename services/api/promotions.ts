@@ -1,3 +1,4 @@
+import axios from "axios";
 import { API_URL } from "./config";
 
 export interface PromotionMeta {
@@ -13,19 +14,23 @@ export interface PromotionMeta {
 
 export const promotionsApi = {
   async getActive(): Promise<PromotionMeta[]> {
-    const response = await fetch(`${API_URL}/promotions/active`);
-    if (!response.ok) {
+    try {
+      const response = await axios.get(`${API_URL}/promotions/active`);
+      return response.data.data;
+    } catch {
       throw new Error("Failed to fetch active promotions");
     }
-    const data = await response.json();
-    return data.data;
   },
 
   async getContent(slug: string): Promise<string> {
-    const response = await fetch(`${API_URL}/promotions/${slug}/content`);
-    if (!response.ok) {
+    try {
+      const response = await axios.get<string>(
+        `${API_URL}/promotions/${slug}/content`,
+        { responseType: "text" }
+      );
+      return response.data;
+    } catch {
       throw new Error(`Failed to fetch promotion content for "${slug}"`);
     }
-    return response.text();
   },
 };
