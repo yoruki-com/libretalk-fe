@@ -1,5 +1,6 @@
+import axios from "axios";
 import { API_URL } from "./config";
-import type { ApiResponse, PaginatedResponse, PaginationParams } from "./types";
+import type { PaginationParams } from "./types";
 
 class ApiError extends Error {
   constructor(
@@ -42,35 +43,15 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   return headers;
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    if (response.status === 401) {
-      throw new ApiError(401, errorData?.message || "Unauthorized - Please sign in again", errorData);
+function handleAxiosError(error: unknown): never {
+  if (axios.isAxiosError(error) && error.response) {
+    const { status, data } = error.response;
+    if (status === 401) {
+      throw new ApiError(401, data?.message || "Unauthorized - Please sign in again", data);
     }
-    throw new ApiError(
-      response.status,
-      errorData?.message || response.statusText,
-      errorData
-    );
+    throw new ApiError(status, data?.message || error.message, data);
   }
-  return response.json();
-}
-
-function buildQueryString(
-  params?: PaginationParams & Record<string, unknown>
-): string {
-  if (!params) return "";
-
-  const searchParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.append(key, String(value));
-    }
-  });
-
-  const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : "";
+  throw error;
 }
 
 export const apiClient = {
@@ -78,63 +59,70 @@ export const apiClient = {
     endpoint: string,
     params?: PaginationParams & Record<string, unknown>
   ): Promise<T> {
-    const url = `${API_URL}${endpoint}${buildQueryString(params)}`;
     const headers = await getAuthHeaders();
 
-    const response = await fetch(url, {
-      method: "GET",
-      headers,
-      credentials: "include",
-    });
-    return handleResponse<T>(response);
+    try {
+      const response = await axios.get<T>(`${API_URL}${endpoint}`, {
+        headers,
+        params,
+      });
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
   },
 
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
     const headers = await getAuthHeaders();
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: "POST",
-      headers,
-      credentials: "include",
-      body: data ? JSON.stringify(data) : undefined,
-    });
-    return handleResponse<T>(response);
+    try {
+      const response = await axios.post<T>(`${API_URL}${endpoint}`, data, {
+        headers,
+      });
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
   },
 
   async put<T>(endpoint: string, data: unknown): Promise<T> {
     const headers = await getAuthHeaders();
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: "PUT",
-      headers,
-      credentials: "include",
-      body: JSON.stringify(data),
-    });
-    return handleResponse<T>(response);
+    try {
+      const response = await axios.put<T>(`${API_URL}${endpoint}`, data, {
+        headers,
+      });
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
   },
 
   async patch<T>(endpoint: string, data: unknown): Promise<T> {
     const headers = await getAuthHeaders();
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: "PATCH",
-      headers,
-      credentials: "include",
-      body: JSON.stringify(data),
-    });
-    return handleResponse<T>(response);
+    try {
+      const response = await axios.patch<T>(`${API_URL}${endpoint}`, data, {
+        headers,
+      });
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
   },
 
   async delete<T>(endpoint: string, data?: unknown): Promise<T> {
     const headers = await getAuthHeaders();
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: "DELETE",
-      headers,
-      credentials: "include",
-      body: data ? JSON.stringify(data) : undefined,
-    });
-    return handleResponse<T>(response);
+    try {
+      const response = await axios.delete<T>(`${API_URL}${endpoint}`, {
+        headers,
+        data,
+      });
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
   },
 };
 
