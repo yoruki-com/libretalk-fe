@@ -1,5 +1,6 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
 import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -50,17 +51,19 @@ export function CityPicker({ value, onSelect, placeholder }: CityPickerProps) {
 
     setIsLoading(true);
     try {
-      const params = new URLSearchParams({
-        q: text.trim(),
-        types: "place",
-        limit: "5",
-        language: "en",
-        access_token: MAPBOX_TOKEN ?? "",
-      });
-      const res = await fetch(
-        `https://api.mapbox.com/search/geocode/v6/forward?${params}`,
+      const res = await axios.get(
+        `https://api.mapbox.com/search/geocode/v6/forward`,
+        {
+          params: {
+            q: text.trim(),
+            types: "place",
+            limit: "5",
+            language: "en",
+            access_token: MAPBOX_TOKEN ?? "",
+          },
+        },
       );
-      const data = await res.json();
+      const data = res.data;
       setSuggestions(data.features ?? []);
       setShowSuggestions(true);
     } catch {

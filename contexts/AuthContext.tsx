@@ -9,6 +9,7 @@ import {
 import { useAuth0, Auth0Provider } from "react-native-auth0";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { Platform } from "react-native";
+import axios from "axios";
 import {
   setTokenGetter,
   clearTokenGetter,
@@ -68,19 +69,17 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
 
             // Fetch user info to populate avatar, name, etc.
             try {
-              const response = await fetch(
+              const response = await axios.get(
                 `https://${AUTH0_DOMAIN}/userinfo`,
                 { headers: { Authorization: `Bearer ${credentials.accessToken}` } }
               );
-              if (response.ok) {
-                const userInfo = await response.json();
-                setUser({
-                  id: userInfo.sub,
-                  email: userInfo.email,
-                  name: userInfo.name,
-                  avatar: userInfo.picture,
-                });
-              }
+              const userInfo = response.data;
+              setUser({
+                id: userInfo.sub,
+                email: userInfo.email,
+                name: userInfo.name,
+                avatar: userInfo.picture,
+              });
             } catch (err) {
               console.error("Error fetching user info:", err);
             }
@@ -160,22 +159,24 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
       }
 
       // Token exchange with Auth0
-      const response = await fetch(`https://${AUTH0_DOMAIN}/oauth/token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      let tokens;
+      try {
+        const response = await axios.post(`https://${AUTH0_DOMAIN}/oauth/token`, {
           grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
           client_id: AUTH0_CLIENT_ID,
           subject_token: appleCredential.identityToken,
           subject_token_type:
             "http://auth0.com/oauth/token-type/apple-authz-code",
           scope: "openid profile email offline_access",
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        console.error("Token exchange error:", error);
+        });
+        tokens = response.data;
+      } catch (tokenExchangeError) {
+        console.error(
+          "Token exchange error:",
+          axios.isAxiosError(tokenExchangeError)
+            ? tokenExchangeError.response?.data
+            : tokenExchangeError
+        );
         // Fallback to Universal Login if token exchange fails
         await authorize(
           { connection: "apple", scope: "openid profile email offline_access" },
@@ -189,18 +190,17 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const tokens = await response.json();
       setAccessToken(tokens.access_token);
       setIsAuthenticated(true);
 
       // Fetch user info
-      const userInfoResponse = await fetch(
+      const userInfoResponse = await axios.get(
         `https://${AUTH0_DOMAIN}/userinfo`,
         {
           headers: { Authorization: `Bearer ${tokens.access_token}` },
         }
       );
-      const userInfo = await userInfoResponse.json();
+      const userInfo = userInfoResponse.data;
 
       const fullName = appleCredential.fullName
         ? `${appleCredential.fullName.givenName ?? ""} ${appleCredential.fullName.familyName ?? ""}`.trim()

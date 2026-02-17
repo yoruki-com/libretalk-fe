@@ -22,6 +22,7 @@ import type {
 } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
 import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -147,17 +148,19 @@ export default function EditProfileScreen() {
       const { latitude, longitude } = location.coords;
 
       // Reverse geocode with Mapbox
-      const params = new URLSearchParams({
-        longitude: longitude.toString(),
-        latitude: latitude.toString(),
-        types: "place",
-        limit: "1",
-        access_token: MAPBOX_TOKEN ?? "",
-      });
-      const res = await fetch(
-        `https://api.mapbox.com/search/geocode/v6/reverse?${params}`,
+      const res = await axios.get(
+        `https://api.mapbox.com/search/geocode/v6/reverse`,
+        {
+          params: {
+            longitude: longitude.toString(),
+            latitude: latitude.toString(),
+            types: "place",
+            limit: "1",
+            access_token: MAPBOX_TOKEN ?? "",
+          },
+        },
       );
-      const data = await res.json();
+      const data = res.data;
       const feature = data.features?.[0];
       if (!feature) {
         Alert.alert(t("common.error"), t("editProfile.locationNotFound"));
