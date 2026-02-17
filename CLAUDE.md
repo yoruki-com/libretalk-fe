@@ -19,3 +19,11 @@ bunx tsc --noEmit
 bun run start
 bun run build
 ```
+
+## Planning Artifacts
+
+Each workspace owns its own `.planning/` directory:
+- **Frontend** planning artifacts go in `fe/.planning/`
+- **Backend** planning artifacts go in `be/.planning/`
+
+Never put frontend planning files in the backend `.planning/` directory or vice versa.
