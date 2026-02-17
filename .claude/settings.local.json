@@ -30,7 +30,16 @@
       "Bash(\"$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe\":*)",
       "Bash(\"$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe\" -s emulator-5554 shell am start -n com.libretalk.app/.MainActivity)",
       "Bash(bunx expo run:android:*)",
-      "Bash(./gradlew.bat app:assembleDebug:*)"
+      "Bash(./gradlew.bat app:assembleDebug:*)",
+      "Skill(gsd:map-codebase)",
+      "Bash(head:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(bun audit:*)",
+      "Bash(grep:*)",
+      "Bash(node ./.claude/get-shit-done/bin/gsd-tools.cjs commit:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
