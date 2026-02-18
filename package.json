@@ -20,7 +20,7 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@rnmapbox/maps": "^10.2.10",
-    "@yoruki-com/libretalk-mythos-schemas": "0.0.3",
+    "@yoruki-com/libretalk-mythos-schemas": "0.0.4",
     "axios": "^1.13.5",
     "expo": "~54.0.32",
     "expo-apple-authentication": "^8.0.8",

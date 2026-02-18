@@ -13,7 +13,7 @@
         "@react-navigation/elements": "^2.6.3",
         "@react-navigation/native": "^7.1.8",
         "@rnmapbox/maps": "^10.2.10",
-        "@yoruki-com/libretalk-mythos-schemas": "0.0.3",
+        "@yoruki-com/libretalk-mythos-schemas": "0.0.4",
         "axios": "^1.13.5",
         "expo": "~54.0.32",
         "expo-apple-authentication": "^8.0.8",
@@ -636,7 +636,7 @@
 
     "@xmldom/xmldom": ["@xmldom/xmldom@0.8.11", "", {}, "sha512-cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw=="],
 
-    "@yoruki-com/libretalk-mythos-schemas": ["@yoruki-com/libretalk-mythos-schemas@0.0.3", "https://npm.pkg.github.com/download/@yoruki-com/libretalk-mythos-schemas/0.0.3/8c140449c520e9f5cdfec14a1d8742e15b9a7513", { "dependencies": { "zod": "4.3.6" } }, "sha512-CE1vZl479xkOP2aJ5cnx1+Bk9Of/2nReYnQmJ/enGZKjHd5jAvl3HTlG5LFZ+njqzOKSOLueMoonhhA1TZE0uA=="],
+    "@yoruki-com/libretalk-mythos-schemas": ["@yoruki-com/libretalk-mythos-schemas@0.0.4", "https://npm.pkg.github.com/download/@yoruki-com/libretalk-mythos-schemas/0.0.4/db4f32dae64785f851334c679606e0edcd46f181", { "dependencies": { "zod": "4.3.6" } }, "sha512-yXo+5jxtzjS9Eknn4LJy+5rD8xXJc8paCUim9m7JaAKSVWaFpHV09onDhKRMJfv3B4bpCeiVB7oHBsne5K1jBQ=="],
 
     "abort-controller": ["abort-controller@3.0.0", "", { "dependencies": { "event-target-shim": "^5.0.0" } }, "sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg=="],
 
