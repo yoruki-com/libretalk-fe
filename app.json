@@ -4,7 +4,7 @@
     "slug": "libre-talk",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo-without-stroke.png",
     "scheme": "libretalk",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,7 +14,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
+        "foregroundImage": "./assets/images/logo-without-stroke.png",
         "backgroundColor": "#E6F4FE"
       },
       "edgeToEdgeEnabled": true,
@@ -24,7 +24,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.gif"
+      "favicon": "./assets/images/logo-without-stroke.png"
     },
     "plugins": [
       "expo-router",
