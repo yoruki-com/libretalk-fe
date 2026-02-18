@@ -39,7 +39,8 @@
       "Bash(grep:*)",
       "Bash(node ./.claude/get-shit-done/bin/gsd-tools.cjs commit:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   },
   "enableAllProjectMcpServers": true,
