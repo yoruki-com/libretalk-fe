@@ -1,4 +1,4 @@
-import { View, Text, Alert, Platform } from "react-native";
+import { View, Text, Alert } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -6,24 +6,12 @@ import { SlideIndicator } from "@/components/ui/SlideIndicator";
 import { AuthButton } from "@/components/ui/AuthButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
-import * as AppleAuthentication from "expo-apple-authentication";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const { signInWithApple, signInWithGoogle, signInWithEmail } = useAuth();
+  const { signInWithGoogle, signInWithEmail } = useAuth();
   const [isLoading, setIsLoading] = useState<string | null>(null);
-
-  const handleAppleSignIn = async () => {
-    setIsLoading("apple");
-    try {
-      await signInWithApple();
-    } catch (error) {
-      Alert.alert(t("common.error"), t("auth.errorApple"));
-    } finally {
-      setIsLoading(null);
-    }
-  };
 
   const handleGoogleSignIn = async () => {
     setIsLoading("google");
@@ -74,31 +62,6 @@ export default function LoginScreen() {
 
         {/* Buttons */}
         <View className="gap-4">
-          {/* Apple Sign-In (native on iOS) */}
-          {Platform.OS === "ios" && (
-            <AppleAuthentication.AppleAuthenticationButton
-              buttonType={
-                AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
-              }
-              buttonStyle={
-                AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-              }
-              cornerRadius={999}
-              style={{ height: 56 }}
-              onPress={handleAppleSignIn}
-            />
-          )}
-
-          {/* Apple Sign-In button for Android */}
-          {Platform.OS === "android" && (
-            <AuthButton
-              variant="apple"
-              onPress={handleAppleSignIn}
-              loading={isLoading === "apple"}
-              disabled={isLoading !== null}
-            />
-          )}
-
           {/* Google Sign-In */}
           <AuthButton
             variant="google"

@@ -10,8 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.libretalk.app",
-      "usesAppleSignIn": true
+      "bundleIdentifier": "com.libretalk.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -50,7 +49,6 @@
           "customScheme": "libretalk"
         }
       ],
-      "expo-apple-authentication",
       [
         "expo-image-picker",
         {

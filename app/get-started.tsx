@@ -17,11 +17,6 @@ export default function GetStarted() {
     router.replace(Routes.TABS_CHAT);
   };
 
-  const handleAppleLogin = () => {
-    console.log("Apple login pressed");
-    router.replace(Routes.TABS_CHAT);
-  };
-
   return (
     <View className="flex-1 bg-white">
       {/* Background with Gradient */}
@@ -50,7 +45,6 @@ export default function GetStarted() {
         {/* Form */}
         <View className="gap-4">
           <Button variant="google" onPress={handleGoogleLogin} />
-          <Button variant="apple" onPress={handleAppleLogin} />
 
           {/* Terms */}
           <Text className="mt-2 text-center text-body-small text-dark opacity-80">

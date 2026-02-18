@@ -1,7 +1,7 @@
 import { Pressable, Text, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-type AuthButtonVariant = "google" | "apple" | "email";
+type AuthButtonVariant = "google" | "email";
 
 interface AuthButtonProps {
   variant: AuthButtonVariant;
@@ -17,12 +17,6 @@ const variantStyles = {
     icon: "logo-google" as const,
     iconColor: "#F5F5F5",
   },
-  apple: {
-    container: "bg-dark",
-    text: "text-light",
-    icon: "logo-apple" as const,
-    iconColor: "#F5F5F5",
-  },
   email: {
     container: "bg-primary",
     text: "text-light",
@@ -33,7 +27,6 @@ const variantStyles = {
 
 const buttonLabels: Record<AuthButtonVariant, string> = {
   google: "Continua con Google",
-  apple: "Continua con Apple",
   email: "Continua con Email",
 };
 

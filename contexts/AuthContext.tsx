@@ -7,8 +7,6 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth0, Auth0Provider } from "react-native-auth0";
-import * as AppleAuthentication from "expo-apple-authentication";
-import { Platform } from "react-native";
 import axios from "axios";
 import {
   setTokenGetter,
@@ -32,7 +30,6 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   accessToken: string | null;
-  signInWithApple: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -130,99 +127,6 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
     return () => clearTokenGetter();
   }, [getToken]);
 
-  // Native Apple Sign-In with Token Exchange
-  const signInWithApple = useCallback(async () => {
-    if (Platform.OS !== "ios") {
-      // Fallback to Universal Login on Android
-      await authorize(
-        { connection: "apple", scope: "openid profile email offline_access" },
-        { customScheme: CUSTOM_SCHEME }
-      );
-      const credentials = await getCredentials();
-      if (credentials?.accessToken) {
-        setAccessToken(credentials.accessToken);
-        setIsAuthenticated(true);
-      }
-      return;
-    }
-
-    try {
-      const appleCredential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-      });
-
-      if (!appleCredential.identityToken) {
-        throw new Error("No identity token received from Apple");
-      }
-
-      // Token exchange with Auth0
-      let tokens;
-      try {
-        const response = await axios.post(`https://${AUTH0_DOMAIN}/oauth/token`, {
-          grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
-          client_id: AUTH0_CLIENT_ID,
-          subject_token: appleCredential.identityToken,
-          subject_token_type:
-            "http://auth0.com/oauth/token-type/apple-authz-code",
-          scope: "openid profile email offline_access",
-        });
-        tokens = response.data;
-      } catch (tokenExchangeError) {
-        console.error(
-          "Token exchange error:",
-          axios.isAxiosError(tokenExchangeError)
-            ? tokenExchangeError.response?.data
-            : tokenExchangeError
-        );
-        // Fallback to Universal Login if token exchange fails
-        await authorize(
-          { connection: "apple", scope: "openid profile email offline_access" },
-          { customScheme: CUSTOM_SCHEME }
-        );
-        const credentials = await getCredentials();
-        if (credentials?.accessToken) {
-          setAccessToken(credentials.accessToken);
-          setIsAuthenticated(true);
-        }
-        return;
-      }
-
-      setAccessToken(tokens.access_token);
-      setIsAuthenticated(true);
-
-      // Fetch user info
-      const userInfoResponse = await axios.get(
-        `https://${AUTH0_DOMAIN}/userinfo`,
-        {
-          headers: { Authorization: `Bearer ${tokens.access_token}` },
-        }
-      );
-      const userInfo = userInfoResponse.data;
-
-      const fullName = appleCredential.fullName
-        ? `${appleCredential.fullName.givenName ?? ""} ${appleCredential.fullName.familyName ?? ""}`.trim()
-        : undefined;
-
-      setUser({
-        id: userInfo.sub,
-        email: userInfo.email,
-        name: fullName || userInfo.name,
-        avatar: userInfo.picture,
-      });
-    } catch (error: unknown) {
-      const err = error as { code?: string };
-      if (err.code === "ERR_REQUEST_CANCELED") {
-        console.log("Apple Sign-In cancelled by user");
-        return;
-      }
-      console.error("Apple Sign-In error:", error);
-      throw error;
-    }
-  }, [authorize, getCredentials]);
-
   // Google Sign-In via Universal Login
   const signInWithGoogle = useCallback(async () => {
     try {
@@ -298,7 +202,6 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
         isAuthenticated,
         isLoading: isLoading || auth0Loading,
         accessToken,
-        signInWithApple,
         signInWithGoogle,
         signInWithEmail,
         signOut,

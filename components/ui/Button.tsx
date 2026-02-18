@@ -1,7 +1,7 @@
 import { Pressable, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-type ButtonVariant = "google" | "apple";
+type ButtonVariant = "google";
 
 interface ButtonProps {
   variant: ButtonVariant;
@@ -14,16 +14,10 @@ const variantStyles = {
     text: "text-light",
     icon: "logo-google" as const,
   },
-  apple: {
-    container: "bg-dark",
-    text: "text-light",
-    icon: "logo-apple" as const,
-  },
 };
 
 const buttonLabels = {
   google: "Continue With Google",
-  apple: "Continue With Apple",
 };
 
 export function Button({ variant, onPress }: ButtonProps) {
