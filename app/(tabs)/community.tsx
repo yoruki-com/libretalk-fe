@@ -85,6 +85,7 @@ export default function CommunityScreen() {
       try {
         const { data: conversation } = await conversationsApi.create({
           participantIds: [userPublicId],
+          isGroup: false,
         });
         const sticker = getRandomHelloSticker();
         await conversationsApi.messages.send(conversation.publicId, {

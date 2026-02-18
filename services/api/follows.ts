@@ -1,11 +1,5 @@
 import { apiClient } from "./client";
-import type { ApiResponse } from "./types";
-
-export interface ToggleFollowResponse {
-  following: boolean;
-  followersCount: number;
-  followingCount: number;
-}
+import type { ApiResponse, ToggleFollowResponse } from "./types";
 
 export const followsApi = {
   async toggleFollow(

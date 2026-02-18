@@ -18,9 +18,9 @@ interface UseVibesResult {
     page: number;
     pageSize: number;
     totalPages: number;
-    totalCount: number;
+    totalItems: number;
     hasNextPage: boolean;
-    hasPreviousPage: boolean;
+    hasPrevPage: boolean;
   } | null;
   refresh: () => Promise<void>;
   loadMore: () => Promise<void>;

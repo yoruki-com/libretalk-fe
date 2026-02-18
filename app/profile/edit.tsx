@@ -110,6 +110,8 @@ export default function EditProfileScreen() {
           name: native.name,
           nativeName: native.nativeName,
           isActive: true,
+          createdAt: "",
+          updatedAt: "",
         });
         setNativeProficiency(native.proficiency);
       }
@@ -120,6 +122,8 @@ export default function EditProfileScreen() {
           name: learning.name,
           nativeName: learning.nativeName,
           isActive: true,
+          createdAt: "",
+          updatedAt: "",
         });
         setLearningProficiency(learning.proficiency);
       }

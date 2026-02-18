@@ -1,80 +1,31 @@
 import { apiClient } from "./client";
-import type { ApiResponse, PaginatedResponse, PaginationParams } from "./types";
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  PaginationParams,
+} from "./types";
+import type {
+  PostResponse,
+  CommentResponse,
+  CommentWithRepliesResponse,
+  CreatePostDto,
+  UpdatePostDto,
+  UpdateCommentDto,
+} from "./types";
 
-// Vibe/Post Types
-export interface VibeAuthorLanguage {
-  code: string;
-  proficiency: string;
-  isLearning: boolean;
-}
+// Frontend aliases for post/vibe types
+export type Vibe = PostResponse;
+export type VibeAuthor = PostResponse["author"];
+export type VibeAuthorLanguage = PostResponse["author"]["languages"][number];
 
-export interface VibeAuthor {
-  publicId: string;
-  username: string;
-  displayName: string;
-  avatarUrl: string | null;
-  countryCode: string | null;
-  isVip: boolean;
-  languages: VibeAuthorLanguage[];
-  role: string | null;
-}
+export type CreateVibeDto = CreatePostDto;
+export type UpdateVibeDto = UpdatePostDto;
 
-export interface Vibe {
-  publicId: string;
-  content: string;
-  visibility: string;
-  languageCode: string | null;
-  author: VibeAuthor;
-  space: { publicId: string; name: string; slug: string } | null;
-  media: { url: string; mimeType: string; width: number | null; height: number | null; duration: number | null; sortOrder: number }[];
-  likesCount: number;
-  commentsCount: number;
-  isLiked: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+export type CommentAuthor = CommentResponse["author"];
+export type Comment = CommentResponse;
+export type CommentWithReplies = CommentWithRepliesResponse;
 
-export interface CreateVibeDto {
-  content: string;
-  visibility?: string;
-  languageCode?: string;
-  spaceId?: string;
-}
-
-export interface UpdateVibeDto {
-  content?: string;
-  visibility?: string;
-  languageCode?: string | null;
-}
-
-export interface VibesFilterParams extends PaginationParams {
-  category?: string;
-  search?: string;
-}
-
-// Comment Types
-export interface CommentAuthor {
-  publicId: string;
-  username: string;
-  displayName: string;
-  avatarUrl: string | null;
-}
-
-export interface Comment {
-  publicId: string;
-  content: string;
-  author: CommentAuthor;
-  likesCount: number;
-  isLiked: boolean;
-  parentId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CommentWithReplies extends Comment {
-  replies: Comment[];
-}
-
+// Frontend CreateCommentDto includes authorPublicId (not in backend schema)
 export interface CreateCommentDto {
   postId: string;
   content: string;
@@ -82,8 +33,9 @@ export interface CreateCommentDto {
   authorPublicId: string;
 }
 
-export interface UpdateCommentDto {
-  content: string;
+export interface VibesFilterParams extends PaginationParams {
+  category?: string;
+  search?: string;
 }
 
 export const vibesApi = {

@@ -1,16 +1,6 @@
 import axios from "axios";
 import { API_URL } from "./config";
-
-export interface PromotionMeta {
-  publicId: string;
-  slug: string;
-  title: string;
-  isActive: boolean;
-  startDate: string | null;
-  endDate: string | null;
-  priority: number;
-  metadata: Record<string, unknown> | null;
-}
+import type { PromotionMeta } from "./types";
 
 export const promotionsApi = {
   async getActive(): Promise<PromotionMeta[]> {

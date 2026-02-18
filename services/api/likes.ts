@@ -1,27 +1,13 @@
 import { apiClient } from "./client";
-import type { ApiResponse, PaginatedResponse, PaginationParams } from "./types";
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  PaginationParams,
+  Like,
+  ToggleLikeResponse,
+} from "./types";
 
-// Like Types
-export interface LikeUser {
-  publicId: string;
-  username: string;
-  displayName: string;
-  avatarUrl: string | null;
-}
-
-export interface Like {
-  id: string;
-  user: LikeUser;
-  postId: string | null;
-  commentId: string | null;
-  createdAt: string;
-}
-
-export interface ToggleLikeResponse {
-  liked: boolean;
-  likesCount: number;
-}
-
+// Frontend-specific DTOs (include userPublicId not in backend schemas)
 export interface LikePostDto {
   postId: string;
   userPublicId: string;

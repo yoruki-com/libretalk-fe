@@ -222,6 +222,7 @@ export default function ProfileScreen() {
     try {
       const { data: conversation } = await conversationsApi.create({
         participantIds: [id],
+        isGroup: false,
       });
       const sticker = getRandomHelloSticker();
       await conversationsApi.messages.send(conversation.publicId, {

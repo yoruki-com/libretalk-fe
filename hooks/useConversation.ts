@@ -17,9 +17,9 @@ interface UseConversationResult {
     page: number;
     pageSize: number;
     totalPages: number;
-    totalCount: number;
+    totalItems: number;
     hasNextPage: boolean;
-    hasPreviousPage: boolean;
+    hasPrevPage: boolean;
   } | null;
   refresh: () => Promise<void>;
   loadMoreMessages: () => Promise<void>;
