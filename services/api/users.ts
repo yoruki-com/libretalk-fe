@@ -1,6 +1,7 @@
 import { apiClient } from "./client";
 import type {
   ApiResponse,
+  AvatarResponse,
   PaginatedResponse,
   PaginationParams,
   User,
@@ -40,6 +41,11 @@ export const usersApi = {
   // Get user by username
   async getByUsername(username: string): Promise<ApiResponse<User>> {
     return apiClient.get(`/users/username/${username}`);
+  },
+
+  // Get user avatar (signed CloudFront URL)
+  async getAvatar(publicId: string): Promise<ApiResponse<AvatarResponse>> {
+    return apiClient.get(`/users/${publicId}/avatar`);
   },
 
   // Create a new user

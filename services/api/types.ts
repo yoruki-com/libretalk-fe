@@ -137,3 +137,8 @@ export interface PaginationParams {
   sortOrder?: "asc" | "desc";
   [key: string]: string | number | undefined;
 }
+
+/** Avatar response from GET /users/:publicId/avatar */
+export interface AvatarResponse {
+  avatarUrl: string;
+}
