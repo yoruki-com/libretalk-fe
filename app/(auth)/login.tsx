@@ -1,12 +1,11 @@
-import { View, Text, Alert } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
-import { SlideIndicator } from "@/components/ui/SlideIndicator";
+import Logo from "@/assets/images/logo.svg";
 import { AuthButton } from "@/components/ui/AuthButton";
 import { useAuth } from "@/contexts/AuthContext";
+import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
-import Logo from "@/assets/images/logo.svg";
+import { useTranslation } from "react-i18next";
+import { Alert, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -53,11 +52,6 @@ export default function LoginScreen() {
         className="absolute bottom-0 left-0 right-0 rounded-t-card bg-white px-4 pb-8 pt-8"
         style={{ paddingBottom: insets.bottom + 32 }}
       >
-        {/* Slide Indicator */}
-        <View className="mb-8 items-center">
-          <SlideIndicator total={3} activeIndex={2} />
-        </View>
-
         {/* Headline */}
         <Text className="mb-8 text-center font-sans-semibold text-heading-4 text-dark">
           {t("auth.loginHeadline")}
@@ -91,8 +85,13 @@ export default function LoginScreen() {
           {/* Terms */}
           <Text className="mt-4 text-center text-body-small text-dark opacity-60">
             {t("auth.termsText")}{" "}
-            <Text className="font-sans-semibold">{t("auth.termsOfService")}</Text> {t("auth.and")}
-            <Text className="font-sans-semibold">{t("auth.privacyPolicy")}</Text>
+            <Text className="font-sans-semibold">
+              {t("auth.termsOfService")}
+            </Text>{" "}
+            {t("auth.and")}
+            <Text className="font-sans-semibold">
+              {t("auth.privacyPolicy")}
+            </Text>
           </Text>
         </View>
       </View>

@@ -1,5 +1,6 @@
 import { Pressable, Text, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 type AuthButtonVariant = "google" | "email";
 
@@ -25,9 +26,9 @@ const variantStyles = {
   },
 };
 
-const buttonLabels: Record<AuthButtonVariant, string> = {
-  google: "Continua con Google",
-  email: "Continua con Email",
+const buttonLabelKeys: Record<AuthButtonVariant, string> = {
+  google: "auth.continueWithGoogle",
+  email: "auth.continueWithEmail",
 };
 
 export function AuthButton({
@@ -36,6 +37,7 @@ export function AuthButton({
   disabled,
   loading,
 }: AuthButtonProps) {
+  const { t } = useTranslation();
   const styles = variantStyles[variant];
   const isDisabled = disabled || loading;
 
@@ -53,7 +55,7 @@ export function AuthButton({
           <Text
             className={`${styles.text} font-sans-semibold text-link-normal capitalize`}
           >
-            {buttonLabels[variant]}
+            {t(buttonLabelKeys[variant])}
           </Text>
         </>
       )}
