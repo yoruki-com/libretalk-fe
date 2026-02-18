@@ -6,6 +6,7 @@ import { SlideIndicator } from "@/components/ui/SlideIndicator";
 import { AuthButton } from "@/components/ui/AuthButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
+import Logo from "@/assets/images/logo.svg";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -41,8 +42,10 @@ export default function LoginScreen() {
       <View className="absolute left-0 right-0 top-0 h-[60%]">
         <LinearGradient
           colors={["#014AF1", "#4B7BF5", "#A8C4F5"]}
-          className="flex-1"
-        />
+          className="flex-1 items-center justify-center"
+        >
+          <Logo width={140} height={140} />
+        </LinearGradient>
       </View>
 
       {/* Content Card */}

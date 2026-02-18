@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
 import { Routes } from "@/constants/routes";
+import Logo from "@/assets/images/logo.svg";
 
 export default function GetStarted() {
   const insets = useSafeAreaInsets();
@@ -23,8 +24,10 @@ export default function GetStarted() {
       <View className="absolute left-0 right-0 top-0 h-[60%]">
         <LinearGradient
           colors={["#014AF1", "#4B7BF5", "#A8C4F5"]}
-          className="flex-1"
-        />
+          className="flex-1 items-center justify-center"
+        >
+          <Logo width={140} height={140} />
+        </LinearGradient>
       </View>
 
       {/* Content Card */}
