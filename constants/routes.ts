@@ -1,0 +1,16 @@
+export const Routes = {
+  ROOT: "/",
+  AUTH_LOGIN: "/(auth)/login",
+  TABS_CHAT: "/(tabs)/chat",
+  ONBOARDING_STEP1: "/onboarding/step1",
+  ONBOARDING_STEP2: "/onboarding/step2",
+  ONBOARDING_STEP3: "/onboarding/step3",
+  CHAT: "/chat/[id]",
+  PROFILE: "/profile/[id]",
+  PROFILE_EDIT: "/profile/edit",
+  PROFILE_PASSIONS: "/profile/passions",
+  POST_COMMENTS: "/post/[id]/comments",
+  VIP: "/vip",
+  PROMO: "/promo/[slug]",
+  PROMO_VIP: "/promo/vip",
+} as const;
