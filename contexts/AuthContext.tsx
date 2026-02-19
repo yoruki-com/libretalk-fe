@@ -6,17 +6,16 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { useAuth0, Auth0Provider } from "react-native-auth0";
-import axios from "axios";
+import { LogtoProvider, useLogto } from "@logto/rn";
 import {
   setTokenGetter,
   clearTokenGetter,
 } from "@/services/api/client";
 import { resetCurrentUserCache } from "@/hooks/useCurrentUser";
 
-const AUTH0_DOMAIN = process.env.EXPO_PUBLIC_AUTH0_DOMAIN!;
-const AUTH0_CLIENT_ID = process.env.EXPO_PUBLIC_AUTH0_CLIENT_ID!;
-const CUSTOM_SCHEME = "libretalk";
+const LOGTO_ENDPOINT = process.env.EXPO_PUBLIC_LOGTO_ENDPOINT!;
+const LOGTO_APP_ID = process.env.EXPO_PUBLIC_LOGTO_APP_ID!;
+const REDIRECT_URI = "libretalk://callback";
 
 export interface User {
   id: string;
@@ -40,86 +39,56 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function AuthContextProvider({ children }: { children: ReactNode }) {
   const {
-    authorize,
-    clearSession,
-    getCredentials,
-    hasValidCredentials,
-    user: auth0User,
-    isLoading: auth0Loading,
-  } = useAuth0();
+    signIn,
+    signOut: logtoSignOut,
+    getAccessToken,
+    isAuthenticated,
+    isInitialized,
+    fetchUserInfo,
+  } = useLogto();
 
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check for existing session on mount
+  // Check for existing session on mount / when auth state changes
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const hasCredentials = await hasValidCredentials();
-        if (hasCredentials) {
-          const credentials = await getCredentials();
-          if (credentials?.accessToken) {
-            setAccessToken(credentials.accessToken);
-            setIsAuthenticated(true);
+    if (!isInitialized) return;
 
-            // Fetch user info to populate avatar, name, etc.
-            try {
-              const response = await axios.get(
-                `https://${AUTH0_DOMAIN}/userinfo`,
-                { headers: { Authorization: `Bearer ${credentials.accessToken}` } }
-              );
-              const userInfo = response.data;
-              setUser({
-                id: userInfo.sub,
-                email: userInfo.email,
-                name: userInfo.name,
-                avatar: userInfo.picture,
-              });
-            } catch (err) {
-              console.error("Error fetching user info:", err);
-            }
-          }
+    const initSession = async () => {
+      try {
+        if (isAuthenticated) {
+          const token = await getAccessToken();
+          setAccessToken(token);
+
+          const userInfo = await fetchUserInfo();
+          setUser({
+            id: userInfo.sub,
+            email: userInfo.email ?? undefined,
+            name: userInfo.name ?? undefined,
+            avatar: userInfo.picture ?? undefined,
+          });
         }
       } catch (error) {
-        console.error("Error checking session:", error);
+        console.error("[AuthContext] Error initializing session:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (!auth0Loading) {
-      checkSession();
-    }
-  }, [auth0Loading, hasValidCredentials, getCredentials]);
-
-  // Update user when auth0User changes
-  useEffect(() => {
-    if (auth0User) {
-      setUser({
-        id: auth0User.sub ?? "",
-        email: auth0User.email ?? undefined,
-        name: auth0User.name ?? undefined,
-        avatar: auth0User.picture ?? undefined,
-      });
-      setIsAuthenticated(true);
-    }
-  }, [auth0User]);
+    initSession();
+  }, [isInitialized, isAuthenticated, getAccessToken, fetchUserInfo]);
 
   const getToken = useCallback(async (): Promise<string | null> => {
     try {
-      const credentials = await getCredentials();
-      if (credentials?.accessToken) {
-        setAccessToken(credentials.accessToken);
-        return credentials.accessToken;
-      }
-      return null;
+      const token = await getAccessToken();
+      setAccessToken(token);
+      return token;
     } catch (error) {
       console.error("[AuthContext] Error getting token:", error);
       return null;
     }
-  }, [getCredentials, isAuthenticated]);
+  }, [getAccessToken]);
 
   // Register token getter with API client
   useEffect(() => {
@@ -127,80 +96,64 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
     return () => clearTokenGetter();
   }, [getToken]);
 
-  // Google Sign-In via Universal Login
-  const signInWithGoogle = useCallback(async () => {
-    try {
-      await authorize(
-        {
-          connection: "google-oauth2",
-          scope: "openid profile email offline_access",
-        },
-        { customScheme: CUSTOM_SCHEME }
-      );
-
-      const credentials = await getCredentials();
-      if (credentials?.accessToken) {
-        setAccessToken(credentials.accessToken);
-        setIsAuthenticated(true);
-      }
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      if (err.message?.includes("user_cancelled")) {
-        console.log("Google Sign-In cancelled by user");
-        return;
-      }
-      console.error("Google Sign-In error:", error);
-      throw error;
-    }
-  }, [authorize, getCredentials]);
-
-  // Email Sign-In via Universal Login
+  // Email Sign-In via Logto universal login (browser redirect)
   const signInWithEmail = useCallback(async () => {
     try {
-      await authorize(
-        { scope: "openid profile email offline_access" },
-        { customScheme: CUSTOM_SCHEME }
-      );
-
-      const credentials = await getCredentials();
-      if (credentials?.accessToken) {
-        setAccessToken(credentials.accessToken);
-        setIsAuthenticated(true);
-      }
+      await signIn(REDIRECT_URI);
     } catch (error: unknown) {
       const err = error as { message?: string };
-      if (err.message?.includes("user_cancelled")) {
+      if (
+        err.message?.includes("user_cancelled") ||
+        err.message?.includes("cancelled") ||
+        err.message?.includes("dismissed")
+      ) {
         console.log("Sign-In cancelled by user");
         return;
       }
       console.error("Sign-In error:", error);
       throw error;
     }
-  }, [authorize, getCredentials]);
+  }, [signIn]);
+
+  // Google Sign-In via Logto universal login
+  // Google connector configured server-side in Logto Console
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      await signIn(REDIRECT_URI);
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      if (
+        err.message?.includes("user_cancelled") ||
+        err.message?.includes("cancelled") ||
+        err.message?.includes("dismissed")
+      ) {
+        console.log("Google Sign-In cancelled by user");
+        return;
+      }
+      console.error("Google Sign-In error:", error);
+      throw error;
+    }
+  }, [signIn]);
 
   const signOut = useCallback(async () => {
     try {
-      await clearSession({}, { customScheme: CUSTOM_SCHEME });
-      setUser(null);
-      setAccessToken(null);
-      setIsAuthenticated(false);
-      resetCurrentUserCache();
+      await logtoSignOut(REDIRECT_URI);
     } catch (error) {
       console.error("Sign out error:", error);
-      // Reset state even if clearSession fails
+    } finally {
+      // Always reset local state and cache, even on error
       setUser(null);
       setAccessToken(null);
-      setIsAuthenticated(false);
       resetCurrentUserCache();
     }
-  }, [clearSession]);
+  }, [logtoSignOut]);
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated,
-        isLoading: isLoading || auth0Loading,
+        isLoading: !isInitialized || isLoading,
         accessToken,
         signInWithGoogle,
         signInWithEmail,
@@ -215,9 +168,9 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   return (
-    <Auth0Provider domain={AUTH0_DOMAIN} clientId={AUTH0_CLIENT_ID}>
+    <LogtoProvider config={{ endpoint: LOGTO_ENDPOINT, appId: LOGTO_APP_ID }}>
       <AuthContextProvider>{children}</AuthContextProvider>
-    </Auth0Provider>
+    </LogtoProvider>
   );
 }
 
