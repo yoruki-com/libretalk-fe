@@ -1,19 +1,22 @@
-import "../global.css";
 import "@/lib/i18n";
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import * as SplashScreen from "expo-splash-screen";
+import * as WebBrowser from "expo-web-browser";
+import "../global.css";
+
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import {
-  useFonts,
   NunitoSans_400Regular,
   NunitoSans_500Medium,
   NunitoSans_600SemiBold,
   NunitoSans_700Bold,
+  useFonts,
 } from "@expo-google-fonts/nunito-sans";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
-import { AuthProvider } from "@/contexts/AuthContext";
 
+WebBrowser.maybeCompleteAuthSession();
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutContent() {
@@ -33,6 +36,7 @@ function RootLayoutContent() {
         <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
         <Stack.Screen name="get-started" />
+        <Stack.Screen name="callback" options={{ headerShown: false }} />
       </Stack>
     </>
   );
