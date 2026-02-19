@@ -19,6 +19,14 @@ const LOGTO_APP_ID = process.env.EXPO_PUBLIC_LOGTO_APP_ID!;
 const LOGTO_RESOURCE = process.env.EXPO_PUBLIC_LOGTO_RESOURCE;
 const REDIRECT_URI = "libretalk://callback";
 
+// Stable config object — created once at module level to avoid
+// re-creating LogtoClient on every AuthProvider render.
+const LOGTO_CONFIG = {
+  endpoint: LOGTO_ENDPOINT,
+  appId: LOGTO_APP_ID,
+  resources: LOGTO_RESOURCE ? [LOGTO_RESOURCE] : undefined,
+};
+
 export interface User {
   id: string;
   email?: string;
@@ -271,13 +279,7 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   return (
-    <LogtoProvider
-      config={{
-        endpoint: LOGTO_ENDPOINT,
-        appId: LOGTO_APP_ID,
-        resources: LOGTO_RESOURCE ? [LOGTO_RESOURCE] : undefined,
-      }}
-    >
+    <LogtoProvider config={LOGTO_CONFIG}>
       <AuthContextProvider>{children}</AuthContextProvider>
     </LogtoProvider>
   );

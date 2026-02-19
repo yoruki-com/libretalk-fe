@@ -1,4 +1,4 @@
-import { useSyncExternalStore, useCallback } from "react";
+import { useSyncExternalStore, useCallback, useEffect } from "react";
 import { usersApi } from "@/services/api/users";
 import type { UserMe } from "@/services/api/types";
 
@@ -9,9 +9,14 @@ let isLoading = false;
 let error: Error | null = null;
 let fetchPromise: Promise<void> | null = null;
 
+// Version counter so useSyncExternalStore detects ALL state changes
+// (profile, isLoading, error), not just profile changes.
+let storeVersion = 0;
+
 const subscribers = new Set<() => void>();
 
 function emitChange() {
+  storeVersion++;
   subscribers.forEach((cb) => cb());
 }
 
@@ -21,7 +26,7 @@ function subscribe(cb: () => void) {
 }
 
 function getSnapshot() {
-  return profile;
+  return storeVersion;
 }
 
 async function fetchProfile() {
@@ -67,20 +72,26 @@ interface UseCurrentUserResult {
 }
 
 export function useCurrentUser(enabled = true): UseCurrentUserResult {
-  // Re-render whenever the shared store changes
-  const currentProfile = useSyncExternalStore(subscribe, getSnapshot);
+  // Re-render whenever ANY store value changes (profile, isLoading, error)
+  useSyncExternalStore(subscribe, getSnapshot);
 
-  // Trigger initial fetch (only once across all instances)
-  if (enabled && !currentProfile && !isLoading && !fetchPromise) {
-    fetchProfile();
-  }
+  // Trigger initial fetch in an effect (not during render) to avoid
+  // "Cannot update a component while rendering a different component".
+  // Don't retry automatically on error — callers should use refresh().
+  useEffect(() => {
+    if (enabled && !profile && !isLoading && !fetchPromise && !error) {
+      fetchProfile();
+    }
+  }, [enabled]);
 
   const refresh = useCallback(async () => {
+    // Clear previous error so a new fetch can proceed
+    error = null;
     await fetchProfile();
   }, []);
 
   return {
-    profile: currentProfile,
+    profile,
     isLoading,
     error,
     refresh,
