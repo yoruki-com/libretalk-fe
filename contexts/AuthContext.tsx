@@ -57,14 +57,28 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
 
   const isRecoverableSessionError = useCallback((error: unknown) => {
     const err = error as { code?: string; message?: string };
-    const code = err?.code ?? "";
-    const message = err?.message ?? "";
+    const code = (err?.code ?? "").toLowerCase();
+    const message = (err?.message ?? "").toLowerCase();
 
     return (
       code === "oidc.invalid_grant" ||
       code === "oidc.invalid_target" ||
-      message.includes("Grant request is invalid") ||
-      message.includes("Invalid resource indicator")
+      message.includes("grant request is invalid") ||
+      message.includes("invalid resource indicator")
+    );
+  }, []);
+
+  const isNotAuthenticatedError = useCallback((error: unknown) => {
+    const err = error as { code?: string; message?: string };
+    const code = (err?.code ?? "").toLowerCase();
+    const message = (err?.message ?? "").toLowerCase();
+    const serialized = String(error).toLowerCase();
+
+    return (
+      code.includes("not_authenticated") ||
+      code.includes("notauthenticated") ||
+      message.includes("not authenticated") ||
+      serialized.includes("not authenticated")
     );
   }, []);
 
@@ -107,6 +121,10 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
         if (isRecoverableSessionError(error)) {
           console.warn("[AuthContext] Invalid session/resource — clearing local session");
           await clearBrokenSession();
+        } else if (isNotAuthenticatedError(error)) {
+          // Session appears authenticated from cached ID token but access token refresh failed.
+          console.warn("[AuthContext] Session not authenticated — clearing local session");
+          await clearBrokenSession();
         } else {
           console.error("[AuthContext] Error initializing session:", error);
         }
@@ -116,9 +134,21 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
     };
 
     initSession();
-  }, [isInitialized, isAuthenticated, getAccessToken, fetchUserInfo]);
+  }, [
+    isInitialized,
+    isAuthenticated,
+    getAccessToken,
+    fetchUserInfo,
+    isRecoverableSessionError,
+    isNotAuthenticatedError,
+    clearBrokenSession,
+  ]);
 
   const getToken = useCallback(async (): Promise<string | null> => {
+    if (!isInitialized || !isAuthenticated) {
+      return null;
+    }
+
     try {
       const token = await getAccessToken(LOGTO_RESOURCE);
       setAccessToken(token);
@@ -127,12 +157,22 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
       if (isRecoverableSessionError(error)) {
         console.warn("[AuthContext] Invalid session while getting token — clearing local session");
         await clearBrokenSession();
+      } else if (isNotAuthenticatedError(error)) {
+        // Expected during startup/logout races: caller can proceed without auth header.
+        return null;
       } else {
         console.error("[AuthContext] Error getting token:", error);
       }
       return null;
     }
-  }, [getAccessToken, clearBrokenSession, isRecoverableSessionError]);
+  }, [
+    isInitialized,
+    isAuthenticated,
+    getAccessToken,
+    clearBrokenSession,
+    isRecoverableSessionError,
+    isNotAuthenticatedError,
+  ]);
 
   // Register token getter with API client
   useEffect(() => {
@@ -155,18 +195,21 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
       await performInteractiveSignIn();
     } catch (error: unknown) {
       const err = error as { message?: string };
+      const message = err.message ?? String(error);
       if (
-        err.message?.includes("user_cancelled") ||
-        err.message?.includes("cancelled") ||
-        err.message?.includes("dismissed")
+        message.includes("user_cancelled") ||
+        message.includes("cancelled") ||
+        message.includes("dismissed")
       ) {
         console.log("Sign-In cancelled by user");
         return;
       }
-      console.error("Sign-In error:", error);
+      // Avoid redbox in development for expected auth flow failures.
+      console.warn("Sign-In error:", message);
+      await clearBrokenSession();
       throw error;
     }
-  }, [performInteractiveSignIn]);
+  }, [performInteractiveSignIn, clearBrokenSession]);
 
   // Google Sign-In via Logto universal login
   // Google connector configured server-side in Logto Console
@@ -175,18 +218,23 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
       await performInteractiveSignIn();
     } catch (error: unknown) {
       const err = error as { message?: string };
+      const message = err.message ?? String(error);
       if (
-        err.message?.includes("user_cancelled") ||
-        err.message?.includes("cancelled") ||
-        err.message?.includes("dismissed")
+        message.includes("user_cancelled") ||
+        message.includes("cancelled") ||
+        message.includes("dismissed")
       ) {
         console.log("Google Sign-In cancelled by user");
         return;
       }
-      console.error("Google Sign-In error:", error);
+
+      // Logto SDK may throw SyntaxError (JSON Parse) for non-JSON provider responses.
+      // Treat it as an auth failure and keep UI responsive.
+      console.warn("Google Sign-In error:", message);
+      await clearBrokenSession();
       throw error;
     }
-  }, [performInteractiveSignIn]);
+  }, [performInteractiveSignIn, clearBrokenSession]);
 
   const signOut = useCallback(async () => {
     try {
