@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "libre-talk",
-    "slug": "libre-talk",
+    "name": "libretalk",
+    "slug": "libretalk",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo-without-stroke.png",
