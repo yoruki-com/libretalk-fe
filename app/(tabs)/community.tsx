@@ -18,8 +18,8 @@ export default function CommunityScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isAuthenticated } = useAuth();
-  const { profile } = useCurrentUser(isAuthenticated);
+  const { isAuthenticated, hasAccessToken } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated && hasAccessToken);
   const {
     users,
     isLoading,
@@ -27,7 +27,7 @@ export default function CommunityScreen() {
     setSearch,
     setFilter,
     refresh,
-  } = useCommunity({ enabled: isAuthenticated });
+  } = useCommunity({ enabled: hasAccessToken });
 
   const communityFilters = [
     { id: "all", emoji: "\uD83C\uDF0D", label: t("community.filterAll") },

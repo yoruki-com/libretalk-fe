@@ -25,8 +25,8 @@ export default function VibesScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isAuthenticated, user: authUser } = useAuth();
-  const { profile } = useCurrentUser(isAuthenticated);
+  const { isAuthenticated, hasAccessToken, user: authUser } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated && hasAccessToken);
   const {
     vibes,
     isLoading,
@@ -35,7 +35,7 @@ export default function VibesScreen() {
     setCategory,
     setSearch,
     refresh,
-  } = useVibes({ enabled: isAuthenticated, userPublicId: profile?.publicId });
+  } = useVibes({ enabled: hasAccessToken, userPublicId: profile?.publicId });
 
   const feedFilters = [
     { id: "recent", emoji: "\uD83D\uDD50", label: t("vibes.filterRecent") },
@@ -52,10 +52,10 @@ export default function VibesScreen() {
         isFirstFocus.current = false;
         return;
       }
-      if (isAuthenticated) {
+      if (hasAccessToken) {
         refresh();
       }
-    }, [isAuthenticated, refresh])
+    }, [hasAccessToken, refresh])
   );
 
   const handleCommentPress = (postId: string) => {

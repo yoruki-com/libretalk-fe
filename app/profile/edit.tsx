@@ -9,6 +9,7 @@ import {
 import { MbtiPicker } from "@/components/ui/MbtiPicker";
 import { Routes } from "@/constants/routes";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { countriesApi } from "@/services/api/countries";
@@ -46,7 +47,8 @@ export default function EditProfileScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { profile, refresh } = useCurrentUser();
+  const { isAuthenticated, hasAccessToken } = useAuth();
+  const { profile, refresh } = useCurrentUser(isAuthenticated && hasAccessToken);
   const { pendingAvatarUri, isUploading, pickAvatar, uploadAvatar } =
     useAvatarUpload();
 

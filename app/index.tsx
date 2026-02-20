@@ -6,9 +6,11 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Routes } from "@/constants/routes";
 
 export default function Index() {
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { isAuthenticated, hasAccessToken, isLoading: isAuthLoading } = useAuth();
   const { theme } = useTheme();
-  const { profile, isLoading: isProfileLoading } = useCurrentUser(isAuthenticated);
+  const { profile, isLoading: isProfileLoading } = useCurrentUser(
+    isAuthenticated && hasAccessToken,
+  );
 
   // Show loading spinner while checking auth state or fetching profile
   if (isAuthLoading || (isAuthenticated && isProfileLoading)) {

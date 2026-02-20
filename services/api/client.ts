@@ -24,6 +24,19 @@ export function clearTokenGetter() {
   tokenGetter = null;
 }
 
+// Auth claims (email, name) — set by AuthContext after fetchUserInfo().
+// Included as headers so the backend can provision new users without
+// needing to call the OIDC userinfo endpoint itself.
+let authClaims: { email?: string; name?: string } | null = null;
+
+export function setAuthClaims(claims: { email?: string; name?: string }) {
+  authClaims = claims;
+}
+
+export function clearAuthClaims() {
+  authClaims = null;
+}
+
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -39,6 +52,10 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
       console.error("[API Client] Error getting auth token:", error);
     }
   }
+
+  // Include OIDC claims the backend can't extract from resource-scoped JWTs
+  if (authClaims?.email) headers["X-Auth-Email"] = authClaims.email;
+  if (authClaims?.name) headers["X-Auth-Name"] = encodeURIComponent(authClaims.name);
 
   return headers;
 }

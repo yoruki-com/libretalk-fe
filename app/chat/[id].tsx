@@ -28,8 +28,8 @@ export default function ChatScreen() {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState("");
   const { theme } = useTheme();
-  const { isAuthenticated } = useAuth();
-  const { profile } = useCurrentUser(isAuthenticated);
+  const { isAuthenticated, hasAccessToken } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated && hasAccessToken);
   const currentUserPublicId = profile?.publicId ?? "";
   const getLastSeenText = useGetLastSeenText();
   const groupMessagesByDate = useGroupMessagesByDate();
@@ -37,7 +37,7 @@ export default function ChatScreen() {
   const { conversation, messages, isLoading, error, sendMessage } =
     useConversation({
       conversationId: id,
-      enabled: isAuthenticated,
+      enabled: hasAccessToken,
     });
 
   // Get the other participant for 1:1 chats
