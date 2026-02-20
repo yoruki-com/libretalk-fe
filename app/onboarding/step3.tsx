@@ -1,4 +1,5 @@
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usersApi } from "@/services/api/users";
 import type { PersonalityType } from "@/services/api/types";
@@ -26,7 +27,10 @@ export default function OnboardingStep3() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { refresh: refreshProfile } = useCurrentUser();
+  const { isAuthenticated, hasAccessToken } = useAuth();
+  const { refresh: refreshProfile } = useCurrentUser(
+    isAuthenticated && hasAccessToken,
+  );
 
   const [selectedPassionIds, setSelectedPassionIds] = useState<Set<string>>(new Set());
   const [selectedMbti, setSelectedMbti] = useState<PersonalityType | null>(null);

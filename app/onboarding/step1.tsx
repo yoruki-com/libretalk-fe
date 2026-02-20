@@ -1,4 +1,5 @@
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usersApi } from "@/services/api/users";
 import { SlideIndicator } from "@/components/ui/SlideIndicator";
@@ -26,7 +27,8 @@ export default function OnboardingStep1() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { profile } = useCurrentUser();
+  const { isAuthenticated, hasAccessToken } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated && hasAccessToken);
 
   const [displayName, setDisplayName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);

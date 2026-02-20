@@ -39,8 +39,8 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme, isDark } = useTheme();
-  const { isAuthenticated } = useAuth();
-  const { profile: currentUser } = useCurrentUser(isAuthenticated);
+  const { isAuthenticated, hasAccessToken } = useAuth();
+  const { profile: currentUser } = useCurrentUser(isAuthenticated && hasAccessToken);
   const isOwnProfile = !!(currentUser && id && currentUser.publicId === id);
 
   const [user, setUser] = useState<UserMe | null>(null);

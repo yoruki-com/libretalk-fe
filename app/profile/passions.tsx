@@ -1,4 +1,5 @@
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usersApi } from "@/services/api/users";
 import { PassionPicker } from "@/components/ui/PassionPicker";
@@ -21,7 +22,8 @@ export default function EditPassionsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { profile, refresh } = useCurrentUser();
+  const { isAuthenticated, hasAccessToken } = useAuth();
+  const { profile, refresh } = useCurrentUser(isAuthenticated && hasAccessToken);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);

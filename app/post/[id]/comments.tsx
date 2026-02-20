@@ -28,8 +28,8 @@ export default function CommentsScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isAuthenticated } = useAuth();
-  const { profile } = useCurrentUser(isAuthenticated);
+  const { isAuthenticated, hasAccessToken } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated && hasAccessToken);
 
   const [post, setPost] = useState<Vibe | null>(null);
   const [isLoadingPost, setIsLoadingPost] = useState(true);
@@ -44,10 +44,11 @@ export default function CommentsScreen() {
     addComment,
     toggleLike,
     refresh,
-  } = useComments({ postId: id, userPublicId: profile?.publicId, enabled: isAuthenticated && !!profile?.publicId });
+  } = useComments({ postId: id, userPublicId: profile?.publicId, enabled: hasAccessToken && !!profile?.publicId });
 
-  // Fetch post on mount
+  // Fetch post once we have a valid token
   React.useEffect(() => {
+    if (!hasAccessToken) return;
     async function fetchPost() {
       try {
         setIsLoadingPost(true);
@@ -60,7 +61,7 @@ export default function CommentsScreen() {
       }
     }
     fetchPost();
-  }, [id]);
+  }, [id, hasAccessToken]);
 
   const handleBack = () => {
     router.back();

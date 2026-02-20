@@ -24,6 +24,19 @@ export function clearTokenGetter() {
   tokenGetter = null;
 }
 
+// Auth claims (email, name) — set by AuthContext after getIdTokenClaims().
+// Included as headers so the backend can provision new users without
+// needing to call the OIDC userinfo endpoint itself.
+let authClaims: { email?: string; name?: string } | null = null;
+
+export function setAuthClaims(claims: { email?: string; name?: string }) {
+  authClaims = claims;
+}
+
+export function clearAuthClaims() {
+  authClaims = null;
+}
+
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -31,14 +44,26 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 
   if (tokenGetter) {
     try {
-      const token = await tokenGetter();
+      // Timeout the token getter itself — if the Logto SDK hangs (e.g. during
+      // token refresh), the axios timeout won't help because it only starts
+      // after the request is sent.
+      const token = await Promise.race([
+        tokenGetter(),
+        new Promise<null>((_, reject) =>
+          setTimeout(() => reject(new Error("tokenGetter timed out after 10s")), 10_000)
+        ),
+      ]);
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error("[API Client] Error getting auth token:", error);
+      console.warn("[API Client] Error getting auth token:", error);
     }
   }
+
+  // Include OIDC claims the backend can't extract from resource-scoped JWTs
+  if (authClaims?.email) headers["X-Auth-Email"] = authClaims.email;
+  if (authClaims?.name) headers["X-Auth-Name"] = encodeURIComponent(authClaims.name);
 
   return headers;
 }
@@ -65,6 +90,7 @@ export const apiClient = {
       const response = await axios.get<T>(`${API_URL}${endpoint}`, {
         headers,
         params,
+        timeout: 15000,
       });
       return response.data;
     } catch (error) {

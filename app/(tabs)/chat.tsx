@@ -27,12 +27,12 @@ export default function ChatListScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isAuthenticated } = useAuth();
-  const { profile } = useCurrentUser(isAuthenticated);
+  const { isAuthenticated, hasAccessToken } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated && hasAccessToken);
   const yesterdayLabel = t("chat.yesterday");
 
   const { conversations, isLoading, error, refresh } = useConversations({
-    enabled: isAuthenticated && !!profile?.publicId,
+    enabled: hasAccessToken && !!profile?.publicId,
     userPublicId: profile?.publicId,
   });
 
@@ -44,10 +44,10 @@ export default function ChatListScreen() {
         isFirstFocus.current = false;
         return;
       }
-      if (isAuthenticated && profile?.publicId) {
+      if (hasAccessToken && profile?.publicId) {
         refresh();
       }
-    }, [isAuthenticated, profile?.publicId, refresh])
+    }, [hasAccessToken, profile?.publicId, refresh])
   );
 
   const handleChatPress = (chatId: string) => {

@@ -41,13 +41,6 @@
         }
       ],
       [
-        "react-native-auth0",
-        {
-          "domain": "libretalk-dev.eu.auth0.com",
-          "customScheme": "libretalk"
-        }
-      ],
-      [
         "expo-image-picker",
         {
           "photosPermission": "Allow LibreTalk to access your photos to set your profile picture.",
@@ -61,7 +54,6 @@
           "cameraPermission": "Allow LibreTalk to take photos to set your profile picture."
         }
       ],
-      "./plugins/withAuth0SchemeFixPlugin",
       "@rnmapbox/maps"
     ],
     "experiments": {

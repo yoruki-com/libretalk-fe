@@ -15,8 +15,8 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { theme, isDark, toggleTheme } = useTheme();
-  const { user, isAuthenticated, signOut } = useAuth();
-  const { profile } = useCurrentUser(isAuthenticated);
+  const { user, isAuthenticated, hasAccessToken, signOut } = useAuth();
+  const { profile } = useCurrentUser(isAuthenticated && hasAccessToken);
 
   const primaryMenuItems = [
     { icon: "laptop-outline" as const, label: t("settings.connectedDevice") },
