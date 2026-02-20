@@ -1,5 +1,5 @@
 import {
-  ScrollView,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
   View,
@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Routes } from "@/constants/routes";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ChatHeader } from "@/components/ui/ChatHeader";
 import { ChatInput } from "@/components/ui/ChatInput";
@@ -19,8 +19,14 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatMessageTime } from "@/utils/time";
-import { useGetLastSeenText, useGroupMessagesByDate } from "@/hooks/useChatHelpers";
+import { useGetLastSeenText, useFormatDateSeparator } from "@/hooks/useChatHelpers";
 import { getStickerById } from "@/constants/stickers";
+import { useState } from "react";
+import type { Message } from "@/services/api";
+
+type FlatItem =
+  | { type: "message"; data: Message }
+  | { type: "separator"; date: string };
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,9 +38,9 @@ export default function ChatScreen() {
   const { profile } = useCurrentUser(isAuthenticated && hasAccessToken);
   const currentUserPublicId = profile?.publicId ?? "";
   const getLastSeenText = useGetLastSeenText();
-  const groupMessagesByDate = useGroupMessagesByDate();
+  const formatDateSeparator = useFormatDateSeparator();
 
-  const { conversation, messages, isLoading, error, sendMessage } =
+  const { conversation, messages, isLoading, isLoadingMessages, error, sendMessage, loadMoreMessages } =
     useConversation({
       conversationId: id,
       enabled: hasAccessToken,
@@ -49,11 +55,23 @@ export default function ChatScreen() {
     );
   }, [conversation, currentUserPublicId]);
 
-  // Group messages by date
-  const messageGroups = useMemo(
-    () => groupMessagesByDate(messages),
-    [messages, groupMessagesByDate],
-  );
+  // Flatten messages (DESC) with date separators for inverted FlatList.
+  // Separators are inserted AFTER each date group so they appear ABOVE the group when inverted.
+  const flatItems = useMemo((): FlatItem[] => {
+    const items: FlatItem[] = [];
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+      const msgDate = formatDateSeparator(msg.createdAt);
+      items.push({ type: "message", data: msg });
+
+      const nextMsg = messages[i + 1];
+      const nextDate = nextMsg ? formatDateSeparator(nextMsg.createdAt) : null;
+      if (msgDate !== nextDate) {
+        items.push({ type: "separator", date: msgDate });
+      }
+    }
+    return items;
+  }, [messages, formatDateSeparator]);
 
   const handleBack = () => {
     router.back();
@@ -118,6 +136,46 @@ export default function ChatScreen() {
     ? getLastSeenText(otherParticipant.lastSeenAt, isOnline)
     : "";
 
+  const renderItem = ({ item }: { item: FlatItem }) => {
+    if (item.type === "separator") {
+      return <DateSeparator date={item.date} />;
+    }
+    const msg = item.data;
+    return (
+      <MessageBubble
+        message={msg.type !== "STICKER" ? (msg.content || undefined) : undefined}
+        time={formatMessageTime(msg.createdAt)}
+        isMe={msg.sender.publicId === currentUserPublicId}
+        isRead={msg.status === "READ"}
+        StickerComponent={
+          msg.type === "STICKER" && msg.content
+            ? getStickerById(msg.content)?.Component
+            : undefined
+        }
+        images={
+          msg.type === "IMAGE" && msg.mediaUrl
+            ? [{ uri: msg.mediaUrl }]
+            : undefined
+        }
+        file={
+          msg.type === "FILE" && msg.mediaUrl
+            ? {
+                name: msg.mediaUrl.split("/").pop() || "file",
+                size: "",
+                type: msg.mediaMimeType || "file",
+              }
+            : msg.type === "VIDEO" && msg.mediaUrl
+              ? {
+                  name: msg.mediaUrl.split("/").pop() || "video.mp4",
+                  size: "",
+                  type: "video",
+                }
+              : undefined
+        }
+      />
+    );
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -141,54 +199,27 @@ export default function ChatScreen() {
         }}
       />
 
-      <ScrollView
-        className="flex-1 px-4 py-6"
+      <FlatList
+        className="flex-1 px-4"
         style={{ backgroundColor: theme.surface }}
+        contentContainerStyle={{ gap: 16, paddingVertical: 24 }}
+        inverted
+        data={flatItems}
+        keyExtractor={(item, index) =>
+          item.type === "separator" ? `sep-${item.date}-${index}` : item.data.publicId
+        }
+        renderItem={renderItem}
+        onEndReached={loadMoreMessages}
+        onEndReachedThreshold={0.2}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ gap: 16, paddingBottom: 24 }}
-      >
-        {messageGroups.map((group) => (
-          <View key={group.date}>
-            <DateSeparator date={group.date} />
-            <View style={{ gap: 16, marginTop: 16 }}>
-              {group.messages.map((msg) => (
-                <MessageBubble
-                  key={msg.publicId}
-                  message={msg.type !== "STICKER" ? (msg.content || undefined) : undefined}
-                  time={formatMessageTime(msg.createdAt)}
-                  isMe={msg.sender.publicId === currentUserPublicId}
-                  isRead={msg.status === "READ"}
-                  StickerComponent={
-                    msg.type === "STICKER" && msg.content
-                      ? getStickerById(msg.content)?.Component
-                      : undefined
-                  }
-                  images={
-                    msg.type === "IMAGE" && msg.mediaUrl
-                      ? [{ uri: msg.mediaUrl }]
-                      : undefined
-                  }
-                  file={
-                    msg.type === "FILE" && msg.mediaUrl
-                      ? {
-                          name: msg.mediaUrl.split("/").pop() || "file",
-                          size: "",
-                          type: msg.mediaMimeType || "file",
-                        }
-                      : msg.type === "VIDEO" && msg.mediaUrl
-                        ? {
-                            name: msg.mediaUrl.split("/").pop() || "video.mp4",
-                            size: "",
-                            type: "video",
-                          }
-                        : undefined
-                  }
-                />
-              ))}
+        ListFooterComponent={
+          isLoadingMessages ? (
+            <View className="py-4 items-center">
+              <ActivityIndicator size="small" color={theme.primary} />
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ) : null
+        }
+      />
 
       <ChatInput
         value={inputValue}

@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
@@ -19,7 +19,7 @@ import { useComments } from "@/hooks/useComments";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { vibesApi, type Vibe } from "@/services/api/vibes";
+import { vibesApi, type Vibe, type Comment } from "@/services/api/vibes";
 import { formatRelativeTime } from "@/utils/time";
 
 export default function CommentsScreen() {
@@ -40,10 +40,12 @@ export default function CommentsScreen() {
   const {
     comments,
     isLoading: isLoadingComments,
+    isLoadingMore,
     error: commentsError,
     addComment,
     toggleLike,
     refresh,
+    loadMore,
   } = useComments({ postId: id, userPublicId: profile?.publicId, enabled: hasAccessToken && !!profile?.publicId });
 
   // Fetch post once we have a valid token
@@ -84,6 +86,65 @@ export default function CommentsScreen() {
   const isLoading = isLoadingPost || (isLoadingComments && comments.length === 0);
   const error = postError || commentsError;
 
+  const renderComment = useCallback(
+    ({ item: comment }: { item: Comment }) => (
+      <CommentCard
+        authorName={comment.author.displayName}
+        authorUsername={comment.author.username}
+        avatarUrl={comment.author.avatarUrl}
+        content={comment.content}
+        time={formatRelativeTime(comment.createdAt)}
+        likes={comment.likesCount}
+        isLiked={comment.isLiked}
+        onLikePress={() => toggleLike(comment.publicId)}
+        onAuthorPress={() =>
+          router.push({ pathname: Routes.PROFILE, params: { id: comment.author.publicId } })
+        }
+        onReplyPress={() => {}}
+        onReportPress={() => {
+          Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
+        }}
+      />
+    ),
+    [toggleLike, router, t]
+  );
+
+  const ListHeader = (
+    <View>
+      {/* Post Card */}
+      {post && (
+        <View className="p-4">
+          <VibeCard
+            authorName={post.author.displayName}
+            authorAvatarUrl={post.author.avatarUrl}
+            authorCountryCode={post.author.countryCode}
+            authorLanguages={post.author.languages}
+            content={post.content ?? ""}
+            likes={post.likesCount}
+            comments={post.commentsCount}
+            shares={0}
+            isLiked={post.isLiked}
+            onAuthorPress={() =>
+              router.push({ pathname: Routes.PROFILE, params: { id: post.author.publicId } })
+            }
+            onReportPress={() => {
+              Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
+            }}
+          />
+        </View>
+      )}
+
+      {/* Comments Section Header */}
+      <View className="flex-row items-center justify-between px-4 py-2">
+        <Text className="font-sans-semibold text-[14px]" style={{ color: theme.text }}>
+          {comments.length > 0
+            ? t("comments.count", { count: comments.length })
+            : t("comments.title")}
+        </Text>
+      </View>
+    </View>
+  );
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -104,7 +165,7 @@ export default function CommentsScreen() {
         <View className="w-8" />
       </View>
 
-      {/* Loading State */}
+      {/* Loading State (initial) */}
       {isLoading && (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={theme.primary} />
@@ -126,75 +187,38 @@ export default function CommentsScreen() {
       {/* Content */}
       {!isLoading && !error && (
         <>
-          <ScrollView
+          <FlatList
             className="flex-1"
-            showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 20 }}
-          >
-            {/* Post Card */}
-            {post && (
-              <View className="p-4">
-                <VibeCard
-                  authorName={post.author.displayName}
-                  authorAvatarUrl={post.author.avatarUrl}
-                  authorCountryCode={post.author.countryCode}
-                  authorLanguages={post.author.languages}
-                  content={post.content ?? ""}
-                  likes={post.likesCount}
-                  comments={post.commentsCount}
-                  shares={0}
-                  isLiked={post.isLiked}
-                  onAuthorPress={() => router.push({ pathname: Routes.PROFILE, params: { id: post.author.publicId } })}
-                  onReportPress={() => {
-                    Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-                  }}
-                />
-              </View>
-            )}
-
-            {/* Comments Section Header */}
-            <View className="flex-row items-center justify-between px-4 py-2">
-              <Text className="font-sans-semibold text-[14px]" style={{ color: theme.text }}>
-                {comments.length > 0
-                  ? t("comments.count", { count: comments.length })
-                  : t("comments.title")}
-              </Text>
-            </View>
-
-            {/* Comments List */}
-            {comments.length === 0 && !isLoadingComments ? (
-              <View className="items-center py-10">
-                <Ionicons name="chatbubble-outline" size={48} color={theme.border} />
-                <Text className="mt-3 font-sans text-[14px]" style={{ color: theme.textSecondary }}>
-                  {t("comments.noComments")}
-                </Text>
-                <Text className="mt-1 font-sans text-[12px]" style={{ color: theme.textTertiary }}>
-                  {t("comments.beFirst")}
-                </Text>
-              </View>
-            ) : (
-              <View>
-                {comments.map((comment) => (
-                  <CommentCard
-                    key={comment.publicId}
-                    authorName={comment.author.displayName}
-                    authorUsername={comment.author.username}
-                    avatarUrl={comment.author.avatarUrl}
-                    content={comment.content}
-                    time={formatRelativeTime(comment.createdAt)}
-                    likes={comment.likesCount}
-                    isLiked={comment.isLiked}
-                    onLikePress={() => toggleLike(comment.publicId)}
-                    onAuthorPress={() => router.push({ pathname: Routes.PROFILE, params: { id: comment.author.publicId } })}
-                    onReplyPress={() => {}}
-                    onReportPress={() => {
-                      Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-                    }}
-                  />
-                ))}
-              </View>
-            )}
-          </ScrollView>
+            data={comments}
+            keyExtractor={(item) => item.publicId}
+            renderItem={renderComment}
+            onRefresh={refresh}
+            refreshing={isLoadingComments && comments.length === 0}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.1}
+            ListHeaderComponent={ListHeader}
+            ListFooterComponent={
+              isLoadingMore ? (
+                <View className="py-4 items-center">
+                  <ActivityIndicator size="small" color={theme.primary} />
+                </View>
+              ) : null
+            }
+            ListEmptyComponent={
+              !isLoadingComments ? (
+                <View className="items-center py-10">
+                  <Ionicons name="chatbubble-outline" size={48} color={theme.border} />
+                  <Text className="mt-3 font-sans text-[14px]" style={{ color: theme.textSecondary }}>
+                    {t("comments.noComments")}
+                  </Text>
+                  <Text className="mt-1 font-sans text-[12px]" style={{ color: theme.textTertiary }}>
+                    {t("comments.beFirst")}
+                  </Text>
+                </View>
+              ) : null
+            }
+          />
 
           {/* Comment Input */}
           <CommentInput

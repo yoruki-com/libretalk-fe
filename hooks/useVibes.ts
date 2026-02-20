@@ -13,6 +13,7 @@ interface UseVibesOptions {
 interface UseVibesResult {
   vibes: Vibe[];
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: Error | null;
   pagination: {
     page: number;
@@ -34,6 +35,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
 
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [pagination, setPagination] = useState<UseVibesResult["pagination"]>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,7 +44,8 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
 
   const fetchVibes = useCallback(
     async (page: number, append = false) => {
-      setIsLoading(true);
+      if (append) setIsLoadingMore(true);
+      else setIsLoading(true);
       setError(null);
 
       try {
@@ -66,7 +69,8 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Failed to fetch vibes"));
       } finally {
-        setIsLoading(false);
+        if (append) setIsLoadingMore(false);
+        else setIsLoading(false);
       }
     },
     [category, search]
@@ -77,10 +81,10 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
   }, [fetchVibes]);
 
   const loadMore = useCallback(async () => {
-    if (pagination?.hasNextPage && !isLoading) {
+    if (pagination?.hasNextPage && !isLoading && !isLoadingMore) {
       await fetchVibes(currentPage + 1, true);
     }
-  }, [fetchVibes, pagination, currentPage, isLoading]);
+  }, [fetchVibes, pagination, currentPage, isLoading, isLoadingMore]);
 
   const toggleLike = useCallback(async (vibeId: string) => {
     const vibe = vibes.find((v) => v.publicId === vibeId);
@@ -140,6 +144,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
   return {
     vibes,
     isLoading,
+    isLoadingMore,
     error,
     pagination,
     refresh,

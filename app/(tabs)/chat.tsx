@@ -10,7 +10,6 @@ import { useRouter } from "expo-router";
 import { Routes } from "@/constants/routes";
 import { formatChatListTime } from "@/utils/time";
 import {
-  getOtherParticipants,
   getConversationDisplayName,
   getConversationAvatar,
   isConversationOnline,
@@ -18,9 +17,9 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Text, View } from "react-native";
-import { RefreshableScrollView } from "@/components/ui";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { Conversation } from "@/services/api/types";
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
@@ -31,7 +30,7 @@ export default function ChatListScreen() {
   const { profile } = useCurrentUser(isAuthenticated && hasAccessToken);
   const yesterdayLabel = t("chat.yesterday");
 
-  const { conversations, isLoading, error, refresh } = useConversations({
+  const { conversations, isLoading, isLoadingMore, error, refresh, loadMore } = useConversations({
     enabled: hasAccessToken && !!profile?.publicId,
     userPublicId: profile?.publicId,
   });
@@ -58,6 +57,38 @@ export default function ChatListScreen() {
     console.log("Archive pressed");
   };
 
+  const renderItem = useCallback(
+    ({ item: conversation }: { item: Conversation }) => {
+      if (!profile) return null;
+      return (
+        <ChatCard
+          name={getConversationDisplayName(conversation, profile.publicId, t("chat.groupChat"))}
+          message={
+            conversation.lastMessage?.type === "STICKER"
+              ? t("chat.sticker")
+              : (conversation.lastMessage?.content ?? "")
+          }
+          time={formatChatListTime(conversation.lastMessageAt, { yesterday: yesterdayLabel })}
+          avatar={getConversationAvatar(conversation, profile.publicId)}
+          unreadCount={0}
+          isMyTurn={
+            !!conversation.lastMessage &&
+            conversation.lastMessage.sender.publicId !== profile.publicId
+          }
+          isRead={
+            !!conversation.lastMessage &&
+            conversation.lastMessage.sender.publicId === profile.publicId &&
+            conversation.lastMessage.status === "READ"
+          }
+          isOnline={isConversationOnline(conversation, profile.publicId)}
+          isGroup={conversation.isGroup}
+          onPress={() => handleChatPress(conversation.publicId)}
+        />
+      );
+    },
+    [profile, t, yesterdayLabel, handleChatPress]
+  );
+
   return (
     <View
       className="flex-1"
@@ -68,7 +99,8 @@ export default function ChatListScreen() {
         <Header />
         <SearchInput />
       </View>
-      {/* Loading State */}
+
+      {/* Loading State (initial) */}
       {isLoading && conversations.length === 0 && (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={theme.primary} />
@@ -85,44 +117,35 @@ export default function ChatListScreen() {
       )}
 
       {/* Chat List */}
-      <RefreshableScrollView className="mt-4 flex-1" onRefresh={refresh}>
-        <ArchiveRow count={0} onPress={handleArchivePress} />
-        {profile && conversations.map((conversation) => (
-          <ChatCard
-            key={conversation.publicId}
-            name={getConversationDisplayName(conversation, profile.publicId, t("chat.groupChat"))}
-            message={
-              conversation.lastMessage?.type === "STICKER"
-                ? t("chat.sticker")
-                : (conversation.lastMessage?.content ?? "")
-            }
-            time={formatChatListTime(conversation.lastMessageAt, { yesterday: yesterdayLabel })}
-            avatar={getConversationAvatar(conversation, profile.publicId)}
-            unreadCount={0}
-            isMyTurn={
-              !!conversation.lastMessage &&
-              conversation.lastMessage.sender.publicId !== profile.publicId
-            }
-            isRead={
-              !!conversation.lastMessage &&
-              conversation.lastMessage.sender.publicId === profile.publicId &&
-              conversation.lastMessage.status === "READ"
-            }
-            isOnline={isConversationOnline(conversation, profile.publicId)}
-            isGroup={conversation.isGroup}
-            onPress={() => handleChatPress(conversation.publicId)}
-          />
-        ))}
-
-        {/* Empty State */}
-        {!isLoading && conversations.length === 0 && !error && (
-          <View className="items-center justify-center py-8">
-            <Text style={{ color: theme.textSecondary, textAlign: "center" }}>
-              {t("chat.noConversations")}
-            </Text>
-          </View>
-        )}
-      </RefreshableScrollView>
+      {(!isLoading || conversations.length > 0) && !error && (
+        <FlatList
+          className="mt-4 flex-1"
+          data={conversations}
+          keyExtractor={(item) => item.publicId}
+          renderItem={renderItem}
+          onRefresh={refresh}
+          refreshing={isLoading && conversations.length === 0}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.1}
+          ListHeaderComponent={<ArchiveRow count={0} onPress={handleArchivePress} />}
+          ListFooterComponent={
+            isLoadingMore ? (
+              <View className="py-4 items-center">
+                <ActivityIndicator size="small" color={theme.primary} />
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            !isLoading ? (
+              <View className="items-center justify-center py-8">
+                <Text style={{ color: theme.textSecondary, textAlign: "center" }}>
+                  {t("chat.noConversations")}
+                </Text>
+              </View>
+            ) : null
+          }
+        />
+      )}
     </View>
   );
 }

@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, FlatList } from "react-native";
 import { useRouter } from "expo-router";
 import { Routes } from "@/constants/routes";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { SearchBar, CategoryChips, CommunityCard, RefreshableScrollView } from "@/components/ui";
+import { SearchBar, CategoryChips, CommunityCard } from "@/components/ui";
 import { useCommunity } from "@/hooks/useCommunity";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { conversationsApi } from "@/services/api";
 import { getRandomHelloSticker } from "@/constants/stickers";
-import type { Conversation } from "@/services/api/types";
+import type { Conversation, UserMe } from "@/services/api/types";
 
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
@@ -23,10 +23,12 @@ export default function CommunityScreen() {
   const {
     users,
     isLoading,
+    isLoadingMore,
     error,
     setSearch,
     setFilter,
     refresh,
+    loadMore,
   } = useCommunity({ enabled: hasAccessToken });
 
   const communityFilters = [
@@ -96,7 +98,6 @@ export default function CommunityScreen() {
           pathname: Routes.CHAT,
           params: { id: conversation.publicId },
         } as never);
-        // Refresh conversations so the card switches to chat icon on return
         fetchConversations();
       } catch (err) {
         console.error("Failed to wave:", err);
@@ -117,117 +118,123 @@ export default function CommunityScreen() {
     return () => clearTimeout(timeoutId);
   }, [searchQuery, setSearch]);
 
+  const renderItem = useCallback(
+    ({ item: user }: { item: UserMe }) => {
+      const existingChatId = existingChatMap.get(user.publicId);
+      return (
+        <CommunityCard
+          displayName={user.displayName}
+          avatarUrl={user.avatarUrl}
+          countryCode={user.country?.code}
+          languages={user.languages?.map((l) => ({
+            code: l.code,
+            isLearning: l.isLearning,
+          }))}
+          bio={user.bio}
+          personalityType={user.personalityType}
+          city={user.city}
+          isOnline={user.isOnline}
+          isVip={user.isVip}
+          hasExistingChat={!!existingChatId}
+          onPress={() =>
+            router.push({
+              pathname: Routes.PROFILE,
+              params: { id: user.publicId },
+            })
+          }
+          onWavePress={() => handleWavePress(user.publicId)}
+          onChatPress={() => existingChatId && handleChatPress(existingChatId)}
+        />
+      );
+    },
+    [existingChatMap, router, handleWavePress, handleChatPress]
+  );
+
+  const ListHeader = (
+    <View style={{ backgroundColor: theme.surface }}>
+      {/* Title */}
+      <View className="px-4 pt-4 pb-2">
+        <Text
+          className="font-sans-semibold text-[24px] leading-[32px]"
+          style={{ color: theme.text }}
+        >
+          {t("community.title")}
+        </Text>
+      </View>
+
+      {/* Search */}
+      <View className="px-4 pb-4">
+        <SearchBar
+          placeholder={t("community.searchPlaceholder")}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onFilterPress={() => {}}
+        />
+      </View>
+
+      {/* Filters */}
+      <View className="px-4 pb-4">
+        <CategoryChips
+          categories={communityFilters}
+          selectedId={selectedFilter}
+          onSelect={handleFilterChange}
+        />
+      </View>
+
+      {/* Loading State (initial) */}
+      {isLoading && users.length === 0 && (
+        <View className="items-center justify-center py-20">
+          <ActivityIndicator size="large" color={theme.primary} />
+        </View>
+      )}
+
+      {/* Error State */}
+      {error && users.length === 0 && (
+        <View className="items-center justify-center px-4 py-20">
+          <Text style={{ color: theme.error, textAlign: "center", marginBottom: 16 }}>
+            {error.message}
+          </Text>
+          <Text style={{ color: theme.primary, fontWeight: "600" }} onPress={refresh}>
+            {t("common.tryAgain")}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+
   return (
     <View
       className="flex-1"
       style={{ paddingTop: insets.top, backgroundColor: theme.surface }}
     >
-      <RefreshableScrollView
+      <FlatList
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 16, gap: 16 }}
+        data={users}
+        keyExtractor={(item) => item.publicId}
+        renderItem={renderItem}
         onRefresh={refresh}
-      >
-        {/* Title */}
-        <View className="px-4 pt-4 pb-2">
-          <Text
-            className="font-sans-semibold text-[24px] leading-[32px]"
-            style={{ color: theme.text }}
-          >
-            {t("community.title")}
-          </Text>
-        </View>
-
-        {/* Search */}
-        <View className="px-4 pb-4">
-          <SearchBar
-            placeholder={t("community.searchPlaceholder")}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onFilterPress={() => {}}
-          />
-        </View>
-
-        {/* Filters */}
-        <View className="px-4 pb-4">
-          <CategoryChips
-            categories={communityFilters}
-            selectedId={selectedFilter}
-            onSelect={handleFilterChange}
-          />
-        </View>
-
-        {/* Loading State */}
-        {isLoading && users.length === 0 && (
-          <View className="flex-1 items-center justify-center py-20">
-            <ActivityIndicator size="large" color={theme.primary} />
-          </View>
-        )}
-
-        {/* Error State */}
-        {error && users.length === 0 && (
-          <View className="flex-1 items-center justify-center px-4 py-20">
-            <Text
-              style={{
-                color: theme.error,
-                textAlign: "center",
-                marginBottom: 16,
-              }}
-            >
-              {error.message}
-            </Text>
-            <Text
-              style={{ color: theme.primary, fontWeight: "600" }}
-              onPress={refresh}
-            >
-              {t("common.tryAgain")}
-            </Text>
-          </View>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && !error && users.length === 0 && (
-          <View className="flex-1 items-center justify-center py-20">
-            <Text
-              style={{ color: theme.textSecondary, textAlign: "center" }}
-            >
-              {t("community.noResults")}
-            </Text>
-          </View>
-        )}
-
-        {/* User Cards */}
-        <View className="gap-4 px-4">
-          {users.map((user) => {
-            const existingChatId = existingChatMap.get(user.publicId);
-            return (
-              <CommunityCard
-                key={user.publicId}
-                displayName={user.displayName}
-                avatarUrl={user.avatarUrl}
-                countryCode={user.country?.code}
-                languages={user.languages?.map((l) => ({
-                  code: l.code,
-                  isLearning: l.isLearning,
-                }))}
-                bio={user.bio}
-                personalityType={user.personalityType}
-                city={user.city}
-                isOnline={user.isOnline}
-                isVip={user.isVip}
-                hasExistingChat={!!existingChatId}
-                onPress={() =>
-                  router.push({
-                    pathname: Routes.PROFILE,
-                    params: { id: user.publicId },
-                  })
-                }
-                onWavePress={() => handleWavePress(user.publicId)}
-                onChatPress={() => existingChatId && handleChatPress(existingChatId)}
-              />
-            );
-          })}
-        </View>
-      </RefreshableScrollView>
+        refreshing={isLoading && users.length === 0}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.1}
+        ListHeaderComponent={ListHeader}
+        ListFooterComponent={
+          isLoadingMore ? (
+            <View className="py-4 items-center">
+              <ActivityIndicator size="small" color={theme.primary} />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          !isLoading && !error ? (
+            <View className="items-center justify-center py-20">
+              <Text style={{ color: theme.textSecondary, textAlign: "center" }}>
+                {t("community.noResults")}
+              </Text>
+            </View>
+          ) : null
+        }
+      />
     </View>
   );
 }
