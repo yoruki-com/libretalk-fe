@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_URL } from "./config";
 import type { PaginationParams } from "./types";
+import { dbg } from "@/utils/debugLog";
 
 class ApiError extends Error {
   constructor(
@@ -44,13 +45,25 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 
   if (tokenGetter) {
     try {
-      const token = await tokenGetter();
+      dbg("[API Client] getAuthHeaders: calling tokenGetter…");
+      // Timeout the token getter itself — if the Logto SDK hangs (e.g. during
+      // token refresh), the axios timeout won't help because it only starts
+      // after the request is sent.
+      const token = await Promise.race([
+        tokenGetter(),
+        new Promise<null>((_, reject) =>
+          setTimeout(() => reject(new Error("tokenGetter timed out after 10s")), 10_000)
+        ),
+      ]);
+      dbg("[API Client] getAuthHeaders: token " + (token ? `OK (${token.length}ch)` : "NULL"));
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error("[API Client] Error getting auth token:", error);
+      dbg("[API Client] Error getting auth token: " + String(error));
     }
+  } else {
+    dbg("[API Client] getAuthHeaders: no tokenGetter set");
   }
 
   // Include OIDC claims the backend can't extract from resource-scoped JWTs
@@ -76,15 +89,23 @@ export const apiClient = {
     endpoint: string,
     params?: PaginationParams & Record<string, unknown>
   ): Promise<T> {
+    dbg(`[API Client] GET ${endpoint} — getting headers…`);
     const headers = await getAuthHeaders();
+    dbg(`[API Client] GET ${endpoint} — sending to ${API_URL}${endpoint}`);
 
     try {
       const response = await axios.get<T>(`${API_URL}${endpoint}`, {
         headers,
         params,
+        timeout: 15000, // 15s timeout to prevent infinite hangs
       });
+      dbg(`[API Client] GET ${endpoint} — response ${response.status}`);
       return response.data;
     } catch (error) {
+      const msg = axios.isAxiosError(error)
+        ? `${error.code ?? "?"} ${error.response?.status ?? "no-status"} ${error.message}`
+        : String(error);
+      dbg(`[API Client] GET ${endpoint} — ERROR: ${msg}`);
       handleAxiosError(error);
     }
   },

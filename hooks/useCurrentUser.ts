@@ -1,6 +1,7 @@
 import { useSyncExternalStore, useCallback, useEffect } from "react";
 import { usersApi } from "@/services/api/users";
 import type { UserMe } from "@/services/api/types";
+import { dbg } from "@/utils/debugLog";
 
 /* ── Shared store (module-level singleton) ─────────────── */
 
@@ -31,19 +32,28 @@ function getSnapshot() {
 
 async function fetchProfile() {
   // Deduplicate concurrent calls
-  if (fetchPromise) return fetchPromise;
+  if (fetchPromise) {
+    dbg("[useCurrentUser] fetchProfile: already in progress, deduplicating");
+    return fetchPromise;
+  }
 
+  dbg("[useCurrentUser] fetchProfile: START");
   isLoading = true;
   emitChange();
 
   fetchPromise = (async () => {
     try {
+      dbg("[useCurrentUser] fetchProfile: calling usersApi.getMe()…");
       const response = await usersApi.getMe();
+      dbg("[useCurrentUser] fetchProfile: SUCCESS — got profile");
       profile = response.data;
       error = null;
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      dbg("[useCurrentUser] fetchProfile: ERROR — " + msg);
       error = err instanceof Error ? err : new Error("Failed to fetch profile");
     } finally {
+      dbg("[useCurrentUser] fetchProfile: DONE (error=" + (error ? error.message : "none") + ")");
       isLoading = false;
       fetchPromise = null;
       emitChange();
@@ -90,9 +100,15 @@ export function useCurrentUser(enabled = true): UseCurrentUserResult {
     await fetchProfile();
   }, []);
 
+  // Report as loading when a fetch is clearly needed but the useEffect
+  // hasn't fired yet (effects run AFTER render). Without this, there's a
+  // one-frame gap where isLoading=false AND profile=null, which causes
+  // consumers like Index to navigate away before the fetch even starts.
+  const pendingFetch = enabled && !profile && !error && !isLoading && !fetchPromise;
+
   return {
     profile,
-    isLoading,
+    isLoading: isLoading || pendingFetch,
     error,
     refresh,
   };

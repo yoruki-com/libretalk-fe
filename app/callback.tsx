@@ -1,28 +1,39 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { router } from "expo-router";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, Text, ScrollView } from "react-native";
 import { useAuth } from "@/contexts/AuthContext";
+import { getDebugLog } from "@/contexts/AuthContext";
 
-/**
- * OAuth redirect handler for Logto.
- *
- * When the browser redirects back to `libretalk://callback`, Expo Router
- * renders this screen. The Logto SDK completes the token exchange in the
- * background (via expo-web-browser). We show a spinner and wait for the
- * auth state to settle before navigating to the root index.
- */
 export default function Callback() {
-  const { isLoading } = useAuth();
+  const { isLoading, isAuthenticated, hasAccessToken } = useAuth();
+  const [log, setLog] = useState<string[]>([]);
+
+  // Refresh the on-screen log every 500ms
+  useEffect(() => {
+    const id = setInterval(() => setLog([...getDebugLog()]), 500);
+    return () => clearInterval(id);
+  }, []);
+
+  console.log("[Callback] render", JSON.stringify({ isLoading, isAuthenticated, hasAccessToken }));
 
   useEffect(() => {
     if (!isLoading) {
+      console.log("[Callback] isLoading=false → router.replace('/')");
       router.replace("/");
     }
   }, [isLoading]);
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
       <ActivityIndicator size="large" />
+      <Text style={{ color: "#888", marginTop: 10, fontSize: 12 }}>
+        Callback — isLoading={String(isLoading)} isAuth={String(isAuthenticated)} hasToken={String(hasAccessToken)}
+      </Text>
+      <ScrollView style={{ flex: 1, marginTop: 10, width: "100%" }}>
+        <Text style={{ color: "#aaa", fontSize: 9, fontFamily: "monospace" }}>
+          {log.join("\n")}
+        </Text>
+      </ScrollView>
     </View>
   );
 }
