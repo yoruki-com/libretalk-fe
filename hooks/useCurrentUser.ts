@@ -1,7 +1,6 @@
 import { useSyncExternalStore, useCallback, useEffect } from "react";
 import { usersApi } from "@/services/api/users";
 import type { UserMe } from "@/services/api/types";
-import { dbg } from "@/utils/debugLog";
 
 /* ── Shared store (module-level singleton) ─────────────── */
 
@@ -32,28 +31,19 @@ function getSnapshot() {
 
 async function fetchProfile() {
   // Deduplicate concurrent calls
-  if (fetchPromise) {
-    dbg("[useCurrentUser] fetchProfile: already in progress, deduplicating");
-    return fetchPromise;
-  }
+  if (fetchPromise) return fetchPromise;
 
-  dbg("[useCurrentUser] fetchProfile: START");
   isLoading = true;
   emitChange();
 
   fetchPromise = (async () => {
     try {
-      dbg("[useCurrentUser] fetchProfile: calling usersApi.getMe()…");
       const response = await usersApi.getMe();
-      dbg("[useCurrentUser] fetchProfile: SUCCESS — got profile");
       profile = response.data;
       error = null;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      dbg("[useCurrentUser] fetchProfile: ERROR — " + msg);
       error = err instanceof Error ? err : new Error("Failed to fetch profile");
     } finally {
-      dbg("[useCurrentUser] fetchProfile: DONE (error=" + (error ? error.message : "none") + ")");
       isLoading = false;
       fetchPromise = null;
       emitChange();

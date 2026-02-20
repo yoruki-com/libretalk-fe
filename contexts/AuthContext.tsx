@@ -9,8 +9,6 @@ import {
 } from "react";
 import { LogtoProvider, useLogto } from "@logto/rn";
 import * as WebBrowser from "expo-web-browser";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as SecureStore from "expo-secure-store";
 import {
   setTokenGetter,
   clearTokenGetter,
@@ -18,13 +16,11 @@ import {
   clearAuthClaims,
 } from "@/services/api/client";
 import { resetCurrentUserCache } from "@/hooks/useCurrentUser";
-import { dbg } from "@/utils/debugLog";
 
 const LOGTO_ENDPOINT = process.env.EXPO_PUBLIC_LOGTO_ENDPOINT!;
 const LOGTO_APP_ID = process.env.EXPO_PUBLIC_LOGTO_APP_ID!;
 const LOGTO_RESOURCE = process.env.EXPO_PUBLIC_LOGTO_RESOURCE;
 const REDIRECT_URI = "libretalk://callback";
-const ENABLE_AUTH_DIAGNOSTICS = false;
 
 // Stable config object — created once at module level to avoid
 // re-creating LogtoClient on every AuthProvider render.
@@ -58,11 +54,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Re-export so existing imports from AuthContext still work
-export { getDebugLog } from "@/utils/debugLog";
-
-let authRenderCount = 0;
-
 function AuthContextProvider({ children }: { children: ReactNode }) {
   const {
     client,
@@ -78,26 +69,6 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const isRecoveringSessionRef = useRef(false);
   const hasValidAccessToken = isAuthenticated && !!accessToken;
-
-  // ── Debug: log only when state changes ───────────────────────────
-  authRenderCount++;
-  const derivedLoading = !isInitialized || isLoading || (isAuthenticated && !accessToken);
-  const authStateKey = `${isInitialized}|${isAuthenticated}|${isLoading}|${accessToken?.length}|${user?.id}`;
-  const prevAuthStateRef = useRef("");
-  if (authStateKey !== prevAuthStateRef.current) {
-    prevAuthStateRef.current = authStateKey;
-    dbg(
-      `[AuthContext] RENDER #${authRenderCount} ` +
-      JSON.stringify({
-        isInitialized,
-        isAuthenticated,
-        isLoadingState: isLoading,
-        accessToken: accessToken ? `${accessToken.length}ch` : null,
-        user: user ? user.id : null,
-        hasValidAccessToken,
-        derivedLoading,
-      }));
-  }
 
   // ── Refs for latest SDK values ──────────────────────────
   // Avoids stale closures: getToken always reads the latest values.
@@ -160,72 +131,9 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // ── Storage diagnostics (temporary) ─────────────────────
-  const runStorageDiagnostics = useCallback(async () => {
-    const c = clientRef.current;
-    const storageKey = `logto.${LOGTO_APP_ID}.idToken`;
-    console.log("[AuthContext] === STORAGE DIAGNOSTICS ===");
-
-    // 1. Check client-level methods
-    try {
-      const idToken = await c.getIdToken();
-      console.log("[diag] client.getIdToken():",
-        idToken ? `OK (${idToken.length} chars)` : "NULL");
-    } catch (e) {
-      console.error("[diag] client.getIdToken() ERROR:", e);
-    }
-
-    try {
-      const refreshToken = await c.getRefreshToken();
-      console.log("[diag] client.getRefreshToken():",
-        refreshToken ? `OK (${refreshToken.length} chars)` : "NULL");
-    } catch (e) {
-      console.error("[diag] client.getRefreshToken() ERROR:", e);
-    }
-
-    try {
-      const isAuth = await c.isAuthenticated();
-      console.log("[diag] client.isAuthenticated():", isAuth);
-    } catch (e) {
-      console.error("[diag] client.isAuthenticated() ERROR:", e);
-    }
-
-    // 2. Check raw storage layers
-    try {
-      const encrypted = await AsyncStorage.getItem(storageKey);
-      console.log("[diag] AsyncStorage raw idToken:",
-        encrypted ? `OK (${encrypted.length} chars)` : "NULL");
-    } catch (e) {
-      console.error("[diag] AsyncStorage read ERROR:", e);
-    }
-
-    try {
-      const encKey = await SecureStore.getItemAsync(storageKey);
-      console.log("[diag] SecureStore encryption key:",
-        encKey ? `OK (${encKey.length} chars)` : "NULL");
-    } catch (e) {
-      console.error("[diag] SecureStore read ERROR:", e);
-    }
-
-    // 3. Try getAccessToken WITHOUT resource (uses cached token from sign-in)
-    try {
-      const defaultToken = await c.getAccessToken();
-      console.log("[diag] getAccessToken() [no resource]:",
-        defaultToken ? `OK (${defaultToken.length} chars)` : "NULL");
-    } catch (e) {
-      console.error("[diag] getAccessToken() [no resource] ERROR:", e);
-    }
-
-    console.log("[AuthContext] === END DIAGNOSTICS ===");
-  }, []);
-
   // ── Session initialisation ──────────────────────────────
   useEffect(() => {
-    dbg(`[AuthContext] useEffect FIRED — isInitialized=${isInitialized}, isAuthenticated=${isAuthenticated}`);
-    if (!isInitialized) {
-      dbg("[AuthContext] useEffect: not initialized yet, skipping");
-      return;
-    }
+    if (!isInitialized) return;
 
     const tryGetAccessToken = async (
       maxAttempts = 5,
@@ -242,7 +150,7 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
           if (notAuth && attempt < maxAttempts) {
             const delay = initialDelayMs * Math.pow(2, attempt - 1);
             console.warn(
-              `[AuthContext] getAccessToken attempt ${attempt}/${maxAttempts} failed (not authenticated), retrying in ${delay}ms…`,
+              `[AuthContext] getAccessToken attempt ${attempt}/${maxAttempts} failed, retrying in ${delay}ms…`,
             );
             await new Promise((r) => setTimeout(r, delay));
             continue;
@@ -254,48 +162,12 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
     };
 
     const initSession = async () => {
-      dbg(`[AuthContext] initSession START — isAuthenticated=${isAuthenticated}`);
-      // Reset loading state when re-entering after sign-in
       setIsLoading(true);
 
       try {
         if (isAuthenticated) {
-          dbg("[AuthContext] initSession: authenticated, fetching token…");
-          // ── Always-on diagnostics for token issues ──
           const c = clientRef.current;
-          try {
-            const idToken = await c.getIdToken();
-            const refreshToken = await c.getRefreshToken();
-            dbg("[AuthContext] idToken: " + (idToken ? `OK (${idToken.length} chars)` : "MISSING"));
-            dbg("[AuthContext] refreshToken: " + (refreshToken ? `OK (${refreshToken.length} chars)` : "MISSING"));
-            dbg("[AuthContext] LOGTO_RESOURCE: " + (LOGTO_RESOURCE ?? "NOT SET"));
-          } catch (diagErr) {
-            dbg("[AuthContext] token diagnostics error: " + String(diagErr));
-          }
-
-          if (ENABLE_AUTH_DIAGNOSTICS) {
-            await runStorageDiagnostics();
-          }
-
-          // Try getting an access token for the API resource
-          let token: string | null = null;
-          try {
-            token = await tryGetAccessToken();
-          } catch (resourceErr) {
-            // If resource-scoped token fails, test without resource to isolate the cause
-            dbg("[AuthContext] getAccessToken(resource) FAILED: " + String(resourceErr));
-            try {
-              const fallback = await c.getAccessToken();
-              dbg("[AuthContext] getAccessToken() WITHOUT resource: " +
-                (fallback ? `OK (${fallback.length} chars) — issue is RESOURCE config` : "also MISSING"));
-            } catch (fallbackErr) {
-              dbg("[AuthContext] getAccessToken() WITHOUT resource also FAILED: " + String(fallbackErr));
-            }
-            throw resourceErr;
-          }
-
-          dbg("[AuthContext] initSession: got token " +
-            (token ? `(${token.length} chars)` : "(null)"));
+          const token = await tryGetAccessToken();
 
           // Decode ID token claims locally (no network call) to get
           // email/name. This is instant — unlike fetchUserInfo() which
@@ -312,31 +184,23 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
             avatar: claims.picture ?? undefined,
           });
 
-          // NOW set the token — this makes hasAccessToken=true and
-          // triggers the rest of the app (useCurrentUser, etc.)
-          dbg("[AuthContext] initSession: SUCCESS — setting accessToken + user");
           setAccessToken(token);
-        } else {
-          dbg("[AuthContext] initSession: NOT authenticated, nothing to do");
         }
       } catch (error: unknown) {
-        dbg("[AuthContext] initSession CATCH — error: " + String(error));
+        console.warn("[AuthContext] initSession error:", error);
         // Any failure to obtain an access token means the session is unusable.
         // Force SDK sign-out so isAuthenticated resets to false and the user
         // is redirected back to the login screen instead of stuck loading.
-        dbg("[AuthContext] initSession: forcing sign-out after error…");
         try {
           await logtoSignOutRef.current(REDIRECT_URI);
-          dbg("[AuthContext] initSession: sign-out succeeded");
-        } catch (signOutErr) {
-          dbg("[AuthContext] initSession: sign-out failed: " + String(signOutErr));
+        } catch {
+          // Ignore sign-out failures
         }
         setUser(null);
         setAccessToken(null);
         clearAuthClaims();
         resetCurrentUserCache();
       } finally {
-        dbg("[AuthContext] initSession FINALLY — setIsLoading(false)");
         setIsLoading(false);
       }
     };
@@ -350,31 +214,22 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
   // ── Token getter (stable — never recreated) ─────────────
   const getToken = useCallback(async (): Promise<string | null> => {
     if (!isInitializedRef.current || !isAuthenticatedRef.current) {
-      dbg(`[AuthContext] getToken: not ready (initialized=${isInitializedRef.current}, authenticated=${isAuthenticatedRef.current})`);
       return null;
     }
-    dbg("[AuthContext] getToken: fetching token…");
 
     // Retry once on "not authenticated" — storage may be settling.
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         const token = await getAccessTokenRef.current(LOGTO_RESOURCE);
-        dbg(`[AuthContext] getToken: GOT token (${token?.length ?? 0} chars)`);
         setAccessToken(token);
         return token;
       } catch (error) {
-        dbg("[AuthContext] getToken: ERROR — " + String(error));
         if (isNotAuthenticatedError(error) && attempt < 2) {
           await new Promise((r) => setTimeout(r, 300));
           continue;
         }
         if (isRecoverableSessionError(error)) {
-          dbg("[AuthContext] getToken: recoverable session error — clearing");
           await clearBrokenSession();
-        } else if (isNotAuthenticatedError(error)) {
-          dbg("[AuthContext] getToken: not authenticated, returning null");
-        } else {
-          dbg("[AuthContext] getToken: unexpected error");
         }
         return null;
       }
@@ -394,9 +249,7 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
     // NOTE: Do NOT pass `prompt: Prompt.Login` — Logto explicitly skips
     // refresh-token issuance for `prompt=login`. The SDK default
     // (`Prompt.Consent`) correctly requests consent + offline_access.
-    dbg("[AuthContext] performInteractiveSignIn: calling signIn…");
     await signIn({ redirectUri: REDIRECT_URI });
-    dbg("[AuthContext] performInteractiveSignIn: signIn resolved!");
   }, [signIn]);
 
   const signInWithEmail = useCallback(async () => {
@@ -410,7 +263,6 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
         message.includes("cancelled") ||
         message.includes("dismissed")
       ) {
-        console.log("Sign-In cancelled by user");
         return;
       }
       console.warn("Sign-In error:", message);
@@ -430,7 +282,6 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
         message.includes("cancelled") ||
         message.includes("dismissed")
       ) {
-        console.log("Google Sign-In cancelled by user");
         return;
       }
       console.warn("Google Sign-In error:", message);
