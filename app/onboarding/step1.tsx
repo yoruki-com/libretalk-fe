@@ -49,8 +49,14 @@ export default function OnboardingStep1() {
 
   useEffect(() => {
     if (profile) {
-      setUsername(profile.username ?? "");
-      initialUsernameRef.current = profile.username ?? "";
+      const profileUsername = profile.username ?? "";
+      setUsername(profileUsername);
+      initialUsernameRef.current = profileUsername;
+
+      // Mark existing username as available immediately
+      if (profileUsername.length >= USERNAME_MIN && USERNAME_REGEX.test(profileUsername)) {
+        setUsernameStatus("available");
+      }
 
       // Pre-fill displayName from Google/Logto if the profile name is auto-generated
       if (!profile.displayName || profile.displayName === profile.username) {
