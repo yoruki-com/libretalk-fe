@@ -729,7 +729,7 @@ export default function EditProfileScreen() {
                 style={{ color: dateOfBirth ? theme.text : theme.textTertiary }}
               >
                 {dateOfBirth
-                  ? dateOfBirth.toLocaleDateString()
+                  ? `${String(dateOfBirth.getDate()).padStart(2, "0")}/${String(dateOfBirth.getMonth() + 1).padStart(2, "0")}/${dateOfBirth.getFullYear()}`
                   : "—"}
               </Text>
               <Ionicons
@@ -747,6 +747,7 @@ export default function EditProfileScreen() {
                   onChange={handleDateChange}
                   maximumDate={new Date()}
                   minimumDate={new Date(1920, 0, 1)}
+                  firstDayOfWeek={1}
                 />
               </View>
             )}
