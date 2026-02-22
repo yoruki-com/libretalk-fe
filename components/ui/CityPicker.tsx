@@ -1,7 +1,7 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 
-const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN;
+const MAPBOX_PUBLIC_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN;
 const DEBOUNCE_MS = 400;
 
 interface GeocodingFeature {
@@ -64,7 +64,7 @@ export function CityPicker({ value, onSelect, placeholder }: CityPickerProps) {
             types: "place",
             limit: "5",
             language: "en",
-            access_token: MAPBOX_TOKEN ?? "",
+            access_token: MAPBOX_PUBLIC_TOKEN ?? "",
           },
         },
       );
@@ -143,7 +143,11 @@ export function CityPicker({ value, onSelect, placeholder }: CityPickerProps) {
         )}
         {!isLoading && query.length > 0 && (
           <Pressable onPress={handleClear} hitSlop={8}>
-            <Ionicons name="close-circle" size={18} color={theme.textTertiary} />
+            <Ionicons
+              name="close-circle"
+              size={18}
+              color={theme.textTertiary}
+            />
           </Pressable>
         )}
       </View>
@@ -197,23 +201,26 @@ export function CityPicker({ value, onSelect, placeholder }: CityPickerProps) {
         </View>
       )}
 
-      {showSuggestions && suggestions.length === 0 && !isLoading && query.trim().length >= 2 && (
-        <View
-          className="mt-1 items-center rounded-2xl px-4 py-3"
-          style={{
-            backgroundColor: theme.card,
-            borderWidth: 1,
-            borderColor: theme.border,
-          }}
-        >
-          <Text
-            className="font-sans text-[14px]"
-            style={{ color: theme.textSecondary }}
+      {showSuggestions &&
+        suggestions.length === 0 &&
+        !isLoading &&
+        query.trim().length >= 2 && (
+          <View
+            className="mt-1 items-center rounded-2xl px-4 py-3"
+            style={{
+              backgroundColor: theme.card,
+              borderWidth: 1,
+              borderColor: theme.border,
+            }}
           >
-            {t("onboarding.noCity")}
-          </Text>
-        </View>
-      )}
+            <Text
+              className="font-sans text-[14px]"
+              style={{ color: theme.textSecondary }}
+            >
+              {t("onboarding.noCity")}
+            </Text>
+          </View>
+        )}
     </View>
   );
 }

@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/edit-profile";
 import { MbtiPicker } from "@/components/ui/MbtiPicker";
 import { Routes } from "@/constants/routes";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { countriesApi } from "@/services/api/countries";
@@ -23,6 +23,7 @@ import type {
 } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import axios from "axios";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
@@ -41,7 +42,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function EditProfileScreen() {
@@ -50,7 +50,9 @@ export default function EditProfileScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { isAuthenticated, hasAccessToken } = useAuth();
-  const { profile, refresh } = useCurrentUser(isAuthenticated && hasAccessToken);
+  const { profile, refresh } = useCurrentUser(
+    isAuthenticated && hasAccessToken,
+  );
   const { pendingAvatarUri, isUploading, pickAvatar, uploadAvatar } =
     useAvatarUpload();
 
@@ -146,7 +148,7 @@ export default function EditProfileScreen() {
       .catch(() => {});
   }, []);
 
-  const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN;
+  const MAPBOX_PUBLIC_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN;
 
   const handleLocate = async () => {
     setIsLocating(true);
@@ -169,7 +171,7 @@ export default function EditProfileScreen() {
             latitude: latitude.toString(),
             types: "place",
             limit: "1",
-            access_token: MAPBOX_TOKEN ?? "",
+            access_token: MAPBOX_PUBLIC_TOKEN ?? "",
           },
         },
       );
@@ -205,7 +207,10 @@ export default function EditProfileScreen() {
   };
 
   const handleDateChange = useCallback(
-    (event: { type: string; nativeEvent: { timestamp: number } }, selectedDate?: Date) => {
+    (
+      event: { type: string; nativeEvent: { timestamp: number } },
+      selectedDate?: Date,
+    ) => {
       if (Platform.OS === "android") setShowDatePicker(false);
       if (event.type === "dismissed") return;
       const date = selectedDate ?? new Date(event.nativeEvent.timestamp);
@@ -698,19 +703,27 @@ export default function EditProfileScreen() {
                       }}
                       className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
                       style={{
-                        backgroundColor: isSelected ? theme.primary + "10" : undefined,
+                        backgroundColor: isSelected
+                          ? theme.primary + "10"
+                          : undefined,
                         borderTopWidth: index > 0 ? 1 : 0,
                         borderTopColor: theme.border,
                       }}
                     >
                       <Text
                         className="font-sans text-[14px]"
-                        style={{ color: isSelected ? theme.primary : theme.text }}
+                        style={{
+                          color: isSelected ? theme.primary : theme.text,
+                        }}
                       >
                         {t(`editProfile.gender_${g}`)}
                       </Text>
                       {isSelected && (
-                        <Ionicons name="checkmark" size={18} color={theme.primary} />
+                        <Ionicons
+                          name="checkmark"
+                          size={18}
+                          color={theme.primary}
+                        />
                       )}
                     </Pressable>
                   );

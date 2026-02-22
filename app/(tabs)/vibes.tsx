@@ -69,10 +69,14 @@ export default function VibesScreen() {
   const [selectedCategory, setSelectedCategory] = useState("recent");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Handle category change
+  // Handle category change — tap again to refresh
   const handleCategoryChange = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    setCategory(categoryId);
+    if (categoryId === selectedCategory) {
+      refresh();
+    } else {
+      setSelectedCategory(categoryId);
+      setCategory(categoryId);
+    }
   };
 
   // Handle search change with debounce

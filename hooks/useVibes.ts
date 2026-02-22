@@ -10,8 +10,8 @@ async function geocodeCityMapbox(city: string): Promise<{ lat: number; lng: numb
   if (geocodeResultCache.has(city)) return geocodeResultCache.get(city)!;
   try {
     const token = process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN;
-    if (!token) return null;
-    const url = `https://api.mapbox.com/geocode/v6/forward?q=${encodeURIComponent(city)}&limit=1&access_token=${token}`;
+    if (!token) { console.warn("[useVibes] EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN not set"); return null; }
+    const url = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(city)}&types=place&limit=1&access_token=${token}`;
     const res = await fetch(url);
     if (!res.ok) { geocodeResultCache.set(city, null); return null; }
     const data = await res.json() as { features?: { geometry?: { coordinates?: [number, number] } }[] };
@@ -56,7 +56,7 @@ interface UseVibesResult {
 }
 
 export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
-  const { category: initialCategory, search: initialSearch, userPublicId, userCity: initialUserCity, autoFetch = true, enabled = true } = options;
+  const { category: initialCategory, search: initialSearch, userPublicId, userCity, autoFetch = true, enabled = true } = options;
 
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +66,6 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
   const [currentPage, setCurrentPage] = useState(1);
   const [category, setCategory] = useState(initialCategory);
   const [search, setSearch] = useState(initialSearch);
-  const [userCity] = useState(initialUserCity);
 
   const fetchVibes = useCallback(
     async (page: number, append = false) => {
@@ -85,14 +84,14 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
             if (coords) {
               response = await vibesApi.getNearby(coords.lat, coords.lng, { page, pageSize: 10 });
             } else {
-              // Geocoding failed — show empty, no crash
+              console.warn("[useVibes] Nearby: geocoding failed for city:", userCity);
               if (!append) setVibes([]);
               setPagination(null);
               setCurrentPage(page);
               return;
             }
           } else {
-            // No city on profile — show empty
+            console.warn("[useVibes] Nearby: no city on profile, userCity =", userCity);
             if (!append) setVibes([]);
             setPagination(null);
             setCurrentPage(page);

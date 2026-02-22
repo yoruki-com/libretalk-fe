@@ -62,13 +62,14 @@ Output: All 6 files with fetch calls updated to use axios. Zero remaining fetch(
 Frontend workspace: c:\Users\Anton\Develop\Personal\how-are-you\fe
 
 Files containing fetch() calls (6 total):
+
 - fe/services/api/client.ts — Core apiClient with GET/POST/PUT/PATCH/DELETE (5 fetch calls)
 - fe/services/api/promotions.ts — Raw fetch for JSON + text/HTML endpoints (2 fetch calls)
 - fe/services/api/uploads.ts — Raw fetch for reading file blob + S3 PUT upload (2 fetch calls)
 - fe/contexts/AuthContext.tsx — Auth0 /userinfo (2 calls) + /oauth/token (1 call)
 - fe/app/profile/edit.tsx — Mapbox reverse geocoding (1 fetch call)
 - fe/components/ui/CityPicker.tsx — Mapbox forward geocoding (1 fetch call)
-</context>
+  </context>
 
 <tasks>
 
@@ -119,6 +120,7 @@ Files containing fetch() calls (6 total):
        - Do NOT remove the `Content-Type: application/json` header from `getAuthHeaders` — axios sets it automatically for POST/PUT/PATCH but keeping it explicit is fine and harmless.
 
     3. Ensure all exports remain identical: `apiClient`, `ApiError`, `setTokenGetter`, `clearTokenGetter`.
+
   </action>
   <verify>
     Run `cd c:\Users\Anton\Develop\Personal\how-are-you\fe && npx tsc --noEmit` to verify no TypeScript errors.
@@ -193,6 +195,7 @@ Files containing fetch() calls (6 total):
            });
          }
          ```
+
   </action>
   <verify>
     Run `cd c:\Users\Anton\Develop\Personal\how-are-you\fe && npx tsc --noEmit` to verify no TypeScript errors.
@@ -267,7 +270,7 @@ Files containing fetch() calls (6 total):
            latitude: latitude.toString(),
            types: "place",
            limit: "1",
-           access_token: MAPBOX_TOKEN ?? "",
+           access_token: MAPBOX_PUBLIC_TOKEN ?? "",
          }});
          const data = res.data;
          ```
@@ -283,12 +286,13 @@ Files containing fetch() calls (6 total):
              types: "place",
              limit: "5",
              language: "en",
-             access_token: MAPBOX_TOKEN ?? "",
+             access_token: MAPBOX_PUBLIC_TOKEN ?? "",
            },
          });
          const data = res.data;
          ```
          Remove the `URLSearchParams` construction. Rest of the logic stays the same.
+
   </action>
   <verify>
     Run `cd c:\Users\Anton\Develop\Personal\how-are-you\fe && npx tsc --noEmit` to verify no TypeScript errors.
@@ -310,6 +314,7 @@ Final verification across the entire frontend:
 </verification>
 
 <success_criteria>
+
 - axios is installed as a dependency in fe/package.json
 - Zero `fetch()` calls remain in any .ts/.tsx file under fe/ (excluding node_modules)
 - apiClient preserves identical public API (get/post/put/patch/delete methods with same signatures)
@@ -317,7 +322,7 @@ Final verification across the entire frontend:
 - HTML content endpoint (promotions getContent) returns string, not parsed JSON
 - S3 upload in uploads.ts works with blob via axios
 - TypeScript compiles cleanly with no errors
-</success_criteria>
+  </success_criteria>
 
 <output>
 After completion, create `.planning/quick/3-replace-fetch-with-axios-in-the-frontend/3-SUMMARY.md`
