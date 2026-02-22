@@ -42,6 +42,7 @@ export function useCommunity(
 
   const usersRef = useRef(users);
   usersRef.current = users;
+  const isInitialFetchRef = useRef(true);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState<string | undefined>();
@@ -110,7 +111,10 @@ export function useCommunity(
   useEffect(() => {
     if (enabled) {
       const hasExisting = usersRef.current.length > 0;
-      fetchUsers(1, false, hasExisting);
+      if (hasExisting) setIsRefreshing(true);
+      fetchUsers(1, false, hasExisting).finally(() => {
+        setIsRefreshing(false);
+      });
     }
   }, [enabled, fetchUsers]);
 
