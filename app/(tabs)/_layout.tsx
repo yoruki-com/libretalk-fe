@@ -1,7 +1,10 @@
 import { BottomNavigation } from "@/components/ui/BottomNavigation";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { Tabs } from "expo-router";
 
 export default function TabLayout() {
+  useOnlineStatus();
+
   return (
     <Tabs
       screenOptions={{
