@@ -3,13 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
@@ -43,7 +37,7 @@ export default function LoginScreen() {
   return (
     <View className="flex-1 bg-white">
       {/* Background with Gradient */}
-      <View className="absolute left-0 right-0 top-0 h-[60%]">
+      <View className="absolute left-0 right-0 top-0 h-[80%]">
         <LinearGradient
           colors={["#014AF1", "#4B7BF5", "#A8C4F5"]}
           className="flex-1 items-center justify-center"
@@ -78,13 +72,6 @@ export default function LoginScreen() {
               </Text>
             )}
           </Pressable>
-
-          {/* Divider */}
-          <View className="my-2 flex-row items-center gap-4">
-            <View className="h-px flex-1 bg-gray-200" />
-            <Text className="text-sm text-gray-500">{t("common.or")}</Text>
-            <View className="h-px flex-1 bg-gray-200" />
-          </View>
 
           {/* Sign In (secondary/outline) */}
           <Pressable
