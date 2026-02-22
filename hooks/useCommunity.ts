@@ -111,7 +111,9 @@ export function useCommunity(
   useEffect(() => {
     if (enabled) {
       const hasExisting = usersRef.current.length > 0;
-      if (hasExisting) setIsRefreshing(true);
+      const isInitial = isInitialFetchRef.current;
+      isInitialFetchRef.current = false;
+      if (!isInitial) setIsRefreshing(true);
       fetchUsers(1, false, hasExisting).finally(() => {
         setIsRefreshing(false);
       });
