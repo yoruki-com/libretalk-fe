@@ -50,14 +50,19 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
 
       try {
         const params: VibesFilterParams = { page, pageSize: 10 };
-        if (category && category !== "all") {
+        if (category === "recent") {
+          params.sortBy = "createdAt";
+          params.sortOrder = "desc";
+        } else if (category && category !== "all" && category !== "following") {
           params.category = category;
         }
         if (search) {
           params.search = search;
         }
 
-        const response = await vibesApi.getAll(params);
+        const response = category === "following"
+          ? await vibesApi.getFollowingFeed({ page, pageSize: 10, sortBy: "createdAt", sortOrder: "desc" })
+          : await vibesApi.getAll(params);
 
         if (append) {
           setVibes((prev) => [...prev, ...response.data]);
@@ -133,6 +138,12 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
       setError(err instanceof Error ? err : new Error("Failed to toggle like"));
     }
   }, [vibes, userPublicId]);
+
+  // Clear list when category changes so the loading spinner shows (fresh start)
+  useEffect(() => {
+    setVibes([]);
+    setPagination(null);
+  }, [category]);
 
   // Refetch when category or search changes
   useEffect(() => {

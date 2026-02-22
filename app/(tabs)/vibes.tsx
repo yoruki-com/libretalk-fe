@@ -36,7 +36,6 @@ export default function VibesScreen() {
 
   const feedFilters = [
     { id: "recent", emoji: "\uD83D\uDD50", label: t("vibes.filterRecent") },
-    { id: "for-you", emoji: "\u2728", label: t("vibes.filterForYou") },
     { id: "nearby", emoji: "\uD83D\uDCCD", label: t("vibes.filterNearby") },
     {
       id: "following",

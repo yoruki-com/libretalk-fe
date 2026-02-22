@@ -44,6 +44,11 @@ export const vibesApi = {
     return apiClient.get("/posts", params);
   },
 
+  // Get posts from followed users
+  async getFollowingFeed(params?: PaginationParams): Promise<PaginatedResponse<Vibe>> {
+    return apiClient.get("/posts/following", params);
+  },
+
   // Get posts by category
   async getByCategory(
     category: string,
