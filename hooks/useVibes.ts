@@ -49,7 +49,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
       setError(null);
 
       try {
-        const params: VibesFilterParams = { page };
+        const params: VibesFilterParams = { page, pageSize: 10 };
         if (category && category !== "all") {
           params.category = category;
         }

@@ -26,7 +26,7 @@ import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -34,12 +34,14 @@ import {
   FlatList,
   Image,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function EditProfileScreen() {
@@ -58,6 +60,8 @@ export default function EditProfileScreen() {
   const [jobTitle, setJobTitle] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
   const [city, setCity] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Language editing state
@@ -101,6 +105,9 @@ export default function EditProfileScreen() {
       setJobTitle(profile.jobTitle ?? "");
       setGender(profile.gender);
       setCity(profile.city ?? "");
+      if (profile.dateOfBirth) {
+        setDateOfBirth(new Date(profile.dateOfBirth));
+      }
 
       // Initialize language state from profile
       const native = profile.languages?.find((l) => !l.isLearning);
@@ -197,6 +204,16 @@ export default function EditProfileScreen() {
     }
   };
 
+  const handleDateChange = useCallback(
+    (event: { type: string; nativeEvent: { timestamp: number } }, selectedDate?: Date) => {
+      if (Platform.OS === "android") setShowDatePicker(false);
+      if (event.type === "dismissed") return;
+      const date = selectedDate ?? new Date(event.nativeEvent.timestamp);
+      setDateOfBirth(date);
+    },
+    [],
+  );
+
   const handleSave = async () => {
     if (!profile) return;
     setIsSaving(true);
@@ -215,6 +232,7 @@ export default function EditProfileScreen() {
         gender: gender ?? null,
         jobTitle: jobTitle.trim() || null,
         city: city.trim() || null,
+        dateOfBirth: dateOfBirth ? dateOfBirth.toISOString() : undefined,
         ...(countryId !== null && { countryId }),
         ...(avatarUrl !== undefined && { avatarUrl }),
       };
@@ -284,8 +302,8 @@ export default function EditProfileScreen() {
   ];
   const [genderOpen, setGenderOpen] = useState(false);
 
-  const zodiacSign = profile?.dateOfBirth
-    ? getZodiacSign(profile.dateOfBirth, t)
+  const zodiacSign = dateOfBirth
+    ? getZodiacSign(dateOfBirth.toISOString(), t)
     : null;
 
   if (!profile) {
@@ -702,14 +720,36 @@ export default function EditProfileScreen() {
           </FieldRow>
           <Divider theme={theme} />
           <FieldRow label={t("editProfile.dateOfBirth")} theme={theme}>
-            <Text
-              className="font-sans text-[15px]"
-              style={{ color: theme.text }}
+            <Pressable
+              onPress={() => setShowDatePicker(true)}
+              className="flex-row items-center justify-between active:opacity-70"
             >
-              {profile.dateOfBirth
-                ? new Date(profile.dateOfBirth).toLocaleDateString()
-                : "—"}
-            </Text>
+              <Text
+                className="font-sans text-[15px]"
+                style={{ color: dateOfBirth ? theme.text : theme.textTertiary }}
+              >
+                {dateOfBirth
+                  ? dateOfBirth.toLocaleDateString()
+                  : "—"}
+              </Text>
+              <Ionicons
+                name="calendar-outline"
+                size={18}
+                color={theme.textTertiary}
+              />
+            </Pressable>
+            {(showDatePicker || Platform.OS === "ios") && (
+              <View style={{ marginTop: Platform.OS === "ios" ? 8 : 0 }}>
+                <DateTimePicker
+                  value={dateOfBirth ?? new Date(2000, 0, 1)}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={handleDateChange}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1920, 0, 1)}
+                />
+              </View>
+            )}
           </FieldRow>
           <Divider theme={theme} />
           <FieldRow label={t("editProfile.zodiac")} theme={theme}>
