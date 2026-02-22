@@ -47,31 +47,6 @@ export default function OnboardingStep1() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialUsernameRef = useRef<string>("");
 
-  useEffect(() => {
-    if (profile) {
-      const profileUsername = profile.username ?? "";
-      setUsername(profileUsername);
-      initialUsernameRef.current = profileUsername;
-
-      // Mark existing username as available immediately
-      if (profileUsername.length >= USERNAME_MIN && USERNAME_REGEX.test(profileUsername)) {
-        setUsernameStatus("available");
-      }
-
-      // Pre-fill displayName from Google/Logto if the profile name is auto-generated
-      if (!profile.displayName || profile.displayName === profile.username) {
-        setDisplayName(authUser?.name ?? profile.displayName ?? "");
-      } else {
-        setDisplayName(profile.displayName ?? "");
-      }
-
-      setCity(profile.city ?? "");
-      if (profile.dateOfBirth) {
-        setDateOfBirth(new Date(profile.dateOfBirth));
-      }
-    }
-  }, [profile, authUser?.name]);
-
   const checkUsernameAvailability = useCallback(async (value: string) => {
     if (value.length < USERNAME_MIN || !USERNAME_REGEX.test(value)) {
       setUsernameStatus("invalid");
@@ -87,6 +62,31 @@ export default function OnboardingStep1() {
       setUsernameStatus("idle");
     }
   }, []);
+
+  useEffect(() => {
+    if (profile) {
+      const profileUsername = profile.username ?? "";
+      setUsername(profileUsername);
+      initialUsernameRef.current = profileUsername;
+
+      // Verify existing username with backend
+      if (profileUsername.length >= USERNAME_MIN && USERNAME_REGEX.test(profileUsername)) {
+        checkUsernameAvailability(profileUsername);
+      }
+
+      // Pre-fill displayName from Google/Logto if the profile name is auto-generated
+      if (!profile.displayName || profile.displayName === profile.username) {
+        setDisplayName(authUser?.name ?? profile.displayName ?? "");
+      } else {
+        setDisplayName(profile.displayName ?? "");
+      }
+
+      setCity(profile.city ?? "");
+      if (profile.dateOfBirth) {
+        setDateOfBirth(new Date(profile.dateOfBirth));
+      }
+    }
+  }, [profile, authUser?.name, checkUsernameAvailability]);
 
   const handleUsernameChange = useCallback(
     (value: string) => {
