@@ -1,11 +1,36 @@
 import { useState, useEffect, useCallback } from "react";
 import { vibesApi, type Vibe, type VibesFilterParams } from "@/services/api/vibes";
 import { likesApi } from "@/services/api/likes";
+import type { PaginatedResponse } from "@/services/api/types";
+
+// Module-level cache for geocoding results (persists across re-renders, resets on reload)
+const geocodeResultCache = new Map<string, { lat: number; lng: number } | null>();
+
+async function geocodeCityMapbox(city: string): Promise<{ lat: number; lng: number } | null> {
+  if (geocodeResultCache.has(city)) return geocodeResultCache.get(city)!;
+  try {
+    const token = process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN;
+    if (!token) return null;
+    const url = `https://api.mapbox.com/geocode/v6/forward?q=${encodeURIComponent(city)}&limit=1&access_token=${token}`;
+    const res = await fetch(url);
+    if (!res.ok) { geocodeResultCache.set(city, null); return null; }
+    const data = await res.json() as { features?: { geometry?: { coordinates?: [number, number] } }[] };
+    const coords = data.features?.[0]?.geometry?.coordinates;
+    if (!coords) { geocodeResultCache.set(city, null); return null; }
+    const result = { lat: coords[1], lng: coords[0] };
+    geocodeResultCache.set(city, result);
+    return result;
+  } catch {
+    geocodeResultCache.set(city, null);
+    return null;
+  }
+}
 
 interface UseVibesOptions {
   category?: string;
   search?: string;
   userPublicId?: string;
+  userCity?: string;
   autoFetch?: boolean;
   enabled?: boolean;
 }
@@ -31,7 +56,7 @@ interface UseVibesResult {
 }
 
 export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
-  const { category: initialCategory, search: initialSearch, userPublicId, autoFetch = true, enabled = true } = options;
+  const { category: initialCategory, search: initialSearch, userPublicId, userCity: initialUserCity, autoFetch = true, enabled = true } = options;
 
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +66,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
   const [currentPage, setCurrentPage] = useState(1);
   const [category, setCategory] = useState(initialCategory);
   const [search, setSearch] = useState(initialSearch);
+  const [userCity] = useState(initialUserCity);
 
   const fetchVibes = useCallback(
     async (page: number, append = false) => {
@@ -49,20 +75,40 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
       setError(null);
 
       try {
-        const params: VibesFilterParams = { page, pageSize: 10 };
-        if (category === "recent") {
-          params.sortBy = "createdAt";
-          params.sortOrder = "desc";
-        } else if (category && category !== "all" && category !== "following") {
-          params.category = category;
-        }
-        if (search) {
-          params.search = search;
-        }
+        let response: PaginatedResponse<Vibe>;
 
-        const response = category === "following"
-          ? await vibesApi.getFollowingFeed({ page, pageSize: 10, sortBy: "createdAt", sortOrder: "desc" })
-          : await vibesApi.getAll(params);
+        if (category === "following") {
+          response = await vibesApi.getFollowingFeed({ page, pageSize: 10, sortBy: "createdAt", sortOrder: "desc" });
+        } else if (category === "nearby") {
+          if (userCity) {
+            const coords = await geocodeCityMapbox(userCity);
+            if (coords) {
+              response = await vibesApi.getNearby(coords.lat, coords.lng, { page, pageSize: 10 });
+            } else {
+              // Geocoding failed — show empty, no crash
+              if (!append) setVibes([]);
+              setPagination(null);
+              setCurrentPage(page);
+              return;
+            }
+          } else {
+            // No city on profile — show empty
+            if (!append) setVibes([]);
+            setPagination(null);
+            setCurrentPage(page);
+            return;
+          }
+        } else {
+          const params: VibesFilterParams = { page, pageSize: 10 };
+          if (category === "recent") {
+            params.sortBy = "createdAt";
+            params.sortOrder = "desc";
+          } else if (category && category !== "all") {
+            params.category = category;
+          }
+          if (search) params.search = search;
+          response = await vibesApi.getAll(params);
+        }
 
         if (append) {
           setVibes((prev) => [...prev, ...response.data]);
@@ -78,7 +124,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
         else setIsLoading(false);
       }
     },
-    [category, search]
+    [category, search, userCity]
   );
 
   const refresh = useCallback(async () => {

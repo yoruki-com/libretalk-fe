@@ -85,7 +85,10 @@ export const vibesApi = {
     return apiClient.delete(`/posts/${publicId}`);
   },
 
-
+  // Get nearby posts (lat/lng from Mapbox geocoding of user's city)
+  async getNearby(lat: number, lng: number, params?: PaginationParams): Promise<PaginatedResponse<Vibe>> {
+    return apiClient.get("/posts/nearby", { ...params, lat, lng });
+  },
 };
 
 // Comments API - now a separate module at /comments
