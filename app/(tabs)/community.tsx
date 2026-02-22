@@ -1,17 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { View, Text, ActivityIndicator, FlatList } from "react-native";
-import { useRouter } from "expo-router";
+import { CategoryChips, CommunityCard } from "@/components/ui";
 import { Routes } from "@/constants/routes";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
-import { SearchBar, CategoryChips, CommunityCard } from "@/components/ui";
-import { useCommunity } from "@/hooks/useCommunity";
-import { useTheme } from "@/contexts/ThemeContext";
+import { getRandomHelloSticker } from "@/constants/stickers";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useCommunity } from "@/hooks/useCommunity";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { conversationsApi } from "@/services/api";
-import { getRandomHelloSticker } from "@/constants/stickers";
 import type { Conversation, UserMe } from "@/services/api/types";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
@@ -78,7 +78,7 @@ export default function CommunityScreen() {
         params: { id: conversationPublicId },
       } as never);
     },
-    [router]
+    [router],
   );
 
   const handleWavePress = useCallback(
@@ -103,7 +103,7 @@ export default function CommunityScreen() {
         console.error("Failed to wave:", err);
       }
     },
-    [profile, router, fetchConversations]
+    [profile, router, fetchConversations],
   );
 
   const handleFilterChange = (filterId: string) => {
@@ -147,7 +147,7 @@ export default function CommunityScreen() {
         />
       );
     },
-    [existingChatMap, router, handleWavePress, handleChatPress]
+    [existingChatMap, router, handleWavePress, handleChatPress],
   );
 
   const ListHeader = (
@@ -160,16 +160,6 @@ export default function CommunityScreen() {
         >
           {t("community.title")}
         </Text>
-      </View>
-
-      {/* Search */}
-      <View className="px-4 pb-4">
-        <SearchBar
-          placeholder={t("community.searchPlaceholder")}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onFilterPress={() => {}}
-        />
       </View>
 
       {/* Filters */}
@@ -191,10 +181,19 @@ export default function CommunityScreen() {
       {/* Error State */}
       {error && users.length === 0 && (
         <View className="items-center justify-center px-4 py-20">
-          <Text style={{ color: theme.error, textAlign: "center", marginBottom: 16 }}>
+          <Text
+            style={{
+              color: theme.error,
+              textAlign: "center",
+              marginBottom: 16,
+            }}
+          >
             {error.message}
           </Text>
-          <Text style={{ color: theme.primary, fontWeight: "600" }} onPress={refresh}>
+          <Text
+            style={{ color: theme.primary, fontWeight: "600" }}
+            onPress={refresh}
+          >
             {t("common.tryAgain")}
           </Text>
         </View>
@@ -209,7 +208,11 @@ export default function CommunityScreen() {
     >
       <FlatList
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 16, gap: 16 }}
+        contentContainerStyle={{
+          paddingBottom: 20,
+          paddingHorizontal: 16,
+          gap: 16,
+        }}
         data={users}
         keyExtractor={(item) => item.publicId}
         renderItem={renderItem}

@@ -1,25 +1,23 @@
-import { ArchiveRow } from "@/components/ui/ArchiveRow";
 import { ChatCard } from "@/components/ui/ChatCard";
 import { Header } from "@/components/ui/Header";
-import { SearchInput } from "@/components/ui/SearchInput";
+import { Routes } from "@/constants/routes";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useConversations } from "@/hooks/useConversations";
-import { useRouter } from "expo-router";
-import { Routes } from "@/constants/routes";
-import { formatChatListTime } from "@/utils/time";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import type { Conversation } from "@/services/api/types";
 import {
-  getConversationDisplayName,
   getConversationAvatar,
+  getConversationDisplayName,
   isConversationOnline,
 } from "@/utils/conversation";
+import { formatChatListTime } from "@/utils/time";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Conversation } from "@/services/api/types";
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
@@ -30,10 +28,11 @@ export default function ChatListScreen() {
   const { profile } = useCurrentUser(isAuthenticated && hasAccessToken);
   const yesterdayLabel = t("chat.yesterday");
 
-  const { conversations, isLoading, isLoadingMore, error, refresh, loadMore } = useConversations({
-    enabled: hasAccessToken && !!profile?.publicId,
-    userPublicId: profile?.publicId,
-  });
+  const { conversations, isLoading, isLoadingMore, error, refresh, loadMore } =
+    useConversations({
+      enabled: hasAccessToken && !!profile?.publicId,
+      userPublicId: profile?.publicId,
+    });
 
   // Refresh conversations when tab regains focus (e.g. coming back from chat detail)
   const isFirstFocus = useRef(true);
@@ -46,7 +45,7 @@ export default function ChatListScreen() {
       if (hasAccessToken && profile?.publicId) {
         refresh();
       }
-    }, [hasAccessToken, profile?.publicId, refresh])
+    }, [hasAccessToken, profile?.publicId, refresh]),
   );
 
   const handleChatPress = (chatId: string) => {
@@ -62,13 +61,19 @@ export default function ChatListScreen() {
       if (!profile) return null;
       return (
         <ChatCard
-          name={getConversationDisplayName(conversation, profile.publicId, t("chat.groupChat"))}
+          name={getConversationDisplayName(
+            conversation,
+            profile.publicId,
+            t("chat.groupChat"),
+          )}
           message={
             conversation.lastMessage?.type === "STICKER"
               ? t("chat.sticker")
               : (conversation.lastMessage?.content ?? "")
           }
-          time={formatChatListTime(conversation.lastMessageAt, { yesterday: yesterdayLabel })}
+          time={formatChatListTime(conversation.lastMessageAt, {
+            yesterday: yesterdayLabel,
+          })}
           avatar={getConversationAvatar(conversation, profile.publicId)}
           unreadCount={0}
           isMyTurn={
@@ -86,7 +91,7 @@ export default function ChatListScreen() {
         />
       );
     },
-    [profile, t, yesterdayLabel, handleChatPress]
+    [profile, t, yesterdayLabel, handleChatPress],
   );
 
   return (
@@ -97,7 +102,6 @@ export default function ChatListScreen() {
       {/* Header Section */}
       <View className="gap-6 px-4">
         <Header />
-        <SearchInput />
       </View>
 
       {/* Loading State (initial) */}
@@ -127,7 +131,6 @@ export default function ChatListScreen() {
           refreshing={isLoading && conversations.length === 0}
           onEndReached={loadMore}
           onEndReachedThreshold={0.1}
-          ListHeaderComponent={<ArchiveRow count={0} onPress={handleArchivePress} />}
           ListFooterComponent={
             isLoadingMore ? (
               <View className="py-4 items-center">
@@ -138,7 +141,9 @@ export default function ChatListScreen() {
           ListEmptyComponent={
             !isLoading ? (
               <View className="items-center justify-center py-8">
-                <Text style={{ color: theme.textSecondary, textAlign: "center" }}>
+                <Text
+                  style={{ color: theme.textSecondary, textAlign: "center" }}
+                >
                   {t("chat.noConversations")}
                 </Text>
               </View>

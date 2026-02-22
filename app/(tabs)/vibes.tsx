@@ -1,22 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, ActivityIndicator, Alert, FlatList } from "react-native";
-import { useRouter } from "expo-router";
+import { CategoryChips, LocationHeader, VibeCard } from "@/components/ui";
 import { Routes } from "@/constants/routes";
-import { useFocusEffect } from "@react-navigation/native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
-import {
-  LocationHeader,
-  SearchBar,
-  CategoryChips,
-  VibeCard,
-} from "@/components/ui";
-import { getLocales } from "expo-localization";
-import { useVibes } from "@/hooks/useVibes";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useVibes } from "@/hooks/useVibes";
 import type { Vibe } from "@/services/api/vibes";
+import { useFocusEffect } from "@react-navigation/native";
+import { getLocales } from "expo-localization";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ActivityIndicator, Alert, FlatList, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const deviceCountryCode = getLocales()[0]?.regionCode ?? null;
 
@@ -43,7 +38,11 @@ export default function VibesScreen() {
     { id: "recent", emoji: "\uD83D\uDD50", label: t("vibes.filterRecent") },
     { id: "for-you", emoji: "\u2728", label: t("vibes.filterForYou") },
     { id: "nearby", emoji: "\uD83D\uDCCD", label: t("vibes.filterNearby") },
-    { id: "following", emoji: "\uD83D\uDC65", label: t("vibes.filterFollowing") },
+    {
+      id: "following",
+      emoji: "\uD83D\uDC65",
+      label: t("vibes.filterFollowing"),
+    },
   ];
 
   // Refresh vibes when tab regains focus (sync likes from other pages)
@@ -57,7 +56,7 @@ export default function VibesScreen() {
       if (hasAccessToken) {
         refresh();
       }
-    }, [hasAccessToken, refresh])
+    }, [hasAccessToken, refresh]),
   );
 
   const handleCommentPress = (postId: string) => {
@@ -102,7 +101,10 @@ export default function VibesScreen() {
           onLikePress={() => toggleLike(vibe.publicId)}
           onPress={() => {}}
           onAuthorPress={() =>
-            router.push({ pathname: Routes.PROFILE, params: { id: vibe.author.publicId } })
+            router.push({
+              pathname: Routes.PROFILE,
+              params: { id: vibe.author.publicId },
+            })
           }
           onCommentPress={() => handleCommentPress(vibe.publicId)}
           onReportPress={() => {
@@ -111,7 +113,7 @@ export default function VibesScreen() {
         />
       </View>
     ),
-    [toggleLike, router, t]
+    [toggleLike, router, t],
   );
 
   const ListHeader = (
@@ -127,19 +129,12 @@ export default function VibesScreen() {
           onNotificationPress={() => {}}
           onAvatarPress={() => {
             if (profile?.publicId) {
-              router.push({ pathname: Routes.PROFILE, params: { id: profile.publicId } });
+              router.push({
+                pathname: Routes.PROFILE,
+                params: { id: profile.publicId },
+              });
             }
           }}
-        />
-      </View>
-
-      {/* Search */}
-      <View className="px-4 pb-4">
-        <SearchBar
-          placeholder={t("vibes.searchPlaceholder")}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onFilterPress={() => {}}
         />
       </View>
 
@@ -162,10 +157,19 @@ export default function VibesScreen() {
       {/* Error State */}
       {error && vibes.length === 0 && (
         <View className="items-center justify-center px-4 py-20">
-          <Text style={{ color: theme.error, textAlign: "center", marginBottom: 16 }}>
+          <Text
+            style={{
+              color: theme.error,
+              textAlign: "center",
+              marginBottom: 16,
+            }}
+          >
             {error.message}
           </Text>
-          <Text style={{ color: theme.primary, fontWeight: "600" }} onPress={refresh}>
+          <Text
+            style={{ color: theme.primary, fontWeight: "600" }}
+            onPress={refresh}
+          >
             {t("common.tryAgain")}
           </Text>
         </View>
