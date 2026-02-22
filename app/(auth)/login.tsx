@@ -1,34 +1,39 @@
 import Logo from "@/assets/images/logo.svg";
-import { AuthButton } from "@/components/ui/AuthButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const { signInWithGoogle, signInWithEmail } = useAuth();
+  const { performSignIn, performSignUp } = useAuth();
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading("google");
+  const handleSignIn = async () => {
+    setIsLoading("signIn");
     try {
-      await signInWithGoogle();
-    } catch (error) {
-      Alert.alert(t("common.error"), t("auth.errorGoogle"));
+      await performSignIn();
+    } catch {
+      Alert.alert(t("common.error"), t("auth.errorEmail"));
     } finally {
       setIsLoading(null);
     }
   };
 
-  const handleEmailSignIn = async () => {
-    setIsLoading("email");
+  const handleSignUp = async () => {
+    setIsLoading("signUp");
     try {
-      await signInWithEmail();
-    } catch (error) {
+      await performSignUp();
+    } catch {
       Alert.alert(t("common.error"), t("auth.errorEmail"));
     } finally {
       setIsLoading(null);
@@ -54,18 +59,25 @@ export default function LoginScreen() {
       >
         {/* Headline */}
         <Text className="mb-8 text-center font-sans-semibold text-heading-4 text-dark">
-          {t("auth.loginHeadline")}
+          {t("auth.getStartedHeadline")}
         </Text>
 
         {/* Buttons */}
         <View className="gap-4">
-          {/* Google Sign-In */}
-          <AuthButton
-            variant="google"
-            onPress={handleGoogleSignIn}
-            loading={isLoading === "google"}
+          {/* Sign Up (primary) */}
+          <Pressable
+            onPress={handleSignUp}
             disabled={isLoading !== null}
-          />
+            className={`flex-row items-center justify-center rounded-button bg-primary px-6 py-4 active:opacity-80 ${isLoading !== null ? "opacity-50" : ""}`}
+          >
+            {isLoading === "signUp" ? (
+              <ActivityIndicator size="small" color="#F5F5F5" />
+            ) : (
+              <Text className="font-sans-semibold text-link-normal text-light">
+                {t("auth.signUp")}
+              </Text>
+            )}
+          </Pressable>
 
           {/* Divider */}
           <View className="my-2 flex-row items-center gap-4">
@@ -74,13 +86,20 @@ export default function LoginScreen() {
             <View className="h-px flex-1 bg-gray-200" />
           </View>
 
-          {/* Email Sign-In */}
-          <AuthButton
-            variant="email"
-            onPress={handleEmailSignIn}
-            loading={isLoading === "email"}
+          {/* Sign In (secondary/outline) */}
+          <Pressable
+            onPress={handleSignIn}
             disabled={isLoading !== null}
-          />
+            className={`flex-row items-center justify-center rounded-button border-2 border-primary bg-white px-6 py-4 active:opacity-80 ${isLoading !== null ? "opacity-50" : ""}`}
+          >
+            {isLoading === "signIn" ? (
+              <ActivityIndicator size="small" color="#014AF1" />
+            ) : (
+              <Text className="font-sans-semibold text-link-normal text-primary">
+                {t("auth.login")}
+              </Text>
+            )}
+          </Pressable>
 
           {/* Terms */}
           <Text className="mt-4 text-center text-body-small text-dark opacity-60">

@@ -29,7 +29,7 @@ export default function CommunityScreen() {
     setFilter,
     refresh,
     loadMore,
-  } = useCommunity({ enabled: hasAccessToken });
+  } = useCommunity({ enabled: hasAccessToken, hasLocation: !!(profile?.latitude && profile?.longitude) });
 
   const communityFilters = [
     { id: "all", emoji: "\uD83C\uDF0D", label: t("community.filterAll") },

@@ -4,6 +4,7 @@ import type { UserMe, PaginationParams } from "@/services/api";
 
 interface UseCommunityOptions {
   enabled?: boolean;
+  hasLocation?: boolean;
 }
 
 interface PaginationMeta {
@@ -30,7 +31,7 @@ interface UseCommunityResult {
 export function useCommunity(
   options: UseCommunityOptions = {}
 ): UseCommunityResult {
-  const { enabled = true } = options;
+  const { enabled = true, hasLocation = false } = options;
 
   const [users, setUsers] = useState<UserMe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,10 +52,21 @@ export function useCommunity(
         const params: PaginationParams = { page, pageSize: 20, sortBy: "lastSeenAt", sortOrder: "desc" };
         if (search) params.search = search;
 
-        const response =
-          filter === "online"
-            ? await usersApi.getOnline(params)
-            : await usersApi.getActive(params);
+        let response;
+        if (filter === "nearby") {
+          if (hasLocation) {
+            response = await usersApi.getNearby(params);
+          } else {
+            if (!append) setUsers([]);
+            setPagination(null);
+            setCurrentPage(page);
+            return;
+          }
+        } else if (filter === "online") {
+          response = await usersApi.getOnline(params);
+        } else {
+          response = await usersApi.getActive(params);
+        }
 
         if (append) {
           setUsers((prev) => [...prev, ...response.data]);
@@ -72,7 +84,7 @@ export function useCommunity(
         else setIsLoading(false);
       }
     },
-    [search, filter]
+    [search, filter, hasLocation]
   );
 
   const refresh = useCallback(async () => {

@@ -33,6 +33,11 @@ export const usersApi = {
     return apiClient.get("/users/online", params);
   },
 
+  // Get nearby users — paginated (uses authenticated user's stored coordinates)
+  async getNearby(params?: PaginationParams): Promise<PaginatedResponse<UserMe>> {
+    return apiClient.get("/users/nearby", params);
+  },
+
   // Get user by ID
   async getById(publicId: string, viewerPublicId?: string): Promise<ApiResponse<User>> {
     return apiClient.get(`/users/${publicId}`, viewerPublicId ? { viewerPublicId } : undefined);

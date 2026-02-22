@@ -46,8 +46,8 @@ interface AuthContextType {
   hasAccessToken: boolean;
   isLoading: boolean;
   accessToken: string | null;
-  signInWithGoogle: () => Promise<void>;
-  signInWithEmail: () => Promise<void>;
+  performSignIn: () => Promise<void>;
+  performSignUp: () => Promise<void>;
   signOut: () => Promise<void>;
   getToken: () => Promise<string | null>;
 }
@@ -243,52 +243,49 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
     return () => clearTokenGetter();
   }, [getToken]);
 
-  // ── Sign-In ─────────────────────────────────────────────
+  // ── Sign-In / Sign-Up ──────────────────────────────────
 
-  const performInteractiveSignIn = useCallback(async () => {
-    // NOTE: Do NOT pass `prompt: Prompt.Login` — Logto explicitly skips
-    // refresh-token issuance for `prompt=login`. The SDK default
-    // (`Prompt.Consent`) correctly requests consent + offline_access.
-    await signIn({ redirectUri: REDIRECT_URI });
-  }, [signIn]);
+  const performInteractiveSignIn = useCallback(
+    async (firstScreen?: "sign_in" | "register") => {
+      // NOTE: Do NOT pass `prompt: Prompt.Login` — Logto explicitly skips
+      // refresh-token issuance for `prompt=login`. The SDK default
+      // (`Prompt.Consent`) correctly requests consent + offline_access.
+      await signIn({ redirectUri: REDIRECT_URI, firstScreen });
+    },
+    [signIn],
+  );
 
-  const signInWithEmail = useCallback(async () => {
-    try {
-      await performInteractiveSignIn();
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      const message = err.message ?? String(error);
-      if (
-        message.includes("user_cancelled") ||
-        message.includes("cancelled") ||
-        message.includes("dismissed")
-      ) {
-        return;
+  const handleAuthFlow = useCallback(
+    async (firstScreen?: "sign_in" | "register") => {
+      try {
+        await performInteractiveSignIn(firstScreen);
+      } catch (error: unknown) {
+        const err = error as { message?: string };
+        const message = err.message ?? String(error);
+        if (
+          message.includes("user_cancelled") ||
+          message.includes("cancelled") ||
+          message.includes("dismissed")
+        ) {
+          return;
+        }
+        console.warn("Auth flow error:", message);
+        await clearBrokenSession();
+        throw error;
       }
-      console.warn("Sign-In error:", message);
-      await clearBrokenSession();
-      throw error;
-    }
-  }, [performInteractiveSignIn, clearBrokenSession]);
+    },
+    [performInteractiveSignIn, clearBrokenSession],
+  );
 
-  const signInWithGoogle = useCallback(async () => {
-    try {
-      await performInteractiveSignIn();
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      const message = err.message ?? String(error);
-      if (
-        message.includes("user_cancelled") ||
-        message.includes("cancelled") ||
-        message.includes("dismissed")
-      ) {
-        return;
-      }
-      console.warn("Google Sign-In error:", message);
-      await clearBrokenSession();
-      throw error;
-    }
-  }, [performInteractiveSignIn, clearBrokenSession]);
+  const performSignIn = useCallback(
+    () => handleAuthFlow("sign_in"),
+    [handleAuthFlow],
+  );
+
+  const performSignUp = useCallback(
+    () => handleAuthFlow("register"),
+    [handleAuthFlow],
+  );
 
   // ── Sign-Out ────────────────────────────────────────────
 
@@ -351,8 +348,8 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
         // initSession starting, which caused premature navigation).
         isLoading: !isInitialized || isLoading || (isAuthenticated && !accessToken),
         accessToken,
-        signInWithGoogle,
-        signInWithEmail,
+        performSignIn,
+        performSignUp,
         signOut,
         getToken,
       }}
