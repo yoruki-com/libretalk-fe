@@ -32,7 +32,7 @@ export default function VibesScreen() {
     setSearch,
     refresh,
     loadMore,
-  } = useVibes({ enabled: hasAccessToken, userPublicId: profile?.publicId, userCity: profile?.city ?? undefined });
+  } = useVibes({ enabled: hasAccessToken, userPublicId: profile?.publicId, hasLocation: !!(profile?.latitude && profile?.longitude) });
 
   const feedFilters = [
     { id: "recent", emoji: "\uD83D\uDD50", label: t("vibes.filterRecent") },

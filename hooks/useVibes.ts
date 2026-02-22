@@ -2,13 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { vibesApi, type Vibe, type VibesFilterParams } from "@/services/api/vibes";
 import { likesApi } from "@/services/api/likes";
 import type { PaginatedResponse } from "@/services/api/types";
-import { geocodeCity } from "@/services/mapbox";
 
 interface UseVibesOptions {
   category?: string;
   search?: string;
   userPublicId?: string;
-  userCity?: string;
+  hasLocation?: boolean;
   autoFetch?: boolean;
   enabled?: boolean;
 }
@@ -34,7 +33,7 @@ interface UseVibesResult {
 }
 
 export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
-  const { category: initialCategory, search: initialSearch, userPublicId, userCity, autoFetch = true, enabled = true } = options;
+  const { category: initialCategory, search: initialSearch, userPublicId, hasLocation, autoFetch = true, enabled = true } = options;
 
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,19 +56,10 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
         if (category === "following") {
           response = await vibesApi.getFollowingFeed({ page, pageSize: 10, sortBy: "createdAt", sortOrder: "desc" });
         } else if (category === "nearby") {
-          if (userCity) {
-            const coords = await geocodeCity(userCity);
-            if (coords) {
-              response = await vibesApi.getNearby(coords.lat, coords.lng, { page, pageSize: 10 });
-            } else {
-              console.warn("[useVibes] Nearby: geocoding failed for city:", userCity);
-              if (!append) setVibes([]);
-              setPagination(null);
-              setCurrentPage(page);
-              return;
-            }
+          if (hasLocation) {
+            response = await vibesApi.getNearby({ page, pageSize: 10 });
           } else {
-            console.warn("[useVibes] Nearby: no city on profile, userCity =", userCity);
+            console.warn("[useVibes] Nearby: no location on profile");
             if (!append) setVibes([]);
             setPagination(null);
             setCurrentPage(page);
@@ -101,7 +91,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
         else setIsLoading(false);
       }
     },
-    [category, search, userCity]
+    [category, search, hasLocation]
   );
 
   const refresh = useCallback(async () => {

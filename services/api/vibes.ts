@@ -85,9 +85,9 @@ export const vibesApi = {
     return apiClient.delete(`/posts/${publicId}`);
   },
 
-  // Get nearby posts (lat/lng from Mapbox geocoding of user's city)
-  async getNearby(lat: number, lng: number, params?: PaginationParams): Promise<PaginatedResponse<Vibe>> {
-    return apiClient.get("/posts/nearby", { ...params, lat, lng });
+  // Get nearby posts (backend reads lat/lng from authenticated user's stored profile)
+  async getNearby(params?: PaginationParams): Promise<PaginatedResponse<Vibe>> {
+    return apiClient.get("/posts/nearby", params);
   },
 };
 
