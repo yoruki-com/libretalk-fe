@@ -1,6 +1,6 @@
 import { useTheme } from "@/contexts/ThemeContext";
+import { searchCities, type CitySuggestion } from "@/services/mapbox";
 import { Ionicons } from "@expo/vector-icons";
-import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,20 +11,7 @@ import {
   View,
 } from "react-native";
 
-const MAPBOX_PUBLIC_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN;
 const DEBOUNCE_MS = 400;
-
-interface GeocodingFeature {
-  id: string;
-  properties: {
-    name: string;
-    full_address?: string;
-    context?: {
-      region?: { name: string };
-      country?: { name: string };
-    };
-  };
-}
 
 interface CityPickerProps {
   value: string;
@@ -42,12 +29,12 @@ export function CityPicker({ value, onSelect, placeholder }: CityPickerProps) {
     setQuery(value);
   }, [value]);
 
-  const [suggestions, setSuggestions] = useState<GeocodingFeature[]>([]);
+  const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const searchCities = useCallback(async (text: string) => {
+  const fetchCities = useCallback(async (text: string) => {
     if (text.trim().length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
@@ -56,20 +43,8 @@ export function CityPicker({ value, onSelect, placeholder }: CityPickerProps) {
 
     setIsLoading(true);
     try {
-      const res = await axios.get(
-        `https://api.mapbox.com/search/geocode/v6/forward`,
-        {
-          params: {
-            q: text.trim(),
-            types: "place",
-            limit: "5",
-            language: "en",
-            access_token: MAPBOX_PUBLIC_TOKEN ?? "",
-          },
-        },
-      );
-      const data = res.data;
-      setSuggestions(data.features ?? []);
+      const results = await searchCities(text);
+      setSuggestions(results);
       setShowSuggestions(true);
     } catch {
       setSuggestions([]);
@@ -81,13 +56,13 @@ export function CityPicker({ value, onSelect, placeholder }: CityPickerProps) {
   const handleChangeText = (text: string) => {
     setQuery(text);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => searchCities(text), DEBOUNCE_MS);
+    debounceRef.current = setTimeout(() => fetchCities(text), DEBOUNCE_MS);
   };
 
-  const handleSelect = (feature: GeocodingFeature) => {
-    const city = feature.properties.name;
-    const country = feature.properties.context?.country?.name;
-    const display = country ? `${city}, ${country}` : city;
+  const handleSelect = (suggestion: CitySuggestion) => {
+    const display = suggestion.country
+      ? `${suggestion.name}, ${suggestion.country}`
+      : suggestion.name;
     setQuery(display);
     setSuggestions([]);
     setShowSuggestions(false);
@@ -101,14 +76,10 @@ export function CityPicker({ value, onSelect, placeholder }: CityPickerProps) {
     onSelect("");
   };
 
-  const getSubtitle = (feature: GeocodingFeature) => {
+  const getSubtitle = (suggestion: CitySuggestion) => {
     const parts: string[] = [];
-    if (feature.properties.context?.region?.name) {
-      parts.push(feature.properties.context.region.name);
-    }
-    if (feature.properties.context?.country?.name) {
-      parts.push(feature.properties.context.country.name);
-    }
+    if (suggestion.region) parts.push(suggestion.region);
+    if (suggestion.country) parts.push(suggestion.country);
     return parts.join(", ");
   };
 
@@ -161,12 +132,12 @@ export function CityPicker({ value, onSelect, placeholder }: CityPickerProps) {
             borderColor: theme.border,
           }}
         >
-          {suggestions.map((feature, index) => {
-            const subtitle = getSubtitle(feature);
+          {suggestions.map((suggestion, index) => {
+            const subtitle = getSubtitle(suggestion);
             return (
               <Pressable
-                key={feature.id}
-                onPress={() => handleSelect(feature)}
+                key={suggestion.id}
+                onPress={() => handleSelect(suggestion)}
                 className="flex-row items-center px-4 py-3 active:opacity-70"
                 style={{
                   borderTopWidth: index > 0 ? 1 : 0,
@@ -184,7 +155,7 @@ export function CityPicker({ value, onSelect, placeholder }: CityPickerProps) {
                     className="font-sans-semibold text-[15px]"
                     style={{ color: theme.text }}
                   >
-                    {feature.properties.name}
+                    {suggestion.name}
                   </Text>
                   {subtitle ? (
                     <Text

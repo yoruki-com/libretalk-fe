@@ -23,8 +23,8 @@ import type {
 } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
 import { Ionicons } from "@expo/vector-icons";
+import { reverseGeocode } from "@/services/mapbox";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import axios from "axios";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -148,8 +148,6 @@ export default function EditProfileScreen() {
       .catch(() => {});
   }, []);
 
-  const MAPBOX_PUBLIC_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN;
-
   const handleLocate = async () => {
     setIsLocating(true);
     try {
@@ -162,38 +160,23 @@ export default function EditProfileScreen() {
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
 
-      // Reverse geocode with Mapbox
-      const res = await axios.get(
-        `https://api.mapbox.com/search/geocode/v6/reverse`,
-        {
-          params: {
-            longitude: longitude.toString(),
-            latitude: latitude.toString(),
-            types: "place",
-            limit: "1",
-            access_token: MAPBOX_PUBLIC_TOKEN ?? "",
-          },
-        },
-      );
-      const data = res.data;
-      const feature = data.features?.[0];
-      if (!feature) {
+      const result = await reverseGeocode(latitude, longitude);
+      if (!result) {
         Alert.alert(t("common.error"), t("editProfile.locationNotFound"));
         return;
       }
 
-      const cityName = feature.properties.name;
-      const countryName = feature.properties.context?.country?.name;
-      const countryCode =
-        feature.properties.context?.country?.country_code?.toUpperCase();
-
-      setCity(countryName ? `${cityName}, ${countryName}` : cityName);
+      setCity(
+        result.countryName
+          ? `${result.cityName}, ${result.countryName}`
+          : result.cityName,
+      );
 
       // Resolve country publicId from code
-      if (countryCode) {
+      if (result.countryCode) {
         const countriesRes = await countriesApi.getActive();
         const match = countriesRes.data.find(
-          (c: Country) => c.code.toUpperCase() === countryCode,
+          (c: Country) => c.code.toUpperCase() === result.countryCode,
         );
         if (match) {
           setCountryId(match.publicId);

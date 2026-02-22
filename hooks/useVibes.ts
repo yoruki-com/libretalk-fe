@@ -2,29 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { vibesApi, type Vibe, type VibesFilterParams } from "@/services/api/vibes";
 import { likesApi } from "@/services/api/likes";
 import type { PaginatedResponse } from "@/services/api/types";
-
-// Module-level cache for geocoding results (persists across re-renders, resets on reload)
-const geocodeResultCache = new Map<string, { lat: number; lng: number } | null>();
-
-async function geocodeCityMapbox(city: string): Promise<{ lat: number; lng: number } | null> {
-  if (geocodeResultCache.has(city)) return geocodeResultCache.get(city)!;
-  try {
-    const token = process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN;
-    if (!token) { console.warn("[useVibes] EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN not set"); return null; }
-    const url = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(city)}&types=place&limit=1&access_token=${token}`;
-    const res = await fetch(url);
-    if (!res.ok) { geocodeResultCache.set(city, null); return null; }
-    const data = await res.json() as { features?: { geometry?: { coordinates?: [number, number] } }[] };
-    const coords = data.features?.[0]?.geometry?.coordinates;
-    if (!coords) { geocodeResultCache.set(city, null); return null; }
-    const result = { lat: coords[1], lng: coords[0] };
-    geocodeResultCache.set(city, result);
-    return result;
-  } catch {
-    geocodeResultCache.set(city, null);
-    return null;
-  }
-}
+import { geocodeCity } from "@/services/mapbox";
 
 interface UseVibesOptions {
   category?: string;
@@ -80,7 +58,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
           response = await vibesApi.getFollowingFeed({ page, pageSize: 10, sortBy: "createdAt", sortOrder: "desc" });
         } else if (category === "nearby") {
           if (userCity) {
-            const coords = await geocodeCityMapbox(userCity);
+            const coords = await geocodeCity(userCity);
             if (coords) {
               response = await vibesApi.getNearby(coords.lat, coords.lng, { page, pageSize: 10 });
             } else {
