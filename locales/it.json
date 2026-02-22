@@ -180,6 +180,12 @@
   "onboarding": {
     "step1Title": "Parlaci di te",
     "step1Subtitle": "Iniziamo dalle basi",
+    "username": "Username",
+    "usernamePlaceholder": "Scegli un username unico",
+    "usernameChecking": "Verifica disponibilita'...",
+    "usernameAvailable": "Username disponibile",
+    "usernameTaken": "Questo username e' gia' in uso",
+    "usernameInvalid": "Solo lettere, numeri e underscore (min 3 caratteri)",
     "displayName": "Il tuo nome",
     "displayNamePlaceholder": "Come dovremmo chiamarti?",
     "dateOfBirth": "Data di nascita",

@@ -180,6 +180,12 @@
   "onboarding": {
     "step1Title": "Tell us about yourself",
     "step1Subtitle": "Let's start with the basics",
+    "username": "Username",
+    "usernamePlaceholder": "Choose a unique username",
+    "usernameChecking": "Checking availability...",
+    "usernameAvailable": "Username is available",
+    "usernameTaken": "This username is already taken",
+    "usernameInvalid": "Only letters, numbers and underscores (min 3 chars)",
     "displayName": "Your name",
     "displayNamePlaceholder": "How should we call you?",
     "dateOfBirth": "Date of birth",

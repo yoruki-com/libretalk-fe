@@ -13,6 +13,11 @@ import type {
 } from "./types";
 
 export const usersApi = {
+  // Check username availability
+  async checkUsername(username: string): Promise<ApiResponse<{ available: boolean; reason?: string }>> {
+    return apiClient.get("/users/check-username", { username });
+  },
+
   // Get current authenticated user profile
   async getMe(): Promise<ApiResponse<UserMe>> {
     return apiClient.get("/users/me");
