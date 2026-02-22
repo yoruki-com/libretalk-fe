@@ -11,6 +11,7 @@ interface UseConversationsOptions {
 interface UseConversationsResult {
   conversations: Conversation[];
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: Error | null;
   pagination: {
     page: number;
@@ -31,13 +32,15 @@ export function useConversations(
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [pagination, setPagination] = useState<UseConversationsResult["pagination"]>(null);
   const [currentPage, setCurrentPage] = useState(params?.page ?? 1);
 
   const fetchConversations = useCallback(
     async (page: number, append = false) => {
-      setIsLoading(true);
+      if (append) setIsLoadingMore(true);
+      else setIsLoading(true);
       setError(null);
 
       try {
@@ -56,7 +59,8 @@ export function useConversations(
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Failed to fetch conversations"));
       } finally {
-        setIsLoading(false);
+        if (append) setIsLoadingMore(false);
+        else setIsLoading(false);
       }
     },
     [userPublicId, params]
@@ -67,10 +71,10 @@ export function useConversations(
   }, [fetchConversations]);
 
   const loadMore = useCallback(async () => {
-    if (pagination?.hasNextPage && !isLoading) {
+    if (pagination?.hasNextPage && !isLoading && !isLoadingMore) {
       await fetchConversations(currentPage + 1, true);
     }
-  }, [fetchConversations, pagination, currentPage, isLoading]);
+  }, [fetchConversations, pagination, currentPage, isLoading, isLoadingMore]);
 
   useEffect(() => {
     if (autoFetch && enabled) {
@@ -81,6 +85,7 @@ export function useConversations(
   return {
     conversations,
     isLoading,
+    isLoadingMore,
     error,
     pagination,
     refresh,

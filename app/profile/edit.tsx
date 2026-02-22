@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/edit-profile";
 import { MbtiPicker } from "@/components/ui/MbtiPicker";
 import { Routes } from "@/constants/routes";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { countriesApi } from "@/services/api/countries";
@@ -23,10 +23,11 @@ import type {
 } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
 import { Ionicons } from "@expo/vector-icons";
-import axios from "axios";
+import { reverseGeocode } from "@/services/mapbox";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -34,6 +35,7 @@ import {
   FlatList,
   Image,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -48,7 +50,9 @@ export default function EditProfileScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { isAuthenticated, hasAccessToken } = useAuth();
-  const { profile, refresh } = useCurrentUser(isAuthenticated && hasAccessToken);
+  const { profile, refresh } = useCurrentUser(
+    isAuthenticated && hasAccessToken,
+  );
   const { pendingAvatarUri, isUploading, pickAvatar, uploadAvatar } =
     useAvatarUpload();
 
@@ -58,6 +62,8 @@ export default function EditProfileScreen() {
   const [jobTitle, setJobTitle] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
   const [city, setCity] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Language editing state
@@ -101,6 +107,9 @@ export default function EditProfileScreen() {
       setJobTitle(profile.jobTitle ?? "");
       setGender(profile.gender);
       setCity(profile.city ?? "");
+      if (profile.dateOfBirth) {
+        setDateOfBirth(new Date(profile.dateOfBirth));
+      }
 
       // Initialize language state from profile
       const native = profile.languages?.find((l) => !l.isLearning);
@@ -139,8 +148,6 @@ export default function EditProfileScreen() {
       .catch(() => {});
   }, []);
 
-  const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_PUBLIC_TOKEN;
-
   const handleLocate = async () => {
     setIsLocating(true);
     try {
@@ -153,38 +160,23 @@ export default function EditProfileScreen() {
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
 
-      // Reverse geocode with Mapbox
-      const res = await axios.get(
-        `https://api.mapbox.com/search/geocode/v6/reverse`,
-        {
-          params: {
-            longitude: longitude.toString(),
-            latitude: latitude.toString(),
-            types: "place",
-            limit: "1",
-            access_token: MAPBOX_TOKEN ?? "",
-          },
-        },
-      );
-      const data = res.data;
-      const feature = data.features?.[0];
-      if (!feature) {
+      const result = await reverseGeocode(latitude, longitude);
+      if (!result) {
         Alert.alert(t("common.error"), t("editProfile.locationNotFound"));
         return;
       }
 
-      const cityName = feature.properties.name;
-      const countryName = feature.properties.context?.country?.name;
-      const countryCode =
-        feature.properties.context?.country?.country_code?.toUpperCase();
-
-      setCity(countryName ? `${cityName}, ${countryName}` : cityName);
+      setCity(
+        result.countryName
+          ? `${result.cityName}, ${result.countryName}`
+          : result.cityName,
+      );
 
       // Resolve country publicId from code
-      if (countryCode) {
+      if (result.countryCode) {
         const countriesRes = await countriesApi.getActive();
         const match = countriesRes.data.find(
-          (c: Country) => c.code.toUpperCase() === countryCode,
+          (c: Country) => c.code.toUpperCase() === result.countryCode,
         );
         if (match) {
           setCountryId(match.publicId);
@@ -196,6 +188,19 @@ export default function EditProfileScreen() {
       setIsLocating(false);
     }
   };
+
+  const handleDateChange = useCallback(
+    (
+      event: { type: string; nativeEvent: { timestamp: number } },
+      selectedDate?: Date,
+    ) => {
+      if (Platform.OS === "android") setShowDatePicker(false);
+      if (event.type === "dismissed") return;
+      const date = selectedDate ?? new Date(event.nativeEvent.timestamp);
+      setDateOfBirth(date);
+    },
+    [],
+  );
 
   const handleSave = async () => {
     if (!profile) return;
@@ -215,6 +220,7 @@ export default function EditProfileScreen() {
         gender: gender ?? null,
         jobTitle: jobTitle.trim() || null,
         city: city.trim() || null,
+        dateOfBirth: dateOfBirth ? dateOfBirth.toISOString() : undefined,
         ...(countryId !== null && { countryId }),
         ...(avatarUrl !== undefined && { avatarUrl }),
       };
@@ -284,8 +290,8 @@ export default function EditProfileScreen() {
   ];
   const [genderOpen, setGenderOpen] = useState(false);
 
-  const zodiacSign = profile?.dateOfBirth
-    ? getZodiacSign(profile.dateOfBirth, t)
+  const zodiacSign = dateOfBirth
+    ? getZodiacSign(dateOfBirth.toISOString(), t)
     : null;
 
   if (!profile) {
@@ -680,19 +686,27 @@ export default function EditProfileScreen() {
                       }}
                       className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
                       style={{
-                        backgroundColor: isSelected ? theme.primary + "10" : undefined,
+                        backgroundColor: isSelected
+                          ? theme.primary + "10"
+                          : undefined,
                         borderTopWidth: index > 0 ? 1 : 0,
                         borderTopColor: theme.border,
                       }}
                     >
                       <Text
                         className="font-sans text-[14px]"
-                        style={{ color: isSelected ? theme.primary : theme.text }}
+                        style={{
+                          color: isSelected ? theme.primary : theme.text,
+                        }}
                       >
                         {t(`editProfile.gender_${g}`)}
                       </Text>
                       {isSelected && (
-                        <Ionicons name="checkmark" size={18} color={theme.primary} />
+                        <Ionicons
+                          name="checkmark"
+                          size={18}
+                          color={theme.primary}
+                        />
                       )}
                     </Pressable>
                   );
@@ -702,14 +716,37 @@ export default function EditProfileScreen() {
           </FieldRow>
           <Divider theme={theme} />
           <FieldRow label={t("editProfile.dateOfBirth")} theme={theme}>
-            <Text
-              className="font-sans text-[15px]"
-              style={{ color: theme.text }}
+            <Pressable
+              onPress={() => setShowDatePicker(true)}
+              className="flex-row items-center justify-between active:opacity-70"
             >
-              {profile.dateOfBirth
-                ? new Date(profile.dateOfBirth).toLocaleDateString()
-                : "—"}
-            </Text>
+              <Text
+                className="font-sans text-[15px]"
+                style={{ color: dateOfBirth ? theme.text : theme.textTertiary }}
+              >
+                {dateOfBirth
+                  ? `${String(dateOfBirth.getDate()).padStart(2, "0")}/${String(dateOfBirth.getMonth() + 1).padStart(2, "0")}/${dateOfBirth.getFullYear()}`
+                  : "—"}
+              </Text>
+              <Ionicons
+                name="calendar-outline"
+                size={18}
+                color={theme.textTertiary}
+              />
+            </Pressable>
+            {(showDatePicker || Platform.OS === "ios") && (
+              <View style={{ marginTop: Platform.OS === "ios" ? 8 : 0 }}>
+                <DateTimePicker
+                  value={dateOfBirth ?? new Date(2000, 0, 1)}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={handleDateChange}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1920, 0, 1)}
+                  firstDayOfWeek={1}
+                />
+              </View>
+            )}
           </FieldRow>
           <Divider theme={theme} />
           <FieldRow label={t("editProfile.zodiac")} theme={theme}>

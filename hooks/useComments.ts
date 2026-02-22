@@ -13,6 +13,7 @@ interface UseCommentsOptions {
 interface UseCommentsResult {
   comments: Comment[];
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: Error | null;
   pagination: {
     page: number;
@@ -34,13 +35,15 @@ export function useComments(options: UseCommentsOptions): UseCommentsResult {
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [pagination, setPagination] = useState<UseCommentsResult["pagination"]>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const fetchComments = useCallback(
     async (page: number, append = false) => {
-      setIsLoading(true);
+      if (append) setIsLoadingMore(true);
+      else setIsLoading(true);
       setError(null);
 
       try {
@@ -57,7 +60,8 @@ export function useComments(options: UseCommentsOptions): UseCommentsResult {
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Failed to fetch comments"));
       } finally {
-        setIsLoading(false);
+        if (append) setIsLoadingMore(false);
+        else setIsLoading(false);
       }
     },
     [postId]
@@ -68,10 +72,10 @@ export function useComments(options: UseCommentsOptions): UseCommentsResult {
   }, [fetchComments]);
 
   const loadMore = useCallback(async () => {
-    if (pagination?.hasNextPage && !isLoading) {
+    if (pagination?.hasNextPage && !isLoading && !isLoadingMore) {
       await fetchComments(currentPage + 1, true);
     }
-  }, [fetchComments, pagination, currentPage, isLoading]);
+  }, [fetchComments, pagination, currentPage, isLoading, isLoadingMore]);
 
   const addComment = useCallback(
     async (content: string) => {
@@ -168,6 +172,7 @@ export function useComments(options: UseCommentsOptions): UseCommentsResult {
   return {
     comments,
     isLoading,
+    isLoadingMore,
     error,
     pagination,
     refresh,

@@ -44,6 +44,11 @@ export const vibesApi = {
     return apiClient.get("/posts", params);
   },
 
+  // Get posts from followed users
+  async getFollowingFeed(params?: PaginationParams): Promise<PaginatedResponse<Vibe>> {
+    return apiClient.get("/posts/following", params);
+  },
+
   // Get posts by category
   async getByCategory(
     category: string,
@@ -80,7 +85,10 @@ export const vibesApi = {
     return apiClient.delete(`/posts/${publicId}`);
   },
 
-
+  // Get nearby posts (backend reads lat/lng from authenticated user's stored profile)
+  async getNearby(params?: PaginationParams): Promise<PaginatedResponse<Vibe>> {
+    return apiClient.get("/posts/nearby", params);
+  },
 };
 
 // Comments API - now a separate module at /comments

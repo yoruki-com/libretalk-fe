@@ -115,6 +115,7 @@ export default function OnboardingStep1() {
             style={{ color: theme.text }}
           >
             {t("onboarding.displayName")}
+            <Text style={{ color: "#EF4444" }}> *</Text>
           </Text>
           <View
             className="rounded-2xl px-4 py-3"
@@ -139,6 +140,7 @@ export default function OnboardingStep1() {
             style={{ color: theme.text }}
           >
             {t("onboarding.dateOfBirth")}
+            <Text style={{ color: "#EF4444" }}> *</Text>
           </Text>
           <Pressable
             onPress={() => setShowDatePicker(true)}
@@ -194,6 +196,7 @@ export default function OnboardingStep1() {
             style={{ color: theme.text }}
           >
             {t("onboarding.city")}
+            <Text style={{ color: "#EF4444" }}> *</Text>
           </Text>
           <CityPicker
             value={city}

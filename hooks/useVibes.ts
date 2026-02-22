@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { vibesApi, type Vibe, type VibesFilterParams } from "@/services/api/vibes";
 import { likesApi } from "@/services/api/likes";
+import type { PaginatedResponse } from "@/services/api/types";
 
 interface UseVibesOptions {
   category?: string;
   search?: string;
   userPublicId?: string;
+  hasLocation?: boolean;
   autoFetch?: boolean;
   enabled?: boolean;
 }
@@ -13,6 +15,7 @@ interface UseVibesOptions {
 interface UseVibesResult {
   vibes: Vibe[];
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: Error | null;
   pagination: {
     page: number;
@@ -30,10 +33,11 @@ interface UseVibesResult {
 }
 
 export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
-  const { category: initialCategory, search: initialSearch, userPublicId, autoFetch = true, enabled = true } = options;
+  const { category: initialCategory, search: initialSearch, userPublicId, hasLocation, autoFetch = true, enabled = true } = options;
 
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [pagination, setPagination] = useState<UseVibesResult["pagination"]>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,19 +46,36 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
 
   const fetchVibes = useCallback(
     async (page: number, append = false) => {
-      setIsLoading(true);
+      if (append) setIsLoadingMore(true);
+      else setIsLoading(true);
       setError(null);
 
       try {
-        const params: VibesFilterParams = { page };
-        if (category && category !== "all") {
-          params.category = category;
-        }
-        if (search) {
-          params.search = search;
-        }
+        let response: PaginatedResponse<Vibe>;
 
-        const response = await vibesApi.getAll(params);
+        if (category === "following") {
+          response = await vibesApi.getFollowingFeed({ page, pageSize: 10, sortBy: "createdAt", sortOrder: "desc" });
+        } else if (category === "nearby") {
+          if (hasLocation) {
+            response = await vibesApi.getNearby({ page, pageSize: 10 });
+          } else {
+            console.warn("[useVibes] Nearby: no location on profile");
+            if (!append) setVibes([]);
+            setPagination(null);
+            setCurrentPage(page);
+            return;
+          }
+        } else {
+          const params: VibesFilterParams = { page, pageSize: 10 };
+          if (category === "recent") {
+            params.sortBy = "createdAt";
+            params.sortOrder = "desc";
+          } else if (category && category !== "all") {
+            params.category = category;
+          }
+          if (search) params.search = search;
+          response = await vibesApi.getAll(params);
+        }
 
         if (append) {
           setVibes((prev) => [...prev, ...response.data]);
@@ -66,10 +87,11 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Failed to fetch vibes"));
       } finally {
-        setIsLoading(false);
+        if (append) setIsLoadingMore(false);
+        else setIsLoading(false);
       }
     },
-    [category, search]
+    [category, search, hasLocation]
   );
 
   const refresh = useCallback(async () => {
@@ -77,10 +99,10 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
   }, [fetchVibes]);
 
   const loadMore = useCallback(async () => {
-    if (pagination?.hasNextPage && !isLoading) {
+    if (pagination?.hasNextPage && !isLoading && !isLoadingMore) {
       await fetchVibes(currentPage + 1, true);
     }
-  }, [fetchVibes, pagination, currentPage, isLoading]);
+  }, [fetchVibes, pagination, currentPage, isLoading, isLoadingMore]);
 
   const toggleLike = useCallback(async (vibeId: string) => {
     const vibe = vibes.find((v) => v.publicId === vibeId);
@@ -130,6 +152,12 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
     }
   }, [vibes, userPublicId]);
 
+  // Clear list when category changes so the loading spinner shows (fresh start)
+  useEffect(() => {
+    setVibes([]);
+    setPagination(null);
+  }, [category]);
+
   // Refetch when category or search changes
   useEffect(() => {
     if (autoFetch && enabled) {
@@ -140,6 +168,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
   return {
     vibes,
     isLoading,
+    isLoadingMore,
     error,
     pagination,
     refresh,
