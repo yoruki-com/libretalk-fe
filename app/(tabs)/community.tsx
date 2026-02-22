@@ -24,6 +24,7 @@ export default function CommunityScreen() {
     users,
     isLoading,
     isLoadingMore,
+    isRefreshing,
     error,
     setSearch,
     setFilter,
@@ -107,8 +108,12 @@ export default function CommunityScreen() {
   );
 
   const handleFilterChange = (filterId: string) => {
-    setSelectedFilter(filterId);
-    setFilter(filterId);
+    if (filterId === selectedFilter) {
+      refresh();
+    } else {
+      setSelectedFilter(filterId);
+      setFilter(filterId);
+    }
   };
 
   useEffect(() => {
@@ -171,13 +176,6 @@ export default function CommunityScreen() {
         />
       </View>
 
-      {/* Loading State (initial) */}
-      {isLoading && users.length === 0 && (
-        <View className="items-center justify-center py-20">
-          <ActivityIndicator size="large" color={theme.primary} />
-        </View>
-      )}
-
       {/* Error State */}
       {error && users.length === 0 && (
         <View className="items-center justify-center px-4 py-20">
@@ -217,12 +215,12 @@ export default function CommunityScreen() {
         keyExtractor={(item) => item.publicId}
         renderItem={renderItem}
         onRefresh={refresh}
-        refreshing={isLoading && users.length === 0}
+        refreshing={isRefreshing}
         onEndReached={loadMore}
         onEndReachedThreshold={0.1}
         ListHeaderComponent={ListHeader}
         ListFooterComponent={
-          isLoadingMore ? (
+          isLoading || isLoadingMore ? (
             <View className="py-4 items-center">
               <ActivityIndicator size="small" color={theme.primary} />
             </View>

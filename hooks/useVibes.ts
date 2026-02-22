@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { vibesApi, type Vibe, type VibesFilterParams } from "@/services/api/vibes";
 import { likesApi } from "@/services/api/likes";
 import type { PaginatedResponse } from "@/services/api/types";
@@ -16,6 +16,7 @@ interface UseVibesResult {
   vibes: Vibe[];
   isLoading: boolean;
   isLoadingMore: boolean;
+  isRefreshing: boolean;
   error: Error | null;
   pagination: {
     page: number;
@@ -38,15 +39,19 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
   const [vibes, setVibes] = useState<Vibe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [pagination, setPagination] = useState<UseVibesResult["pagination"]>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [category, setCategory] = useState(initialCategory);
   const [search, setSearch] = useState(initialSearch);
 
+  const vibesRef = useRef(vibes);
+  vibesRef.current = vibes;
+
   const fetchVibes = useCallback(
-    async (page: number, append = false) => {
-      if (append) setIsLoadingMore(true);
+    async (page: number, append = false, bottomOnly = false) => {
+      if (append || bottomOnly) setIsLoadingMore(true);
       else setIsLoading(true);
       setError(null);
 
@@ -60,7 +65,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
             response = await vibesApi.getNearby({ page, pageSize: 10 });
           } else {
             console.warn("[useVibes] Nearby: no location on profile");
-            if (!append) setVibes([]);
+            setVibes([]);
             setPagination(null);
             setCurrentPage(page);
             return;
@@ -87,7 +92,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Failed to fetch vibes"));
       } finally {
-        if (append) setIsLoadingMore(false);
+        if (append || bottomOnly) setIsLoadingMore(false);
         else setIsLoading(false);
       }
     },
@@ -95,7 +100,12 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
   );
 
   const refresh = useCallback(async () => {
-    await fetchVibes(1, false);
+    setIsRefreshing(true);
+    try {
+      await fetchVibes(1, false);
+    } finally {
+      setIsRefreshing(false);
+    }
   }, [fetchVibes]);
 
   const loadMore = useCallback(async () => {
@@ -152,16 +162,11 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
     }
   }, [vibes, userPublicId]);
 
-  // Clear list when category changes so the loading spinner shows (fresh start)
-  useEffect(() => {
-    setVibes([]);
-    setPagination(null);
-  }, [category]);
-
-  // Refetch when category or search changes
+  // Refetch when category or search changes — bottom loader if posts already visible
   useEffect(() => {
     if (autoFetch && enabled) {
-      fetchVibes(1, false);
+      const hasExisting = vibesRef.current.length > 0;
+      fetchVibes(1, false, hasExisting);
     }
   }, [autoFetch, enabled, fetchVibes]);
 
@@ -169,6 +174,7 @@ export function useVibes(options: UseVibesOptions = {}): UseVibesResult {
     vibes,
     isLoading,
     isLoadingMore,
+    isRefreshing,
     error,
     pagination,
     refresh,

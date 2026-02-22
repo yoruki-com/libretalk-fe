@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { usersApi } from "@/services/api";
 import type { UserMe, PaginationParams } from "@/services/api";
 
@@ -20,6 +20,7 @@ interface UseCommunityResult {
   users: UserMe[];
   isLoading: boolean;
   isLoadingMore: boolean;
+  isRefreshing: boolean;
   error: Error | null;
   pagination: PaginationMeta | null;
   refresh: () => Promise<void>;
@@ -36,15 +37,19 @@ export function useCommunity(
   const [users, setUsers] = useState<UserMe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+
+  const usersRef = useRef(users);
+  usersRef.current = users;
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState<string | undefined>();
   const [filter, setFilter] = useState("all");
 
   const fetchUsers = useCallback(
-    async (page: number, append = false) => {
-      if (append) setIsLoadingMore(true);
+    async (page: number, append = false, bottomOnly = false) => {
+      if (append || bottomOnly) setIsLoadingMore(true);
       else setIsLoading(true);
       setError(null);
 
@@ -80,7 +85,7 @@ export function useCommunity(
           err instanceof Error ? err : new Error("Failed to fetch users")
         );
       } finally {
-        if (append) setIsLoadingMore(false);
+        if (append || bottomOnly) setIsLoadingMore(false);
         else setIsLoading(false);
       }
     },
@@ -88,7 +93,12 @@ export function useCommunity(
   );
 
   const refresh = useCallback(async () => {
-    await fetchUsers(1, false);
+    setIsRefreshing(true);
+    try {
+      await fetchUsers(1, false);
+    } finally {
+      setIsRefreshing(false);
+    }
   }, [fetchUsers]);
 
   const loadMore = useCallback(async () => {
@@ -99,7 +109,8 @@ export function useCommunity(
 
   useEffect(() => {
     if (enabled) {
-      fetchUsers(1, false);
+      const hasExisting = usersRef.current.length > 0;
+      fetchUsers(1, false, hasExisting);
     }
   }, [enabled, fetchUsers]);
 
@@ -107,6 +118,7 @@ export function useCommunity(
     users,
     isLoading,
     isLoadingMore,
+    isRefreshing,
     error,
     pagination,
     refresh,
