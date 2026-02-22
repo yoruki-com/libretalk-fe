@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import type { PaginationParams, UserMe } from "@/services/api";
 import { usersApi } from "@/services/api";
-import type { UserMe, PaginationParams } from "@/services/api";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseCommunityOptions {
   enabled?: boolean;
@@ -30,7 +30,7 @@ interface UseCommunityResult {
 }
 
 export function useCommunity(
-  options: UseCommunityOptions = {}
+  options: UseCommunityOptions = {},
 ): UseCommunityResult {
   const { enabled = true, hasLocation = false } = options;
 
@@ -55,7 +55,13 @@ export function useCommunity(
       setError(null);
 
       try {
-        const params: PaginationParams = { page, pageSize: 20, sortBy: "lastSeenAt", sortOrder: "desc" };
+        const sortBy = filter === "new" ? "createdAt" : "lastSeenAt";
+        const params: PaginationParams = {
+          page,
+          pageSize: 20,
+          sortBy,
+          sortOrder: "desc",
+        };
         if (search) params.search = search;
 
         let response;
@@ -83,14 +89,14 @@ export function useCommunity(
         setCurrentPage(page);
       } catch (err) {
         setError(
-          err instanceof Error ? err : new Error("Failed to fetch users")
+          err instanceof Error ? err : new Error("Failed to fetch users"),
         );
       } finally {
         if (append || bottomOnly) setIsLoadingMore(false);
         else setIsLoading(false);
       }
     },
-    [search, filter, hasLocation]
+    [search, filter, hasLocation],
   );
 
   const refresh = useCallback(async () => {
