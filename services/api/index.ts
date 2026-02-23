@@ -10,6 +10,8 @@ export { likesApi } from "./likes";
 export { promotionsApi } from "./promotions";
 export { followsApi } from "./follows";
 export { uploadsApi } from "./uploads";
+export { reportsApi, ReportReasonValues } from "./reports";
+export type { ReportReason } from "./reports";
 export { API_URL, API_BASE_URL, DEFAULT_PAGE_SIZE } from "./config";
 export type * from "./types";
 export type * from "./vibes";
