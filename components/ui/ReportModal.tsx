@@ -1,4 +1,5 @@
 import { useTheme } from "@/contexts/ThemeContext";
+import { ApiError } from "@/services/api/client";
 import { ReportReasonValues, type ReportReason } from "@/services/api/reports";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -49,10 +50,10 @@ export function ReportModal({ visible, onClose, onSubmit }: ReportModalProps) {
       handleClose();
     } catch (error: unknown) {
       const message =
-        error instanceof Error && error.message?.toLowerCase().includes("already reported")
-          ? t("report.duplicate")
+        error instanceof ApiError && error.isUserFacing
+          ? error.message
           : t("report.error");
-      Alert.alert(message);
+      Alert.alert(t("report.errorTitle"), message);
       setIsSubmitting(false);
     }
   };

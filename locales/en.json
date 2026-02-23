@@ -253,6 +253,7 @@
     "submit": "Submit Report",
     "submitting": "Submitting...",
     "success": "Report submitted. Thank you for helping keep our community safe.",
+    "errorTitle": "Report failed",
     "error": "Failed to submit report. Please try again.",
     "duplicate": "You have already reported this."
   }

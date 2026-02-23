@@ -253,6 +253,7 @@
     "submit": "Invia segnalazione",
     "submitting": "Invio in corso...",
     "success": "Segnalazione inviata. Grazie per aver contribuito a mantenere la comunita sicura.",
+    "errorTitle": "Segnalazione fallita",
     "error": "Impossibile inviare la segnalazione. Riprova.",
     "duplicate": "Hai gia segnalato questo contenuto."
   }
