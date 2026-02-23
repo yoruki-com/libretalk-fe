@@ -103,7 +103,7 @@
     "following": "Following",
     "followers": "Followers",
     "streak": "Streak",
-    "tabProfile": "Profile",
+    "tabDetails": "Details",
     "tabVibes": "Vibes",
     "tabHonor": "Honor",
     "likes": "Likes",
@@ -113,7 +113,17 @@
     "follow": "Follow",
     "unfollow": "Unfollow",
     "sayHi": "Say Hi",
-    "chat": "Chat"
+    "chat": "Chat",
+    "aboutMe": "About Me",
+    "personalityType": "Personality",
+    "jobTitle": "Work",
+    "gender": "Gender",
+    "age": "Age",
+    "zodiacSign": "Zodiac",
+    "memberSince": "Member since",
+    "interests": "Interests",
+    "yearsOld": "{{age}} years old",
+    "noDetailsYet": "No details shared yet"
   },
   "comments": {
     "title": "Comments",
