@@ -1,6 +1,6 @@
-import { View, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, View } from "react-native";
 import { UserBadge, type UserBadgeLanguage } from "./UserBadge";
 
 interface LocationHeaderProps {
@@ -51,7 +51,7 @@ export function LocationHeader({
         )}
 
         {/* Notification */}
-        <Pressable
+        {/*  <Pressable
           onPress={onNotificationPress}
           className="relative h-10 w-10 items-center justify-center rounded-full active:opacity-70"
           style={{ backgroundColor: theme.card }}
@@ -60,7 +60,7 @@ export function LocationHeader({
           {hasNotification && (
             <View className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
           )}
-        </Pressable>
+        </Pressable> */}
       </View>
     </View>
   );
