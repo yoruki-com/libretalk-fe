@@ -23,3 +23,4 @@ export { CommunityCard } from "./CommunityCard";
 export { RefreshableScrollView } from "./RefreshableScrollView";
 export { DropdownMenu, type DropdownMenuItem } from "./DropdownMenu";
 export { CountryFlag } from "./CountryFlag";
+export { ReportModal } from "./ReportModal";

@@ -1,9 +1,10 @@
-import { CategoryChips, LocationHeader, VibeCard } from "@/components/ui";
+import { CategoryChips, LocationHeader, ReportModal, VibeCard } from "@/components/ui";
 import { Routes } from "@/constants/routes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useVibes } from "@/hooks/useVibes";
+import { reportsApi } from "@/services/api";
 import type { Vibe } from "@/services/api/vibes";
 import { useFocusEffect } from "@react-navigation/native";
 import { getLocales } from "expo-localization";
@@ -66,6 +67,9 @@ export default function VibesScreen() {
     });
   };
 
+  // Report modal state
+  const [reportTarget, setReportTarget] = useState<{ postId: string } | null>(null);
+
   // Track selected category locally for UI
   const [selectedCategory, setSelectedCategory] = useState("recent");
   const [searchQuery, setSearchQuery] = useState("");
@@ -111,9 +115,7 @@ export default function VibesScreen() {
             })
           }
           onCommentPress={() => handleCommentPress(vibe.publicId)}
-          onReportPress={() => {
-            Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-          }}
+          onReportPress={() => setReportTarget({ postId: vibe.publicId })}
         />
       </View>
     ),
@@ -207,6 +209,14 @@ export default function VibesScreen() {
             </View>
           ) : null
         }
+      />
+      <ReportModal
+        visible={reportTarget !== null}
+        onClose={() => setReportTarget(null)}
+        onSubmit={async (reason, description) => {
+          await reportsApi.reportPost({ reason, postId: reportTarget!.postId, description });
+          Alert.alert(t("report.success"));
+        }}
       />
     </View>
   );

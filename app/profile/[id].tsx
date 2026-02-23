@@ -2,6 +2,7 @@ import {
   CountryFlag,
   DropdownMenu,
   type DropdownMenuItem,
+  ReportModal,
   VibeCard,
 } from "@/components/ui";
 import { getZodiacSign } from "@/components/ui/edit-profile/getZodiacSign";
@@ -10,6 +11,7 @@ import { getRandomHelloSticker } from "@/constants/stickers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { reportsApi } from "@/services/api";
 import { conversationsApi } from "@/services/api/conversations";
 import { followsApi } from "@/services/api/follows";
 import { likesApi } from "@/services/api/likes";
@@ -58,6 +60,7 @@ export default function ProfileScreen() {
   const [existingConversation, setExistingConversation] =
     useState<Conversation | null>(null);
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ type: "user"; userId: string } | { type: "post"; postId: string } | null>(null);
 
   const fetchUser = useCallback(async () => {
     if (!id) return;
@@ -299,9 +302,7 @@ export default function ProfileScreen() {
       key: "report",
       label: t("menu.reportThis"),
       icon: "flag-outline",
-      onPress: () => {
-        Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-      },
+      onPress: () => setReportTarget({ type: "user", userId: id }),
     },
   ];
 
@@ -650,9 +651,7 @@ export default function ProfileScreen() {
                         params: { id: vibe.publicId },
                       })
                     }
-                    onReportPress={() => {
-                      Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-                    }}
+                    onReportPress={() => setReportTarget({ type: "post", postId: vibe.publicId })}
                   />
                 </View>
               ))}
@@ -901,6 +900,18 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
       )}
+      <ReportModal
+        visible={reportTarget !== null}
+        onClose={() => setReportTarget(null)}
+        onSubmit={async (reason, description) => {
+          if (reportTarget!.type === "user") {
+            await reportsApi.reportUser({ reason, userId: reportTarget!.userId, description });
+          } else {
+            await reportsApi.reportPost({ reason, postId: reportTarget!.postId, description });
+          }
+          Alert.alert(t("report.success"));
+        }}
+      />
     </View>
   );
 }

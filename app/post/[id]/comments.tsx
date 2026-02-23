@@ -14,11 +14,12 @@ import { Routes } from "@/constants/routes";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { VibeCard, CommentCard, CommentInput } from "@/components/ui";
+import { VibeCard, CommentCard, CommentInput, ReportModal } from "@/components/ui";
 import { useComments } from "@/hooks/useComments";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { reportsApi } from "@/services/api";
 import { vibesApi, type Vibe, type Comment } from "@/services/api/vibes";
 import { formatRelativeTime } from "@/utils/time";
 
@@ -36,6 +37,7 @@ export default function CommentsScreen() {
   const [postError, setPostError] = useState<Error | null>(null);
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ type: "post"; postId: string } | { type: "comment"; commentId: string } | null>(null);
 
   const {
     comments,
@@ -101,9 +103,7 @@ export default function CommentsScreen() {
           router.push({ pathname: Routes.PROFILE, params: { id: comment.author.publicId } })
         }
         onReplyPress={() => {}}
-        onReportPress={() => {
-          Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-        }}
+        onReportPress={() => setReportTarget({ type: "comment", commentId: comment.publicId })}
       />
     ),
     [toggleLike, router, t]
@@ -127,9 +127,7 @@ export default function CommentsScreen() {
             onAuthorPress={() =>
               router.push({ pathname: Routes.PROFILE, params: { id: post.author.publicId } })
             }
-            onReportPress={() => {
-              Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-            }}
+            onReportPress={() => setReportTarget({ type: "post", postId: post.publicId })}
           />
         </View>
       )}
@@ -229,6 +227,18 @@ export default function CommentsScreen() {
           />
         </>
       )}
+      <ReportModal
+        visible={reportTarget !== null}
+        onClose={() => setReportTarget(null)}
+        onSubmit={async (reason, description) => {
+          if (reportTarget!.type === "post") {
+            await reportsApi.reportPost({ reason, postId: reportTarget!.postId, description });
+          } else {
+            await reportsApi.reportComment({ reason, commentId: reportTarget!.commentId, description });
+          }
+          Alert.alert(t("report.success"));
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }

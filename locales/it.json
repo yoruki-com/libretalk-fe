@@ -240,5 +240,20 @@
   },
   "menu": {
     "reportThis": "Segnala"
+  },
+  "report": {
+    "title": "Segnala",
+    "selectReason": "Perche stai segnalando?",
+    "reason_SPAM": "Spam",
+    "reason_HARASSMENT": "Molestie",
+    "reason_INAPPROPRIATE_CONTENT": "Contenuto inappropriato",
+    "reason_FAKE_PROFILE": "Profilo falso",
+    "reason_OTHER": "Altro",
+    "descriptionPlaceholder": "Aggiungi dettagli (facoltativo)...",
+    "submit": "Invia segnalazione",
+    "submitting": "Invio in corso...",
+    "success": "Segnalazione inviata. Grazie per aver contribuito a mantenere la comunita sicura.",
+    "error": "Impossibile inviare la segnalazione. Riprova.",
+    "duplicate": "Hai gia segnalato questo contenuto."
   }
 }
