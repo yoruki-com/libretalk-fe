@@ -131,6 +131,7 @@ export default function VibesScreen() {
           languages={profile?.languages}
           hasNotification
           onNotificationPress={() => {}}
+          onComposePress={() => router.push(Routes.VIBE_CREATE as never)}
           onAvatarPress={() => {
             if (profile?.publicId) {
               router.push({

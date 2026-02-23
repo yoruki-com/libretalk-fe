@@ -95,7 +95,16 @@
     "filterNearby": "Nearby",
     "filterFollowing": "Following",
     "noResults": "No vibes found",
-    "noVibesYet": "No vibes yet"
+    "noVibesYet": "No vibes yet",
+    "createTitle": "New Vibe",
+    "contentPlaceholder": "What's on your mind?",
+    "send": "Send",
+    "sendingVibe": "Posting...",
+    "vibeCreated": "Vibe posted!",
+    "vibeCreateError": "Failed to post vibe. Try again.",
+    "attachPhoto": "Photo",
+    "attachAudio": "Audio",
+    "comingSoon": "Coming soon"
   },
   "profile": {
     "userNotFound": "User not found",

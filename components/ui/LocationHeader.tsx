@@ -10,6 +10,7 @@ interface LocationHeaderProps {
   languages?: UserBadgeLanguage[];
   onNotificationPress?: () => void;
   onAvatarPress?: () => void;
+  onComposePress?: () => void;
   hasNotification?: boolean;
 }
 
@@ -20,6 +21,7 @@ export function LocationHeader({
   languages = [],
   onNotificationPress,
   onAvatarPress,
+  onComposePress,
   hasNotification = false,
 }: LocationHeaderProps) {
   const { theme } = useTheme();
@@ -36,17 +38,30 @@ export function LocationHeader({
         />
       </View>
 
-      {/* Notification */}
-      <Pressable
-        onPress={onNotificationPress}
-        className="relative h-10 w-10 items-center justify-center rounded-full active:opacity-70"
-        style={{ backgroundColor: theme.card }}
-      >
-        <Ionicons name="notifications-outline" size={20} color={theme.icon} />
-        {hasNotification && (
-          <View className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+      <View className="flex-row items-center gap-2">
+        {/* Compose */}
+        {onComposePress && (
+          <Pressable
+            onPress={onComposePress}
+            className="h-10 w-10 items-center justify-center rounded-full active:opacity-70"
+            style={{ backgroundColor: "#3B82F6" }}
+          >
+            <Ionicons name="add" size={22} color="#FFFFFF" />
+          </Pressable>
         )}
-      </Pressable>
+
+        {/* Notification */}
+        <Pressable
+          onPress={onNotificationPress}
+          className="relative h-10 w-10 items-center justify-center rounded-full active:opacity-70"
+          style={{ backgroundColor: theme.card }}
+        >
+          <Ionicons name="notifications-outline" size={20} color={theme.icon} />
+          {hasNotification && (
+            <View className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 }

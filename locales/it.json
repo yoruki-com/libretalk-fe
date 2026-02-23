@@ -95,7 +95,16 @@
     "filterNearby": "Vicini",
     "filterFollowing": "Seguiti",
     "noResults": "Nessun vibe trovato",
-    "noVibesYet": "Nessun vibe ancora"
+    "noVibesYet": "Nessun vibe ancora",
+    "createTitle": "Nuovo Vibe",
+    "contentPlaceholder": "A cosa stai pensando?",
+    "send": "Invia",
+    "sendingVibe": "Pubblicazione...",
+    "vibeCreated": "Vibe pubblicato!",
+    "vibeCreateError": "Impossibile pubblicare il vibe. Riprova.",
+    "attachPhoto": "Foto",
+    "attachAudio": "Audio",
+    "comingSoon": "Prossimamente"
   },
   "profile": {
     "userNotFound": "Utente non trovato",
