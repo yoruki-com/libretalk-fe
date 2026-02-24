@@ -81,6 +81,28 @@ export function formatDateSeparator(
 }
 
 /**
+ * Format a timestamp for notification display.
+ * WhatsApp-style: relative for <24h ("5m ago", "2h ago"), "Yesterday", then absolute ("Feb 20").
+ */
+export function formatNotificationTime(isoString: string): string {
+  const date = new Date(isoString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+
+  if (diffMins < 1) return "now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+/**
  * Get "last seen" status text for a user.
  */
 export function getLastSeenText(
