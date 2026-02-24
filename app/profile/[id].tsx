@@ -60,7 +60,9 @@ export default function ProfileScreen() {
   const [existingConversation, setExistingConversation] =
     useState<Conversation | null>(null);
   const [isChatLoading, setIsChatLoading] = useState(false);
-  const [reportTarget, setReportTarget] = useState<{ type: "user"; userId: string } | { type: "post"; postId: string } | null>(null);
+  const [reportTarget, setReportTarget] = useState<
+    { type: "user"; userId: string } | { type: "post"; postId: string } | null
+  >(null);
 
   const fetchUser = useCallback(async () => {
     if (!id) return;
@@ -520,14 +522,6 @@ export default function ProfileScreen() {
               {t("profile.followers")}
             </Text>
           </View>
-          <View className="flex-row items-center gap-1">
-            <Text
-              className="font-sans text-[13px]"
-              style={{ color: theme.textSecondary }}
-            >
-              {t("profile.streak")}
-            </Text>
-          </View>
         </View>
 
         {/* Bio */}
@@ -651,7 +645,9 @@ export default function ProfileScreen() {
                         params: { id: vibe.publicId },
                       })
                     }
-                    onReportPress={() => setReportTarget({ type: "post", postId: vibe.publicId })}
+                    onReportPress={() =>
+                      setReportTarget({ type: "post", postId: vibe.publicId })
+                    }
                   />
                 </View>
               ))}
@@ -905,9 +901,17 @@ export default function ProfileScreen() {
         onClose={() => setReportTarget(null)}
         onSubmit={async (reason, description) => {
           if (reportTarget!.type === "user") {
-            await reportsApi.reportUser({ reason, userId: reportTarget!.userId, description });
+            await reportsApi.reportUser({
+              reason,
+              userId: reportTarget!.userId,
+              description,
+            });
           } else {
-            await reportsApi.reportPost({ reason, postId: reportTarget!.postId, description });
+            await reportsApi.reportPost({
+              reason,
+              postId: reportTarget!.postId,
+              description,
+            });
           }
           Alert.alert(t("report.success"));
         }}
