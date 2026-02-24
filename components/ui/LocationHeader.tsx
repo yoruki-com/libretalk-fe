@@ -1,6 +1,6 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { UserBadge, type UserBadgeLanguage } from "./UserBadge";
 
 interface LocationHeaderProps {
@@ -11,7 +11,7 @@ interface LocationHeaderProps {
   onNotificationPress?: () => void;
   onAvatarPress?: () => void;
   onComposePress?: () => void;
-  hasNotification?: boolean;
+  notificationCount?: number;
 }
 
 export function LocationHeader({
@@ -22,7 +22,7 @@ export function LocationHeader({
   onNotificationPress,
   onAvatarPress,
   onComposePress,
-  hasNotification = false,
+  notificationCount,
 }: LocationHeaderProps) {
   const { theme } = useTheme();
 
@@ -50,17 +50,26 @@ export function LocationHeader({
           </Pressable>
         )}
 
-        {/* Notification */}
-        {/*  <Pressable
-          onPress={onNotificationPress}
-          className="relative h-10 w-10 items-center justify-center rounded-full active:opacity-70"
-          style={{ backgroundColor: theme.card }}
-        >
-          <Ionicons name="notifications-outline" size={20} color={theme.icon} />
-          {hasNotification && (
-            <View className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
-          )}
-        </Pressable> */}
+        {/* Notification Bell */}
+        {onNotificationPress && (
+          <Pressable
+            onPress={onNotificationPress}
+            className="relative h-10 w-10 items-center justify-center rounded-full active:opacity-70"
+            style={{ backgroundColor: theme.card }}
+          >
+            <Ionicons name="notifications-outline" size={20} color={theme.icon} />
+            {(notificationCount ?? 0) > 0 && (
+              <View
+                className="absolute -right-1 -top-1 min-w-[18px] h-[18px] rounded-full items-center justify-center px-1"
+                style={{ backgroundColor: "#EF4444" }}
+              >
+                <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>
+                  {(notificationCount ?? 0) > 99 ? "99+" : notificationCount}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+        )}
       </View>
     </View>
   );

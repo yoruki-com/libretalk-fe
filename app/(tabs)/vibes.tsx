@@ -3,6 +3,7 @@ import { Routes } from "@/constants/routes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useUnreadCount } from "@/hooks/useUnreadCount";
 import { useVibes } from "@/hooks/useVibes";
 import { reportsApi } from "@/services/api";
 import type { Vibe } from "@/services/api/vibes";
@@ -35,6 +36,7 @@ export default function VibesScreen() {
     refresh,
     loadMore,
   } = useVibes({ enabled: hasAccessToken, userPublicId: profile?.publicId, hasLocation: !!(profile?.latitude && profile?.longitude) });
+  const { unreadCount, fetchUnreadCount } = useUnreadCount();
 
   const feedFilters = [
     { id: "recent", emoji: "\uD83D\uDD50", label: t("vibes.filterRecent") },
@@ -59,6 +61,22 @@ export default function VibesScreen() {
       }
     }, [hasAccessToken, refresh]),
   );
+
+  // Fetch unread notification count on focus (updates badge after reading notifications)
+  useFocusEffect(
+    useCallback(() => {
+      if (hasAccessToken) {
+        fetchUnreadCount();
+      }
+    }, [hasAccessToken, fetchUnreadCount]),
+  );
+
+  // Also fetch unread count on initial mount
+  useEffect(() => {
+    if (hasAccessToken) {
+      fetchUnreadCount();
+    }
+  }, [hasAccessToken, fetchUnreadCount]);
 
   const handleCommentPress = (postId: string) => {
     router.push({
@@ -131,8 +149,8 @@ export default function VibesScreen() {
           avatarUrl={profile?.avatarUrl ?? authUser?.avatar}
           countryCode={profile?.country?.code ?? deviceCountryCode}
           languages={profile?.languages}
-          hasNotification
-          onNotificationPress={() => {}}
+          notificationCount={unreadCount}
+          onNotificationPress={() => router.push(Routes.NOTIFICATIONS as never)}
           onComposePress={() => router.push(Routes.VIBE_CREATE as never)}
           onAvatarPress={() => {
             if (profile?.publicId) {
