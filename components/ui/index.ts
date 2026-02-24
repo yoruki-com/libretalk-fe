@@ -24,3 +24,4 @@ export { RefreshableScrollView } from "./RefreshableScrollView";
 export { DropdownMenu, type DropdownMenuItem } from "./DropdownMenu";
 export { CountryFlag } from "./CountryFlag";
 export { ReportModal } from "./ReportModal";
+export { NotificationRow } from "./NotificationRow";
