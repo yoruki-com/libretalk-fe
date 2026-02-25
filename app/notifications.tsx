@@ -50,13 +50,16 @@ export default function NotificationsScreen() {
       switch (notification.type) {
         case "LIKE":
         case "LIKE_REMINDER":
-        case "NEW_VIBES":
           if (notification.referenceType === "post" && notification.referenceId) {
             router.push({
               pathname: Routes.POST_COMMENTS,
               params: { id: notification.referenceId },
             } as never);
           }
+          break;
+        case "NEW_VIBES":
+          // Batch notification -- no single post to reference, navigate to vibes feed
+          router.push(Routes.ROOT as never);
           break;
         case "COMMENT":
         case "COMMENT_REMINDER":
