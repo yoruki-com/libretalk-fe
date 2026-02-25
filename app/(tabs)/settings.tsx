@@ -37,6 +37,7 @@ export default function SettingsScreen() {
     {
       icon: "notifications-outline" as const,
       label: t("settings.notification"),
+      onPress: () => router.push("/settings/notifications" as never),
     },
     { icon: "server-outline" as const, label: t("settings.storageData") },
     {
