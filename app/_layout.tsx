@@ -1,5 +1,6 @@
 import "@/lib/i18n";
 import { Stack } from "expo-router";
+import * as Notifications from "expo-notifications";
 import * as WebBrowser from "expo-web-browser";
 import "../global.css";
 
@@ -15,9 +16,25 @@ import {
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { AppState } from "react-native";
 
 WebBrowser.maybeCompleteAuthSession();
 SplashScreen.preventAutoHideAsync();
+
+// Foreground push suppression: when app is active, in-app notification panel
+// is sufficient -- suppress push alerts. When backgrounded/closed, show normally.
+// Badge count is never set (per CONTEXT.md decision).
+Notifications.setNotificationHandler({
+  handleNotification: async () => {
+    const isActive = AppState.currentState === "active";
+    return {
+      shouldShowBanner: !isActive,
+      shouldShowList: !isActive,
+      shouldPlaySound: !isActive,
+      shouldSetBadge: false,
+    };
+  },
+});
 
 function RootLayoutContent() {
   const { theme, isDark } = useTheme();
