@@ -6,6 +6,8 @@ import "../global.css";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
+import { useNotificationNavigation } from "@/hooks/useNotificationNavigation";
+import { getActiveChatId } from "@/utils/activeChatTracker";
 import {
   NunitoSans_400Regular,
   NunitoSans_500Medium,
@@ -24,9 +26,29 @@ SplashScreen.preventAutoHideAsync();
 // Foreground push suppression: when app is active, in-app notification panel
 // is sufficient -- suppress push alerts. When backgrounded/closed, show normally.
 // Badge count is never set (per CONTEXT.md decision).
+// Chat pushes are fully suppressed when that specific thread is open.
 Notifications.setNotificationHandler({
-  handleNotification: async () => {
+  handleNotification: async (notification) => {
     const isActive = AppState.currentState === "active";
+    const data = notification.request.content.data as
+      | { screen?: string; params?: { id?: string } }
+      | undefined;
+
+    // Full suppression for chat pushes when that specific thread is open
+    if (
+      isActive &&
+      data?.screen === "chat" &&
+      data?.params?.id &&
+      data.params.id === getActiveChatId()
+    ) {
+      return {
+        shouldShowBanner: false,
+        shouldShowList: false,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      };
+    }
+
     return {
       shouldShowBanner: !isActive,
       shouldShowList: !isActive,
@@ -37,6 +59,7 @@ Notifications.setNotificationHandler({
 });
 
 function RootLayoutContent() {
+  useNotificationNavigation();
   const { theme, isDark } = useTheme();
 
   return (
