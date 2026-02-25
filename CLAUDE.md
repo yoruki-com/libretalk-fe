@@ -1,6 +1,7 @@
 # Project Rules for Claude
 
 ## Package Manager
+
 This project uses **Bun** as the package manager and runtime.
 
 - Use `bun` instead of `npm` for package management
@@ -8,6 +9,7 @@ This project uses **Bun** as the package manager and runtime.
 - Use `bun run` instead of `npm run` for running scripts
 
 ## Examples
+
 ```bash
 # Install dependencies
 bun install
@@ -23,7 +25,13 @@ bun run build
 ## Planning Artifacts
 
 Each workspace owns its own `.planning/` directory:
+
 - **Frontend** planning artifacts go in `fe/.planning/`
 - **Backend** planning artifacts go in `be/.planning/`
 
 Never put frontend planning files in the backend `.planning/` directory or vice versa.
+
+## Git Safety
+
+- **NEVER** use `git reset` in any form (`--soft`, `--mixed`, `--hard`). This command is absolutely forbidden.
+- Use `git revert` only as an absolute last resort, and only after explicitly asking for user confirmation.
