@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -24,7 +24,7 @@ import { vibesApi, type Vibe, type Comment } from "@/services/api/vibes";
 import { formatRelativeTime } from "@/utils/time";
 
 export default function CommentsScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, commentId } = useLocalSearchParams<{ id: string; commentId?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
@@ -38,6 +38,7 @@ export default function CommentsScreen() {
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reportTarget, setReportTarget] = useState<{ type: "post"; postId: string } | { type: "comment"; commentId: string } | null>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   const {
     comments,
@@ -66,6 +67,21 @@ export default function CommentsScreen() {
     }
     fetchPost();
   }, [id, hasAccessToken]);
+
+  // Scroll to a specific comment when commentId is provided (from push tap)
+  useEffect(() => {
+    if (!commentId || comments.length === 0) return;
+    const index = comments.findIndex((c: Comment) => c.publicId === commentId);
+    if (index >= 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.3,
+        });
+      }, 300);
+    }
+  }, [commentId, comments]);
 
   const handleBack = () => {
     router.back();
@@ -186,6 +202,7 @@ export default function CommentsScreen() {
       {!isLoading && !error && (
         <>
           <FlatList
+            ref={flatListRef}
             className="flex-1"
             contentContainerStyle={{ paddingBottom: 20 }}
             data={comments}
@@ -195,6 +212,12 @@ export default function CommentsScreen() {
             refreshing={isLoadingComments && comments.length === 0}
             onEndReached={loadMore}
             onEndReachedThreshold={0.1}
+            onScrollToIndexFailed={(info) => {
+              flatListRef.current?.scrollToOffset({
+                offset: info.averageItemLength * info.index,
+                animated: true,
+              });
+            }}
             ListHeaderComponent={ListHeader}
             ListFooterComponent={
               isLoadingMore ? (

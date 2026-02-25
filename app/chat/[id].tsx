@@ -8,8 +8,9 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Routes } from "@/constants/routes";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import * as Notifications from "expo-notifications";
 import { ChatHeader } from "@/components/ui/ChatHeader";
 import { ChatInput } from "@/components/ui/ChatInput";
 import { MessageBubble } from "@/components/ui/MessageBubble";
@@ -21,6 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatMessageTime } from "@/utils/time";
 import { useGetLastSeenText, useFormatDateSeparator } from "@/hooks/useChatHelpers";
 import { getStickerById } from "@/constants/stickers";
+import { setActiveChatId } from "@/utils/activeChatTracker";
 import { useState } from "react";
 import type { Message } from "@/services/api";
 
@@ -45,6 +47,38 @@ export default function ChatScreen() {
       conversationId: id,
       enabled: hasAccessToken,
     });
+
+  // Track active chat ID for push suppression
+  useEffect(() => {
+    if (id) {
+      setActiveChatId(id);
+    }
+    return () => {
+      setActiveChatId(null);
+    };
+  }, [id]);
+
+  // Dismiss existing push notifications for this conversation on mount
+  useEffect(() => {
+    async function clearChatNotifications() {
+      try {
+        const presented = await Notifications.getPresentedNotificationsAsync();
+        for (const notif of presented) {
+          const data = notif.request.content.data as
+            | { screen?: string; params?: { id?: string } }
+            | undefined;
+          if (data?.screen === "chat" && data?.params?.id === id) {
+            await Notifications.dismissNotificationAsync(notif.request.identifier);
+          }
+        }
+      } catch {
+        // Silently ignore -- notification dismissal is best-effort
+      }
+    }
+    if (id) {
+      clearChatNotifications();
+    }
+  }, [id]);
 
   // Get the other participant for 1:1 chats
   const otherParticipant = useMemo(() => {

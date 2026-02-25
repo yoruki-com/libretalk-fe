@@ -13,6 +13,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import { NotificationRow } from "@/components/ui";
+import { Routes } from "@/constants/routes";
 import type { NotificationResponse } from "@/services/api/notifications";
 
 export default function NotificationsScreen() {
@@ -44,10 +45,36 @@ export default function NotificationsScreen() {
       if (!notification.isRead) {
         markAsRead(notification.publicId);
       }
-      // Navigation to linked content will be implemented in Phase 13 (INAPP-07, INAPP-08)
-      // For now, mark-read is the only tap action
+
+      // Navigate based on notification type
+      switch (notification.type) {
+        case "LIKE":
+        case "LIKE_REMINDER":
+        case "NEW_VIBES":
+          if (notification.referenceType === "post" && notification.referenceId) {
+            router.push({
+              pathname: Routes.POST_COMMENTS,
+              params: { id: notification.referenceId },
+            } as never);
+          }
+          break;
+        case "COMMENT":
+        case "COMMENT_REMINDER":
+          if (notification.referenceType === "post" && notification.referenceId) {
+            // Navigate to comments -- no specific commentId for in-app aggregated notifications
+            // (aggregated notification represents multiple comments, not one specific comment)
+            router.push({
+              pathname: Routes.POST_COMMENTS,
+              params: { id: notification.referenceId },
+            } as never);
+          }
+          break;
+        case "FOLLOW":
+          // Stay on notifications panel -- no navigation per locked decision
+          break;
+      }
     },
-    [markAsRead]
+    [markAsRead, router]
   );
 
   const renderItem = useCallback(
