@@ -1,9 +1,13 @@
 import { BottomNavigation } from "@/components/ui/BottomNavigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { usePushToken } from "@/hooks/usePushToken";
 import { Tabs } from "expo-router";
 
 export default function TabLayout() {
   useOnlineStatus();
+  const { isAuthenticated } = useAuth();
+  usePushToken(isAuthenticated);
 
   return (
     <Tabs
