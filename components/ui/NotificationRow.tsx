@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { formatNotificationTime } from "@/utils/time";
@@ -6,8 +6,7 @@ import { formatNotificationTime } from "@/utils/time";
 interface NotificationRowProps {
   title: string;
   body: string | null;
-  actorSummary: string | null;
-  actorCount: number;
+  actorAvatarUrl: string | null;
   isRead: boolean;
   createdAt: string;
   type: string;
@@ -17,8 +16,7 @@ interface NotificationRowProps {
 export function NotificationRow({
   title,
   body,
-  actorSummary,
-  actorCount,
+  actorAvatarUrl,
   isRead,
   createdAt,
   type,
@@ -45,12 +43,19 @@ export function NotificationRow({
         )}
       </View>
 
-      {/* Icon / avatar placeholder */}
+      {/* Actor avatar or icon fallback */}
       <View
-        className="h-10 w-10 rounded-full items-center justify-center mr-3"
+        className="h-10 w-10 rounded-full items-center justify-center mr-3 overflow-hidden"
         style={{ backgroundColor: theme.card }}
       >
-        <Ionicons name={iconName} size={20} color={theme.icon} />
+        {actorAvatarUrl ? (
+          <Image
+            source={{ uri: actorAvatarUrl }}
+            style={{ width: 40, height: 40, borderRadius: 20 }}
+          />
+        ) : (
+          <Ionicons name={iconName} size={20} color={theme.icon} />
+        )}
       </View>
 
       {/* Content */}
@@ -64,7 +69,7 @@ export function NotificationRow({
             lineHeight: 20,
           }}
         >
-          {actorSummary ? `${actorSummary} ` : ""}{title}
+          {title}
         </Text>
         {body && (
           <Text

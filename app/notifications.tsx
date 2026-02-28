@@ -85,8 +85,7 @@ export default function NotificationsScreen() {
       <NotificationRow
         title={item.title}
         body={item.body}
-        actorSummary={item.actorSummary}
-        actorCount={item.actorCount}
+        actorAvatarUrl={item.actorAvatarUrl}
         isRead={item.isRead}
         createdAt={item.createdAt}
         type={item.type}

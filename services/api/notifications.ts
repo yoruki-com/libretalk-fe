@@ -11,6 +11,7 @@ export interface NotificationResponse {
   groupKey: string | null;
   actorCount: number;
   actorSummary: string | null;
+  actorAvatarUrl: string | null;
   referenceType: string | null;
   referenceId: string | null;
   createdAt: string;
