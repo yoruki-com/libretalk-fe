@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "390155355873",
+    "project_id": "libretalk-dev",
+    "storage_bucket": "libretalk-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:390155355873:android:6ec07d0f2ecb70cca999a0",
+        "android_client_info": {
+          "package_name": "com.libretalk.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBL2pYR8ajZ_sWqynKWNcsMpCTXLTFLVmA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

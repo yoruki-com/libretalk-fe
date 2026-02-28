@@ -13,6 +13,7 @@
       "bundleIdentifier": "com.libretalk.app"
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo-without-stroke.png",
         "backgroundColor": "#E6F4FE"
