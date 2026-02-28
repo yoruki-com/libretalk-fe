@@ -5,6 +5,7 @@ import * as WebBrowser from "expo-web-browser";
 import "../global.css";
 
 import { AuthProvider } from "@/contexts/AuthContext";
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import { useNotificationNavigation } from "@/hooks/useNotificationNavigation";
 import { getActiveChatId } from "@/utils/activeChatTracker";
@@ -102,9 +103,11 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <ThemeProvider>
-        <RootLayoutContent />
-      </ThemeProvider>
+      <WebSocketProvider>
+        <ThemeProvider>
+          <RootLayoutContent />
+        </ThemeProvider>
+      </WebSocketProvider>
     </AuthProvider>
   );
 }

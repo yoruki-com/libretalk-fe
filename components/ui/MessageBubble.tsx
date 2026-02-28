@@ -19,6 +19,7 @@ interface MessageBubbleProps {
   time: string;
   isMe: boolean;
   isRead?: boolean;
+  isOptimistic?: boolean;
   images?: ImageItem[];
   file?: FileAttachment;
   StickerComponent?: ComponentType<SvgProps>;
@@ -29,6 +30,7 @@ export function MessageBubble({
   time,
   isMe,
   isRead = false,
+  isOptimistic = false,
   images,
   file,
   StickerComponent,
@@ -50,10 +52,13 @@ export function MessageBubble({
           >
             {time}
           </Text>
-          {isMe && isRead && (
+          {isMe && isOptimistic && (
+            <Ionicons name="time-outline" size={12} color={theme.textTertiary} />
+          )}
+          {isMe && !isOptimistic && isRead && (
             <Ionicons name="checkmark-done" size={12} color={theme.success} />
           )}
-          {isMe && !isRead && (
+          {isMe && !isOptimistic && !isRead && (
             <Ionicons
               name="checkmark-done"
               size={12}

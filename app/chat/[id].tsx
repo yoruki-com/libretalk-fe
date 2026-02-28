@@ -23,10 +23,10 @@ import { useGetLastSeenText, useFormatDateSeparator } from "@/hooks/useChatHelpe
 import { getStickerById } from "@/constants/stickers";
 import { setActiveChatId } from "@/utils/activeChatTracker";
 import { useState } from "react";
-import type { Message } from "@/services/api";
+import type { LocalMessage } from "@/hooks/useConversation";
 
 type FlatItem =
-  | { type: "message"; data: Message }
+  | { type: "message"; data: LocalMessage }
   | { type: "separator"; date: string };
 
 export default function ChatScreen() {
@@ -187,6 +187,7 @@ export default function ChatScreen() {
         time={formatMessageTime(msg.createdAt)}
         isMe={msg.sender.publicId === currentUserPublicId}
         isRead={msg.status === "READ"}
+        isOptimistic={msg.isOptimistic}
         StickerComponent={
           msg.type === "STICKER" && msg.content
             ? getStickerById(msg.content)?.Component
