@@ -14,7 +14,7 @@ import {
 import { formatChatListTime } from "@/utils/time";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,6 +33,15 @@ export default function ChatListScreen() {
       enabled: hasAccessToken && !!profile?.publicId,
       userPublicId: profile?.publicId,
     });
+
+  // Auto-refresh the list every 60 seconds regardless of where the user is in the app
+  useEffect(() => {
+    if (!hasAccessToken || !profile?.publicId) return;
+    const interval = setInterval(() => {
+      refresh();
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [hasAccessToken, profile?.publicId, refresh]);
 
   // Refresh conversations when tab regains focus (e.g. coming back from chat detail)
   const isFirstFocus = useRef(true);

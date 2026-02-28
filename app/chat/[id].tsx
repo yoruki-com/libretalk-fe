@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Routes } from "@/constants/routes";
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import * as Notifications from "expo-notifications";
 import { ChatHeader } from "@/components/ui/ChatHeader";
@@ -46,6 +46,24 @@ export default function ChatScreen() {
       conversationId: id,
       enabled: hasAccessToken,
     });
+
+  // ── Auto-scroll ───────────────────────────────────────────
+  const flatListRef = useRef<FlatList<FlatItem>>(null);
+  /** true when the user is at the bottom of the chat (newest messages visible) */
+  const isAtBottom = useRef(true);
+  /** publicId of the most-recently-seen newest message, to detect new arrivals */
+  const prevFirstIdRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const firstId = messages[0].publicId;
+    if (firstId === prevFirstIdRef.current) return;
+    prevFirstIdRef.current = firstId;
+    // Only auto-scroll when the user is already at the bottom
+    if (isAtBottom.current) {
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }
+  }, [messages]);
 
   // Mark messages as read when the conversation loads
   useEffect(() => {
@@ -241,6 +259,7 @@ export default function ChatScreen() {
       />
 
       <FlatList
+        ref={flatListRef}
         className="flex-1 px-4"
         style={{ backgroundColor: theme.surface }}
         contentContainerStyle={{ gap: 16, paddingVertical: 24 }}
@@ -253,6 +272,11 @@ export default function ChatScreen() {
         onEndReached={loadMoreMessages}
         onEndReachedThreshold={0.2}
         showsVerticalScrollIndicator={false}
+        onScroll={(e) => {
+          // In an inverted FlatList y=0 means the user is at the bottom (newest messages).
+          isAtBottom.current = e.nativeEvent.contentOffset.y < 80;
+        }}
+        scrollEventThrottle={100}
         ListFooterComponent={
           isLoadingMessages ? (
             <View className="py-4 items-center">
