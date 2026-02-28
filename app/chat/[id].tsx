@@ -1,7 +1,6 @@
 import {
   FlatList,
   KeyboardAvoidingView,
-  Platform,
   View,
   Text,
   ActivityIndicator,
@@ -212,7 +211,7 @@ export default function ChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior="padding"
       className="flex-1"
       style={{ backgroundColor: theme.background }}
     >

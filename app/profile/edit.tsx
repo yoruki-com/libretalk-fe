@@ -34,6 +34,7 @@ import {
   Alert,
   FlatList,
   Image,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -323,7 +324,8 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <View
+    <KeyboardAvoidingView
+      behavior="padding"
       className="flex-1"
       style={{ paddingTop: insets.top, backgroundColor: theme.background }}
     >
@@ -950,6 +952,6 @@ export default function EditProfileScreen() {
           </ScrollView>
         </View>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

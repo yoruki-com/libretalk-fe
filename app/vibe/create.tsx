@@ -95,7 +95,7 @@ export default function CreateVibeScreen() {
       {/* Content */}
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
       >
         <ScrollView
           className="flex-1"

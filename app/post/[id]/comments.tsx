@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
   Pressable,
   Alert,
@@ -161,7 +160,7 @@ export default function CommentsScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior="padding"
       className="flex-1"
       style={{ paddingTop: insets.top, backgroundColor: theme.background }}
     >
