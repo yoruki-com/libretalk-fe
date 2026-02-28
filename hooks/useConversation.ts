@@ -24,6 +24,7 @@ interface UseConversationResult {
   refresh: () => Promise<void>;
   loadMoreMessages: () => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
+  markAsRead: () => Promise<void>;
 }
 
 export function useConversation(options: UseConversationOptions): UseConversationResult {
@@ -102,6 +103,15 @@ export function useConversation(options: UseConversationOptions): UseConversatio
     [conversationId]
   );
 
+  const markAsRead = useCallback(async () => {
+    try {
+      await conversationsApi.markAsRead(conversationId);
+      await fetchMessages(1, false);
+    } catch {
+      // best-effort: don't surface read-receipt failures to user
+    }
+  }, [conversationId, fetchMessages]);
+
   useEffect(() => {
     if (autoFetch && enabled && conversationId) {
       fetchConversation();
@@ -119,5 +129,6 @@ export function useConversation(options: UseConversationOptions): UseConversatio
     refresh,
     loadMoreMessages,
     sendMessage,
+    markAsRead,
   };
 }

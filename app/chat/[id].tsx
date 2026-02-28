@@ -41,11 +41,18 @@ export default function ChatScreen() {
   const getLastSeenText = useGetLastSeenText();
   const formatDateSeparator = useFormatDateSeparator();
 
-  const { conversation, messages, isLoading, isLoadingMessages, error, sendMessage, loadMoreMessages } =
+  const { conversation, messages, isLoading, isLoadingMessages, error, sendMessage, loadMoreMessages, markAsRead } =
     useConversation({
       conversationId: id,
       enabled: hasAccessToken,
     });
+
+  // Mark messages as read when the conversation loads
+  useEffect(() => {
+    if (conversation?.publicId) {
+      markAsRead();
+    }
+  }, [conversation?.publicId]);
 
   // Track active chat ID for push suppression
   useEffect(() => {
