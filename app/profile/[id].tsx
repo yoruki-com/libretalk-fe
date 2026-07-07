@@ -1,19 +1,27 @@
-import { CountryFlag, DropdownMenu, type DropdownMenuItem, VibeCard } from "@/components/ui";
+import {
+  CountryFlag,
+  DropdownMenu,
+  type DropdownMenuItem,
+  ReportModal,
+  VibeCard,
+} from "@/components/ui";
+import { getZodiacSign } from "@/components/ui/edit-profile/getZodiacSign";
 import { Routes } from "@/constants/routes";
+import { getRandomHelloSticker } from "@/constants/stickers";
+import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { reportsApi } from "@/services/api";
+import { conversationsApi } from "@/services/api/conversations";
+import { followsApi } from "@/services/api/follows";
+import { likesApi } from "@/services/api/likes";
 import type { Conversation, UserMe } from "@/services/api/types";
 import { usersApi } from "@/services/api/users";
 import type { Vibe } from "@/services/api/vibes";
 import { vibesApi } from "@/services/api/vibes";
-import { likesApi } from "@/services/api/likes";
-import { followsApi } from "@/services/api/follows";
-import { conversationsApi } from "@/services/api/conversations";
-import { getRandomHelloSticker } from "@/constants/stickers";
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "@/contexts/AuthContext";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -27,11 +35,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-
 const STATIC_MAP_PLACEHOLDER =
   "https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/0,20,2,0/600x300@2x?access_token=placeholder";
 
-type ProfileTab = "profile" | "vibes" | "honor";
+type ProfileTab = "details" | "vibes";
 
 export default function ProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -40,7 +47,9 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const { theme, isDark } = useTheme();
   const { isAuthenticated, hasAccessToken } = useAuth();
-  const { profile: currentUser } = useCurrentUser(isAuthenticated && hasAccessToken);
+  const { profile: currentUser } = useCurrentUser(
+    isAuthenticated && hasAccessToken,
+  );
   const isOwnProfile = !!(currentUser && id && currentUser.publicId === id);
 
   const [user, setUser] = useState<UserMe | null>(null);
@@ -48,8 +57,12 @@ export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ProfileTab>("vibes");
   const [bioExpanded, setBioExpanded] = useState(false);
-  const [existingConversation, setExistingConversation] = useState<Conversation | null>(null);
+  const [existingConversation, setExistingConversation] =
+    useState<Conversation | null>(null);
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [reportTarget, setReportTarget] = useState<
+    { type: "user"; userId: string } | { type: "post"; postId: string } | null
+  >(null);
 
   const fetchUser = useCallback(async () => {
     if (!id) return;
@@ -84,8 +97,7 @@ export default function ProfileScreen() {
         const response = await conversationsApi.getByUser(currentUser.publicId);
         const conversation = response.data.find(
           (conv) =>
-            !conv.isGroup &&
-            conv.participants.some((p) => p.publicId === id)
+            !conv.isGroup && conv.participants.some((p) => p.publicId === id),
         );
         setExistingConversation(conversation ?? null);
       } catch (err) {
@@ -104,9 +116,12 @@ export default function ProfileScreen() {
         return;
       }
       if (id) {
-        vibesApi.getByUser(id).then((res) => setVibes(res.data)).catch(() => {});
+        vibesApi
+          .getByUser(id)
+          .then((res) => setVibes(res.data))
+          .catch(() => {});
       }
-    }, [id])
+    }, [id]),
   );
 
   const toggleLike = useCallback(
@@ -123,12 +138,15 @@ export default function ProfileScreen() {
                 isLiked: !v.isLiked,
                 likesCount: v.isLiked ? v.likesCount - 1 : v.likesCount + 1,
               }
-            : v
-        )
+            : v,
+        ),
       );
 
       try {
-        const result = await likesApi.togglePostLike(vibeId, currentUser.publicId);
+        const result = await likesApi.togglePostLike(
+          vibeId,
+          currentUser.publicId,
+        );
         // Sync with server response
         setVibes((prev) =>
           prev.map((v) =>
@@ -138,8 +156,8 @@ export default function ProfileScreen() {
                   isLiked: result.data.liked,
                   likesCount: result.data.likesCount,
                 }
-              : v
-          )
+              : v,
+          ),
         );
       } catch {
         // Revert on error
@@ -151,12 +169,12 @@ export default function ProfileScreen() {
                   isLiked: vibe.isLiked,
                   likesCount: vibe.likesCount,
                 }
-              : v
-          )
+              : v,
+          ),
         );
       }
     },
-    [vibes, currentUser?.publicId]
+    [vibes, currentUser?.publicId],
   );
 
   const toggleFollow = useCallback(async () => {
@@ -173,11 +191,14 @@ export default function ProfileScreen() {
               ? prev.followersCount - 1
               : prev.followersCount + 1,
           }
-        : prev
+        : prev,
     );
 
     try {
-      const result = await followsApi.toggleFollow(user.publicId, currentUser.publicId);
+      const result = await followsApi.toggleFollow(
+        user.publicId,
+        currentUser.publicId,
+      );
       // Sync with server
       setUser((prev) =>
         prev
@@ -187,7 +208,7 @@ export default function ProfileScreen() {
               followersCount: result.data.followersCount,
               followingCount: result.data.followingCount,
             }
-          : prev
+          : prev,
       );
     } catch {
       // Revert on error
@@ -200,7 +221,7 @@ export default function ProfileScreen() {
                 ? prev.followersCount + 1
                 : prev.followersCount - 1,
             }
-          : prev
+          : prev,
       );
     }
   }, [user, currentUser?.publicId]);
@@ -257,7 +278,9 @@ export default function ProfileScreen() {
         className="flex-1 items-center justify-center"
         style={{ backgroundColor: theme.background }}
       >
-        <Text style={{ color: theme.textSecondary }}>{t("profile.userNotFound")}</Text>
+        <Text style={{ color: theme.textSecondary }}>
+          {t("profile.userNotFound")}
+        </Text>
       </View>
     );
   }
@@ -269,21 +292,25 @@ export default function ProfileScreen() {
   const totalLikes = vibes.reduce((sum, v) => sum + v.likesCount, 0);
   const totalComments = vibes.reduce((sum, v) => sum + v.commentsCount, 0);
 
+  const userAge = user.dateOfBirth
+    ? Math.floor(
+        (Date.now() - new Date(user.dateOfBirth).getTime()) /
+          (365.25 * 24 * 60 * 60 * 1000),
+      )
+    : null;
+
   const profileMenuItems: DropdownMenuItem[] = [
     {
       key: "report",
       label: t("menu.reportThis"),
       icon: "flag-outline",
-      onPress: () => {
-        Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-      },
+      onPress: () => setReportTarget({ type: "user", userId: id }),
     },
   ];
 
   const tabs = [
-    { key: "profile" as const, label: t("profile.tabProfile") },
+    { key: "details" as const, label: t("profile.tabDetails") },
     { key: "vibes" as const, label: t("profile.tabVibes") },
-    { key: "honor" as const, label: t("profile.tabHonor") },
   ];
 
   return (
@@ -389,7 +416,11 @@ export default function ProfileScreen() {
               {user.displayName}
             </Text>
             {user.isVip && (
-              <Ionicons name="shield-checkmark" size={18} color={theme.primary} />
+              <Ionicons
+                name="shield-checkmark"
+                size={18}
+                color={theme.primary}
+              />
             )}
             {user.isOnline && (
               <View className="flex-row items-center gap-1">
@@ -489,20 +520,6 @@ export default function ProfileScreen() {
               style={{ color: theme.textSecondary }}
             >
               {t("profile.followers")}
-            </Text>
-          </View>
-          <View className="flex-row items-center gap-1">
-            <Text
-              className="font-sans-semibold text-[14px]"
-              style={{ color: theme.text }}
-            >
-              0d
-            </Text>
-            <Text
-              className="font-sans text-[13px]"
-              style={{ color: theme.textSecondary }}
-            >
-              {t("profile.streak")}
             </Text>
           </View>
         </View>
@@ -628,9 +645,9 @@ export default function ProfileScreen() {
                         params: { id: vibe.publicId },
                       })
                     }
-                    onReportPress={() => {
-                      Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-                    }}
+                    onReportPress={() =>
+                      setReportTarget({ type: "post", postId: vibe.publicId })
+                    }
                   />
                 </View>
               ))}
@@ -646,25 +663,188 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {activeTab === "profile" && (
-          <View className="items-center justify-center px-4 py-12">
-            <Text
-              className="font-sans text-[14px]"
-              style={{ color: theme.textSecondary }}
-            >
-              {t("profile.profileComingSoon")}
-            </Text>
-          </View>
-        )}
+        {activeTab === "details" && (
+          <View className="px-4 pt-4 pb-24">
+            {/* Info grid */}
+            {(user.personalityType ||
+              user.jobTitle ||
+              user.gender ||
+              userAge !== null ||
+              user.dateOfBirth) && (
+              <View className="flex-row flex-wrap gap-3 pb-4">
+                {user.personalityType && (
+                  <View
+                    className="items-center rounded-2xl px-4 py-3"
+                    style={{ backgroundColor: theme.card }}
+                  >
+                    <Text
+                      className="font-sans text-[11px]"
+                      style={{ color: theme.textTertiary }}
+                    >
+                      {t("profile.personalityType")}
+                    </Text>
+                    <Text
+                      className="font-sans-semibold text-[15px] pt-0.5"
+                      style={{ color: theme.text }}
+                    >
+                      {user.personalityType}
+                    </Text>
+                  </View>
+                )}
 
-        {activeTab === "honor" && (
-          <View className="items-center justify-center px-4 py-12">
-            <Text
-              className="font-sans text-[14px]"
-              style={{ color: theme.textSecondary }}
-            >
-              {t("profile.honorComingSoon")}
-            </Text>
+                {user.jobTitle && (
+                  <View
+                    className="items-center rounded-2xl px-4 py-3"
+                    style={{ backgroundColor: theme.card }}
+                  >
+                    <Text
+                      className="font-sans text-[11px]"
+                      style={{ color: theme.textTertiary }}
+                    >
+                      {t("profile.jobTitle")}
+                    </Text>
+                    <Text
+                      className="font-sans-semibold text-[15px] pt-0.5"
+                      style={{ color: theme.text }}
+                    >
+                      {user.jobTitle}
+                    </Text>
+                  </View>
+                )}
+
+                {user.gender && user.gender !== "PREFER_NOT_TO_SAY" && (
+                  <View
+                    className="items-center rounded-2xl px-4 py-3"
+                    style={{ backgroundColor: theme.card }}
+                  >
+                    <Text
+                      className="font-sans text-[11px]"
+                      style={{ color: theme.textTertiary }}
+                    >
+                      {t("profile.gender")}
+                    </Text>
+                    <Text
+                      className="font-sans-semibold text-[15px] pt-0.5"
+                      style={{ color: theme.text }}
+                    >
+                      {t(`editProfile.gender_${user.gender}`)}
+                    </Text>
+                  </View>
+                )}
+
+                {userAge !== null && (
+                  <View
+                    className="items-center rounded-2xl px-4 py-3"
+                    style={{ backgroundColor: theme.card }}
+                  >
+                    <Text
+                      className="font-sans text-[11px]"
+                      style={{ color: theme.textTertiary }}
+                    >
+                      {t("profile.age")}
+                    </Text>
+                    <Text
+                      className="font-sans-semibold text-[15px] pt-0.5"
+                      style={{ color: theme.text }}
+                    >
+                      {t("profile.yearsOld", { age: userAge })}
+                    </Text>
+                  </View>
+                )}
+
+                {user.dateOfBirth && (
+                  <View
+                    className="items-center rounded-2xl px-4 py-3"
+                    style={{ backgroundColor: theme.card }}
+                  >
+                    <Text
+                      className="font-sans text-[11px]"
+                      style={{ color: theme.textTertiary }}
+                    >
+                      {t("profile.zodiacSign")}
+                    </Text>
+                    <Text
+                      className="font-sans-semibold text-[15px] pt-0.5"
+                      style={{ color: theme.text }}
+                    >
+                      {getZodiacSign(user.dateOfBirth, t)}
+                    </Text>
+                  </View>
+                )}
+
+                <View
+                  className="items-center rounded-2xl px-4 py-3"
+                  style={{ backgroundColor: theme.card }}
+                >
+                  <Text
+                    className="font-sans text-[11px]"
+                    style={{ color: theme.textTertiary }}
+                  >
+                    {t("profile.memberSince")}
+                  </Text>
+                  <Text
+                    className="font-sans-semibold text-[15px] pt-0.5"
+                    style={{ color: theme.text }}
+                  >
+                    {new Date(user.createdAt).toLocaleDateString(undefined, {
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Passions / Interests */}
+            {user.passions && user.passions.length > 0 && (
+              <View className="pt-2">
+                <Text
+                  className="font-sans-semibold text-[14px] pb-3"
+                  style={{ color: theme.text }}
+                >
+                  {t("profile.interests")}
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {user.passions.map((passion) => (
+                    <View
+                      key={passion.publicId}
+                      className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
+                      style={{
+                        backgroundColor: theme.card,
+                        borderWidth: 1,
+                        borderColor: theme.border,
+                      }}
+                    >
+                      {passion.icon && (
+                        <Text className="text-[13px]">{passion.icon}</Text>
+                      )}
+                      <Text
+                        className="font-sans text-[13px]"
+                        style={{ color: theme.text }}
+                      >
+                        {passion.name}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Empty state */}
+            {!user.personalityType &&
+              !user.jobTitle &&
+              !user.gender &&
+              userAge === null &&
+              (!user.passions || user.passions.length === 0) && (
+                <View className="items-center justify-center py-8">
+                  <Text
+                    className="font-sans text-[14px]"
+                    style={{ color: theme.textSecondary }}
+                  >
+                    {t("profile.noDetailsYet")}
+                  </Text>
+                </View>
+              )}
           </View>
         )}
       </ScrollView>
@@ -701,7 +881,10 @@ export default function ProfileScreen() {
             onPress={handleChatPress}
             disabled={isChatLoading}
             className="flex-1 items-center rounded-full py-3 active:opacity-70"
-            style={{ backgroundColor: theme.primary, opacity: isChatLoading ? 0.7 : 1 }}
+            style={{
+              backgroundColor: theme.primary,
+              opacity: isChatLoading ? 0.7 : 1,
+            }}
           >
             {isChatLoading ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
@@ -713,6 +896,26 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
       )}
+      <ReportModal
+        visible={reportTarget !== null}
+        onClose={() => setReportTarget(null)}
+        onSubmit={async (reason, description) => {
+          if (reportTarget!.type === "user") {
+            await reportsApi.reportUser({
+              reason,
+              userId: reportTarget!.userId,
+              description,
+            });
+          } else {
+            await reportsApi.reportPost({
+              reason,
+              postId: reportTarget!.postId,
+              description,
+            });
+          }
+          Alert.alert(t("report.success"));
+        }}
+      />
     </View>
   );
 }

@@ -7,7 +7,6 @@ interface ProfileCardProps {
   subtitle?: string;
   avatar?: string;
   contactsCount?: number;
-  onQRPress?: () => void;
   onContactsPress?: () => void;
 }
 
@@ -15,7 +14,6 @@ export function ProfileCard({
   name,
   subtitle,
   avatar,
-  onQRPress,
   onContactsPress,
 }: ProfileCardProps) {
   const { theme } = useTheme();
@@ -63,9 +61,6 @@ export function ProfileCard({
             )}
           </View>
         </View>
-        <Pressable onPress={onQRPress} className="active:opacity-70">
-          <Ionicons name="qr-code" size={24} color={theme.icon} />
-        </Pressable>
       </View>
 
       {/* Divider */}

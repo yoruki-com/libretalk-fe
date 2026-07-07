@@ -1,5 +1,6 @@
-import { Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Keyboard, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 import { useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -24,12 +25,22 @@ export function CommentInput({
   const maxInputHeight = screenHeight / 4;
   const { theme } = useTheme();
   const canSubmit = value.trim().length > 0 && !isSubmitting;
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   return (
     <View
       className="px-4 pt-4"
       style={{
-        paddingBottom: insets.bottom + 16,
+        paddingBottom: keyboardVisible ? 16 : insets.bottom + 16,
         backgroundColor: theme.background,
         borderTopWidth: 1,
         borderTopColor: theme.border,

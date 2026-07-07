@@ -1,9 +1,11 @@
-import { CategoryChips, LocationHeader, VibeCard } from "@/components/ui";
+import { CategoryChips, LocationHeader, ReportModal, VibeCard } from "@/components/ui";
 import { Routes } from "@/constants/routes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useUnreadCount } from "@/hooks/useUnreadCount";
 import { useVibes } from "@/hooks/useVibes";
+import { reportsApi } from "@/services/api";
 import type { Vibe } from "@/services/api/vibes";
 import { useFocusEffect } from "@react-navigation/native";
 import { getLocales } from "expo-localization";
@@ -26,6 +28,7 @@ export default function VibesScreen() {
     vibes,
     isLoading,
     isLoadingMore,
+    isRefreshing,
     error,
     toggleLike,
     setCategory,
@@ -33,6 +36,7 @@ export default function VibesScreen() {
     refresh,
     loadMore,
   } = useVibes({ enabled: hasAccessToken, userPublicId: profile?.publicId, hasLocation: !!(profile?.latitude && profile?.longitude) });
+  const { unreadCount, fetchUnreadCount } = useUnreadCount();
 
   const feedFilters = [
     { id: "recent", emoji: "\uD83D\uDD50", label: t("vibes.filterRecent") },
@@ -58,12 +62,31 @@ export default function VibesScreen() {
     }, [hasAccessToken, refresh]),
   );
 
+  // Fetch unread notification count on focus (updates badge after reading notifications)
+  useFocusEffect(
+    useCallback(() => {
+      if (hasAccessToken) {
+        fetchUnreadCount();
+      }
+    }, [hasAccessToken, fetchUnreadCount]),
+  );
+
+  // Also fetch unread count on initial mount
+  useEffect(() => {
+    if (hasAccessToken) {
+      fetchUnreadCount();
+    }
+  }, [hasAccessToken, fetchUnreadCount]);
+
   const handleCommentPress = (postId: string) => {
     router.push({
       pathname: Routes.POST_COMMENTS,
       params: { id: postId },
     });
   };
+
+  // Report modal state
+  const [reportTarget, setReportTarget] = useState<{ postId: string } | null>(null);
 
   // Track selected category locally for UI
   const [selectedCategory, setSelectedCategory] = useState("recent");
@@ -110,9 +133,7 @@ export default function VibesScreen() {
             })
           }
           onCommentPress={() => handleCommentPress(vibe.publicId)}
-          onReportPress={() => {
-            Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-          }}
+          onReportPress={() => setReportTarget({ postId: vibe.publicId })}
         />
       </View>
     ),
@@ -128,8 +149,9 @@ export default function VibesScreen() {
           avatarUrl={profile?.avatarUrl ?? authUser?.avatar}
           countryCode={profile?.country?.code ?? deviceCountryCode}
           languages={profile?.languages}
-          hasNotification
-          onNotificationPress={() => {}}
+          notificationCount={unreadCount}
+          onNotificationPress={() => router.push(Routes.NOTIFICATIONS as never)}
+          onComposePress={() => router.push(Routes.VIBE_CREATE as never)}
           onAvatarPress={() => {
             if (profile?.publicId) {
               router.push({
@@ -149,13 +171,6 @@ export default function VibesScreen() {
           onSelect={handleCategoryChange}
         />
       </View>
-
-      {/* Loading State (initial) */}
-      {isLoading && vibes.length === 0 && (
-        <View className="items-center justify-center py-20">
-          <ActivityIndicator size="large" color={theme.primary} />
-        </View>
-      )}
 
       {/* Error State */}
       {error && vibes.length === 0 && (
@@ -192,12 +207,12 @@ export default function VibesScreen() {
         keyExtractor={(item) => item.publicId}
         renderItem={renderItem}
         onRefresh={refresh}
-        refreshing={isLoading && vibes.length === 0}
+        refreshing={isRefreshing}
         onEndReached={loadMore}
         onEndReachedThreshold={0.1}
         ListHeaderComponent={ListHeader}
         ListFooterComponent={
-          isLoadingMore ? (
+          isLoading || isLoadingMore ? (
             <View className="py-4 items-center">
               <ActivityIndicator size="small" color={theme.primary} />
             </View>
@@ -212,6 +227,14 @@ export default function VibesScreen() {
             </View>
           ) : null
         }
+      />
+      <ReportModal
+        visible={reportTarget !== null}
+        onClose={() => setReportTarget(null)}
+        onSubmit={async (reason, description) => {
+          await reportsApi.reportPost({ reason, postId: reportTarget!.postId, description });
+          Alert.alert(t("report.success"));
+        }}
       />
     </View>
   );

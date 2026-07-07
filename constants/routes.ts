@@ -13,4 +13,7 @@ export const Routes = {
   VIP: "/vip",
   PROMO: "/promo/[slug]",
   PROMO_VIP: "/promo/vip",
+  VIBE_CREATE: "/vibe/create",
+  NOTIFICATIONS: "/notifications",
+  SETTINGS_NOTIFICATIONS: "/settings/notifications",
 } as const;

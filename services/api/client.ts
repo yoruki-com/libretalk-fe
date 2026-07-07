@@ -3,6 +3,9 @@ import { API_URL } from "./config";
 import type { PaginationParams } from "./types";
 
 class ApiError extends Error {
+  /** Status codes whose backend message is safe to show to the user. */
+  private static readonly USER_FACING_STATUSES = new Set([400, 403, 404, 409, 422]);
+
   constructor(
     public status: number,
     message: string,
@@ -10,6 +13,10 @@ class ApiError extends Error {
   ) {
     super(message);
     this.name = "ApiError";
+  }
+
+  get isUserFacing(): boolean {
+    return ApiError.USER_FACING_STATUSES.has(this.status);
   }
 }
 
@@ -71,10 +78,11 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 function handleAxiosError(error: unknown): never {
   if (axios.isAxiosError(error) && error.response) {
     const { status, data } = error.response;
+    const message = data?.error?.message || data?.message || error.message;
     if (status === 401) {
-      throw new ApiError(401, data?.message || "Unauthorized - Please sign in again", data);
+      throw new ApiError(401, message || "Unauthorized - Please sign in again", data);
     }
-    throw new ApiError(status, data?.message || error.message, data);
+    throw new ApiError(status, message, data);
   }
   throw error;
 }

@@ -1,15 +1,15 @@
 import {
   FlatList,
   KeyboardAvoidingView,
-  Platform,
   View,
   Text,
   ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Routes } from "@/constants/routes";
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import * as Notifications from "expo-notifications";
 import { ChatHeader } from "@/components/ui/ChatHeader";
 import { ChatInput } from "@/components/ui/ChatInput";
 import { MessageBubble } from "@/components/ui/MessageBubble";
@@ -21,11 +21,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatMessageTime } from "@/utils/time";
 import { useGetLastSeenText, useFormatDateSeparator } from "@/hooks/useChatHelpers";
 import { getStickerById } from "@/constants/stickers";
+import { setActiveChatId } from "@/utils/activeChatTracker";
 import { useState } from "react";
-import type { Message } from "@/services/api";
+import type { LocalMessage } from "@/hooks/useConversation";
 
 type FlatItem =
-  | { type: "message"; data: Message }
+  | { type: "message"; data: LocalMessage }
   | { type: "separator"; date: string };
 
 export default function ChatScreen() {
@@ -40,11 +41,68 @@ export default function ChatScreen() {
   const getLastSeenText = useGetLastSeenText();
   const formatDateSeparator = useFormatDateSeparator();
 
-  const { conversation, messages, isLoading, isLoadingMessages, error, sendMessage, loadMoreMessages } =
+  const { conversation, messages, isLoading, isLoadingMessages, error, sendMessage, loadMoreMessages, markAsRead } =
     useConversation({
       conversationId: id,
       enabled: hasAccessToken,
     });
+
+  // ── Auto-scroll ───────────────────────────────────────────
+  const flatListRef = useRef<FlatList<FlatItem>>(null);
+  /** true when the user is at the bottom of the chat (newest messages visible) */
+  const isAtBottom = useRef(true);
+  /** publicId of the most-recently-seen newest message, to detect new arrivals */
+  const prevFirstIdRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const firstId = messages[0].publicId;
+    if (firstId === prevFirstIdRef.current) return;
+    prevFirstIdRef.current = firstId;
+    // Only auto-scroll when the user is already at the bottom
+    if (isAtBottom.current) {
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }
+  }, [messages]);
+
+  // Mark messages as read when the conversation loads
+  useEffect(() => {
+    if (conversation?.publicId) {
+      markAsRead();
+    }
+  }, [conversation?.publicId]);
+
+  // Track active chat ID for push suppression
+  useEffect(() => {
+    if (id) {
+      setActiveChatId(id);
+    }
+    return () => {
+      setActiveChatId(null);
+    };
+  }, [id]);
+
+  // Dismiss existing push notifications for this conversation on mount
+  useEffect(() => {
+    async function clearChatNotifications() {
+      try {
+        const presented = await Notifications.getPresentedNotificationsAsync();
+        for (const notif of presented) {
+          const data = notif.request.content.data as
+            | { screen?: string; params?: { id?: string } }
+            | undefined;
+          if (data?.screen === "chat" && data?.params?.id === id) {
+            await Notifications.dismissNotificationAsync(notif.request.identifier);
+          }
+        }
+      } catch {
+        // Silently ignore -- notification dismissal is best-effort
+      }
+    }
+    if (id) {
+      clearChatNotifications();
+    }
+  }, [id]);
 
   // Get the other participant for 1:1 chats
   const otherParticipant = useMemo(() => {
@@ -147,6 +205,7 @@ export default function ChatScreen() {
         time={formatMessageTime(msg.createdAt)}
         isMe={msg.sender.publicId === currentUserPublicId}
         isRead={msg.status === "READ"}
+        isOptimistic={msg.isOptimistic}
         StickerComponent={
           msg.type === "STICKER" && msg.content
             ? getStickerById(msg.content)?.Component
@@ -178,7 +237,7 @@ export default function ChatScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior="padding"
       className="flex-1"
       style={{ backgroundColor: theme.background }}
     >
@@ -200,6 +259,7 @@ export default function ChatScreen() {
       />
 
       <FlatList
+        ref={flatListRef}
         className="flex-1 px-4"
         style={{ backgroundColor: theme.surface }}
         contentContainerStyle={{ gap: 16, paddingVertical: 24 }}
@@ -212,6 +272,11 @@ export default function ChatScreen() {
         onEndReached={loadMoreMessages}
         onEndReachedThreshold={0.2}
         showsVerticalScrollIndicator={false}
+        onScroll={(e) => {
+          // In an inverted FlatList y=0 means the user is at the bottom (newest messages).
+          isAtBottom.current = e.nativeEvent.contentOffset.y < 80;
+        }}
+        scrollEventThrottle={100}
         ListFooterComponent={
           isLoadingMessages ? (
             <View className="py-4 items-center">

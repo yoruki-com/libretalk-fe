@@ -1,4 +1,3 @@
-import axios from "axios";
 import { apiClient } from "./client";
 import type { ApiResponse, PresignedUrlResponse } from "./types";
 
@@ -20,12 +19,19 @@ export const uploadsApi = {
     fileUri: string,
     contentType: string
   ): Promise<void> {
-    // Read the file as a blob from the local URI
-    const fileResponse = await axios.get(fileUri, { responseType: "blob" });
+    // Use fetch for both read and upload — axios uses XMLHttpRequest which
+    // crashes on Android local file:// URIs and mishandles Blob bodies
+    const fileResponse = await fetch(fileUri);
+    const blob = await fileResponse.blob();
 
-    // Upload to S3
-    await axios.put(presignedUrl, fileResponse.data, {
+    const uploadResponse = await fetch(presignedUrl, {
+      method: "PUT",
       headers: { "Content-Type": contentType },
+      body: blob,
     });
+
+    if (!uploadResponse.ok) {
+      throw new Error(`S3 upload failed: ${uploadResponse.status}`);
+    }
   },
 };

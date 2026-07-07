@@ -1,10 +1,9 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
   FlatList,
   KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
   Pressable,
   Alert,
@@ -14,16 +13,17 @@ import { Routes } from "@/constants/routes";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { VibeCard, CommentCard, CommentInput } from "@/components/ui";
+import { VibeCard, CommentCard, CommentInput, ReportModal } from "@/components/ui";
 import { useComments } from "@/hooks/useComments";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { reportsApi } from "@/services/api";
 import { vibesApi, type Vibe, type Comment } from "@/services/api/vibes";
 import { formatRelativeTime } from "@/utils/time";
 
 export default function CommentsScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, commentId } = useLocalSearchParams<{ id: string; commentId?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
@@ -36,6 +36,8 @@ export default function CommentsScreen() {
   const [postError, setPostError] = useState<Error | null>(null);
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ type: "post"; postId: string } | { type: "comment"; commentId: string } | null>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   const {
     comments,
@@ -64,6 +66,21 @@ export default function CommentsScreen() {
     }
     fetchPost();
   }, [id, hasAccessToken]);
+
+  // Scroll to a specific comment when commentId is provided (from push tap)
+  useEffect(() => {
+    if (!commentId || comments.length === 0) return;
+    const index = comments.findIndex((c: Comment) => c.publicId === commentId);
+    if (index >= 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.3,
+        });
+      }, 300);
+    }
+  }, [commentId, comments]);
 
   const handleBack = () => {
     router.back();
@@ -101,9 +118,7 @@ export default function CommentsScreen() {
           router.push({ pathname: Routes.PROFILE, params: { id: comment.author.publicId } })
         }
         onReplyPress={() => {}}
-        onReportPress={() => {
-          Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-        }}
+        onReportPress={() => setReportTarget({ type: "comment", commentId: comment.publicId })}
       />
     ),
     [toggleLike, router, t]
@@ -127,9 +142,7 @@ export default function CommentsScreen() {
             onAuthorPress={() =>
               router.push({ pathname: Routes.PROFILE, params: { id: post.author.publicId } })
             }
-            onReportPress={() => {
-              Alert.alert(t("menu.reportThis"), "", [{ text: "OK" }]);
-            }}
+            onReportPress={() => setReportTarget({ type: "post", postId: post.publicId })}
           />
         </View>
       )}
@@ -147,7 +160,7 @@ export default function CommentsScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior="padding"
       className="flex-1"
       style={{ paddingTop: insets.top, backgroundColor: theme.background }}
     >
@@ -188,6 +201,7 @@ export default function CommentsScreen() {
       {!isLoading && !error && (
         <>
           <FlatList
+            ref={flatListRef}
             className="flex-1"
             contentContainerStyle={{ paddingBottom: 20 }}
             data={comments}
@@ -197,6 +211,12 @@ export default function CommentsScreen() {
             refreshing={isLoadingComments && comments.length === 0}
             onEndReached={loadMore}
             onEndReachedThreshold={0.1}
+            onScrollToIndexFailed={(info) => {
+              flatListRef.current?.scrollToOffset({
+                offset: info.averageItemLength * info.index,
+                animated: true,
+              });
+            }}
             ListHeaderComponent={ListHeader}
             ListFooterComponent={
               isLoadingMore ? (
@@ -229,6 +249,18 @@ export default function CommentsScreen() {
           />
         </>
       )}
+      <ReportModal
+        visible={reportTarget !== null}
+        onClose={() => setReportTarget(null)}
+        onSubmit={async (reason, description) => {
+          if (reportTarget!.type === "post") {
+            await reportsApi.reportPost({ reason, postId: reportTarget!.postId, description });
+          } else {
+            await reportsApi.reportComment({ reason, commentId: reportTarget!.commentId, description });
+          }
+          Alert.alert(t("report.success"));
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }

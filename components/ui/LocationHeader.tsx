@@ -1,6 +1,6 @@
-import { View, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, Text, View } from "react-native";
 import { UserBadge, type UserBadgeLanguage } from "./UserBadge";
 
 interface LocationHeaderProps {
@@ -10,7 +10,8 @@ interface LocationHeaderProps {
   languages?: UserBadgeLanguage[];
   onNotificationPress?: () => void;
   onAvatarPress?: () => void;
-  hasNotification?: boolean;
+  onComposePress?: () => void;
+  notificationCount?: number;
 }
 
 export function LocationHeader({
@@ -20,7 +21,8 @@ export function LocationHeader({
   languages = [],
   onNotificationPress,
   onAvatarPress,
-  hasNotification = false,
+  onComposePress,
+  notificationCount,
 }: LocationHeaderProps) {
   const { theme } = useTheme();
 
@@ -36,17 +38,39 @@ export function LocationHeader({
         />
       </View>
 
-      {/* Notification */}
-      <Pressable
-        onPress={onNotificationPress}
-        className="relative h-10 w-10 items-center justify-center rounded-full active:opacity-70"
-        style={{ backgroundColor: theme.card }}
-      >
-        <Ionicons name="notifications-outline" size={20} color={theme.icon} />
-        {hasNotification && (
-          <View className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+      <View className="flex-row items-center gap-2">
+        {/* Compose */}
+        {onComposePress && (
+          <Pressable
+            onPress={onComposePress}
+            className="h-10 w-10 items-center justify-center rounded-full active:opacity-70"
+            style={{ backgroundColor: "#3B82F6" }}
+          >
+            <Ionicons name="add" size={22} color="#FFFFFF" />
+          </Pressable>
         )}
-      </Pressable>
+
+        {/* Notification Bell */}
+        {onNotificationPress && (
+          <Pressable
+            onPress={onNotificationPress}
+            className="relative h-10 w-10 items-center justify-center rounded-full active:opacity-70"
+            style={{ backgroundColor: theme.card }}
+          >
+            <Ionicons name="notifications-outline" size={20} color={theme.icon} />
+            {(notificationCount ?? 0) > 0 && (
+              <View
+                className="absolute -right-1 -top-1 min-w-[18px] h-[18px] rounded-full items-center justify-center px-1"
+                style={{ backgroundColor: "#EF4444" }}
+              >
+                <Text style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "700" }}>
+                  {(notificationCount ?? 0) > 99 ? "99+" : notificationCount}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+        )}
+      </View>
     </View>
   );
 }

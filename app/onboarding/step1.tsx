@@ -7,7 +7,7 @@ import { CityPicker } from "@/components/ui/CityPicker";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Routes } from "@/constants/routes";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -22,29 +22,109 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
+const USERNAME_REGEX = /^[a-zA-Z0-9_]+$/;
+const USERNAME_MIN = 3;
+const USERNAME_DEBOUNCE_MS = 500;
+
+type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
+
 export default function OnboardingStep1() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const { isAuthenticated, hasAccessToken } = useAuth();
+  const { isAuthenticated, hasAccessToken, user: authUser } = useAuth();
   const { profile } = useCurrentUser(isAuthenticated && hasAccessToken);
 
+  const [username, setUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [displayName, setDisplayName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [city, setCity] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialUsernameRef = useRef<string>("");
+
+  const checkUsernameAvailability = useCallback(async (value: string) => {
+    if (value.length < USERNAME_MIN || !USERNAME_REGEX.test(value)) {
+      setUsernameStatus("invalid");
+      return;
+    }
+
+    setUsernameStatus("checking");
+    try {
+      const res = await usersApi.checkUsername(value);
+      setUsernameStatus(res.data.available ? "available" : "taken");
+    } catch {
+      // On network error, don't block — treat as idle
+      setUsernameStatus("idle");
+    }
+  }, []);
+
   useEffect(() => {
     if (profile) {
-      setDisplayName(profile.displayName ?? "");
+      const profileUsername = profile.username ?? "";
+      setUsername(profileUsername);
+      initialUsernameRef.current = profileUsername;
+
+      // Verify existing username with backend
+      if (profileUsername.length >= USERNAME_MIN && USERNAME_REGEX.test(profileUsername)) {
+        checkUsernameAvailability(profileUsername);
+      }
+
+      // Pre-fill displayName from Google/Logto if the profile name is auto-generated
+      if (!profile.displayName || profile.displayName === profile.username) {
+        setDisplayName(authUser?.name ?? profile.displayName ?? "");
+      } else {
+        setDisplayName(profile.displayName ?? "");
+      }
+
       setCity(profile.city ?? "");
       if (profile.dateOfBirth) {
         setDateOfBirth(new Date(profile.dateOfBirth));
       }
     }
-  }, [profile]);
+  }, [profile, authUser?.name, checkUsernameAvailability]);
+
+  const handleUsernameChange = useCallback(
+    (value: string) => {
+      const sanitized = value.toLowerCase().replace(/[^a-z0-9_]/g, "");
+      setUsername(sanitized);
+
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+
+      if (sanitized.length === 0) {
+        setUsernameStatus("idle");
+        return;
+      }
+
+      if (sanitized.length < USERNAME_MIN || !USERNAME_REGEX.test(sanitized)) {
+        setUsernameStatus("invalid");
+        return;
+      }
+
+      // Skip check if unchanged from server value
+      if (sanitized === initialUsernameRef.current) {
+        setUsernameStatus("available");
+        return;
+      }
+
+      setUsernameStatus("checking");
+      debounceRef.current = setTimeout(() => {
+        checkUsernameAvailability(sanitized);
+      }, USERNAME_DEBOUNCE_MS);
+    },
+    [checkUsernameAvailability],
+  );
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const handleDateChange = useCallback(
     (event: { type: string; nativeEvent: { timestamp: number } }, selectedDate?: Date) => {
@@ -59,13 +139,19 @@ export default function OnboardingStep1() {
     [],
   );
 
-  const isValid = displayName.trim().length > 0 && dateOfBirth !== null && city.trim().length > 0;
+  const isUsernameValid = username.length >= USERNAME_MIN && usernameStatus === "available";
+  const isValid =
+    isUsernameValid &&
+    displayName.trim().length > 0 &&
+    dateOfBirth !== null &&
+    city.trim().length > 0;
 
   const handleNext = async () => {
     if (!isValid) return;
     setIsSaving(true);
     try {
       await usersApi.updateMe({
+        username,
         displayName: displayName.trim(),
         dateOfBirth: dateOfBirth!.toISOString(),
         city: city.trim(),
@@ -77,6 +163,56 @@ export default function OnboardingStep1() {
       setIsSaving(false);
     }
   };
+
+  const renderUsernameStatus = () => {
+    switch (usernameStatus) {
+      case "checking":
+        return (
+          <View className="mt-1 flex-row items-center">
+            <ActivityIndicator size="small" color={theme.textSecondary} style={{ marginRight: 4 }} />
+            <Text className="font-sans text-[12px]" style={{ color: theme.textSecondary }}>
+              {t("onboarding.usernameChecking")}
+            </Text>
+          </View>
+        );
+      case "available":
+        return (
+          <View className="mt-1 flex-row items-center">
+            <Ionicons name="checkmark-circle" size={14} color="#22C55E" style={{ marginRight: 4 }} />
+            <Text className="font-sans text-[12px]" style={{ color: "#22C55E" }}>
+              {t("onboarding.usernameAvailable")}
+            </Text>
+          </View>
+        );
+      case "taken":
+        return (
+          <View className="mt-1 flex-row items-center">
+            <Ionicons name="close-circle" size={14} color="#EF4444" style={{ marginRight: 4 }} />
+            <Text className="font-sans text-[12px]" style={{ color: "#EF4444" }}>
+              {t("onboarding.usernameTaken")}
+            </Text>
+          </View>
+        );
+      case "invalid":
+        return (
+          <View className="mt-1 flex-row items-center">
+            <Ionicons name="close-circle" size={14} color="#EF4444" style={{ marginRight: 4 }} />
+            <Text className="font-sans text-[12px]" style={{ color: "#EF4444" }}>
+              {t("onboarding.usernameInvalid")}
+            </Text>
+          </View>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const usernameBorderColor =
+    usernameStatus === "available"
+      ? "#22C55E"
+      : usernameStatus === "taken" || usernameStatus === "invalid"
+        ? "#EF4444"
+        : theme.border;
 
   return (
     <View
@@ -107,6 +243,40 @@ export default function OnboardingStep1() {
         >
           {t("onboarding.step1Subtitle")}
         </Text>
+
+        {/* Username */}
+        <View className="mb-6">
+          <Text
+            className="mb-2 font-sans-semibold text-[14px]"
+            style={{ color: theme.text }}
+          >
+            {t("onboarding.username")}
+            <Text style={{ color: "#EF4444" }}> *</Text>
+          </Text>
+          <View
+            className="flex-row items-center rounded-2xl px-4 py-3"
+            style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: usernameBorderColor }}
+          >
+            <Text
+              className="font-sans text-[16px]"
+              style={{ color: theme.textTertiary, marginRight: 2 }}
+            >
+              @
+            </Text>
+            <TextInput
+              value={username}
+              onChangeText={handleUsernameChange}
+              placeholder={t("onboarding.usernamePlaceholder")}
+              placeholderTextColor={theme.textTertiary}
+              className="flex-1 font-sans text-[16px]"
+              style={{ color: theme.text, padding: 0 }}
+              maxLength={50}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+          {renderUsernameStatus()}
+        </View>
 
         {/* Display Name */}
         <View className="mb-6">

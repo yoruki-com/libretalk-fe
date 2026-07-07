@@ -34,6 +34,7 @@ import {
   Alert,
   FlatList,
   Image,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -43,6 +44,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+interface LanguageEntry { language: Language; proficiency: LanguageProficiency }
 
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -67,19 +70,15 @@ export default function EditProfileScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   // Language editing state
+  const MAX_LANGUAGES = 3;
   const [allLanguages, setAllLanguages] = useState<Language[]>([]);
-  const [selectedNative, setSelectedNative] = useState<Language | null>(null);
-  const [selectedLearning, setSelectedLearning] = useState<Language | null>(
-    null,
-  );
-  const [nativeProficiency, setNativeProficiency] =
-    useState<LanguageProficiency>("NATIVE");
-  const [learningProficiency, setLearningProficiency] =
-    useState<LanguageProficiency>("BEGINNER");
+  const [nativeLanguages, setNativeLanguages] = useState<LanguageEntry[]>([]);
+  const [learningLanguages, setLearningLanguages] = useState<LanguageEntry[]>([]);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const [languageModalTarget, setLanguageModalTarget] = useState<
-    "native" | "learning"
-  >("native");
+  const [languageModalTarget, setLanguageModalTarget] = useState<{
+    type: "native" | "learning";
+    index: number | null; // null = adding new
+  } | null>(null);
   const [languageSearch, setLanguageSearch] = useState("");
   const [languagesChanged, setLanguagesChanged] = useState(false);
 
@@ -112,32 +111,12 @@ export default function EditProfileScreen() {
       }
 
       // Initialize language state from profile
-      const native = profile.languages?.find((l) => !l.isLearning);
-      const learning = profile.languages?.find((l) => l.isLearning);
-      if (native) {
-        setSelectedNative({
-          publicId: "",
-          code: native.code,
-          name: native.name,
-          nativeName: native.nativeName,
-          isActive: true,
-          createdAt: "",
-          updatedAt: "",
-        });
-        setNativeProficiency(native.proficiency);
-      }
-      if (learning) {
-        setSelectedLearning({
-          publicId: "",
-          code: learning.code,
-          name: learning.name,
-          nativeName: learning.nativeName,
-          isActive: true,
-          createdAt: "",
-          updatedAt: "",
-        });
-        setLearningProficiency(learning.proficiency);
-      }
+      const toEntry = (l: { code: string; name: string; nativeName: string; proficiency: LanguageProficiency }): LanguageEntry => ({
+        language: { publicId: "", code: l.code, name: l.name, nativeName: l.nativeName, isActive: true, createdAt: "", updatedAt: "" },
+        proficiency: l.proficiency,
+      });
+      setNativeLanguages((profile.languages ?? []).filter(l => !l.isLearning).map(toEntry));
+      setLearningLanguages((profile.languages ?? []).filter(l => l.isLearning).map(toEntry));
     }
   }, [profile]);
 
@@ -226,19 +205,11 @@ export default function EditProfileScreen() {
       };
       await usersApi.updateMe(data);
 
-      if (languagesChanged && selectedNative && selectedLearning) {
+      if (languagesChanged && nativeLanguages.length >= 1 && learningLanguages.length >= 1) {
         await usersApi.updateMyLanguages({
           languages: [
-            {
-              code: selectedNative.code,
-              proficiency: nativeProficiency,
-              isLearning: false,
-            },
-            {
-              code: selectedLearning.code,
-              proficiency: learningProficiency,
-              isLearning: true,
-            },
+            ...nativeLanguages.map(e => ({ code: e.language.code, proficiency: e.proficiency, isLearning: false })),
+            ...learningLanguages.map(e => ({ code: e.language.code, proficiency: e.proficiency, isLearning: true })),
           ],
         });
       }
@@ -252,29 +223,76 @@ export default function EditProfileScreen() {
     }
   };
 
-  const openLanguageModal = (target: "native" | "learning") => {
-    setLanguageModalTarget(target);
+  const openLanguageModal = (type: "native" | "learning", index: number | null = null) => {
+    setLanguageModalTarget({ type, index });
     setLanguageSearch("");
     setLanguageModalVisible(true);
   };
 
   const handleLanguageSelect = (lang: Language) => {
-    if (languageModalTarget === "native") {
-      setSelectedNative(lang);
+    if (!languageModalTarget) return;
+    const { type, index } = languageModalTarget;
+    if (type === "native") {
+      setNativeLanguages(prev => {
+        if (index != null) {
+          const updated = [...prev];
+          updated[index] = { ...updated[index], language: lang };
+          return updated;
+        }
+        return [...prev, { language: lang, proficiency: "NATIVE" as LanguageProficiency }];
+      });
     } else {
-      setSelectedLearning(lang);
+      setLearningLanguages(prev => {
+        if (index != null) {
+          const updated = [...prev];
+          updated[index] = { ...updated[index], language: lang };
+          return updated;
+        }
+        return [...prev, { language: lang, proficiency: "BEGINNER" as LanguageProficiency }];
+      });
     }
     setLanguagesChanged(true);
     setLanguageModalVisible(false);
   };
 
+  const removeLanguage = (type: "native" | "learning", index: number) => {
+    if (type === "native") {
+      setNativeLanguages(prev => prev.filter((_, i) => i !== index));
+    } else {
+      setLearningLanguages(prev => prev.filter((_, i) => i !== index));
+    }
+    setLanguagesChanged(true);
+  };
+
+  const updateProficiency = (type: "native" | "learning", index: number, level: LanguageProficiency) => {
+    if (type === "native") {
+      setNativeLanguages(prev => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], proficiency: level };
+        return updated;
+      });
+    } else {
+      setLearningLanguages(prev => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], proficiency: level };
+        return updated;
+      });
+    }
+    setLanguagesChanged(true);
+  };
+
   const filteredModalLanguages = allLanguages.filter((lang) => {
     const q = languageSearch.toLowerCase();
-    const isOtherSelected =
-      languageModalTarget === "native"
-        ? selectedLearning?.code === lang.code
-        : selectedNative?.code === lang.code;
-    if (isOtherSelected) return false;
+    // Exclude all already-selected languages, except the one being edited
+    const allSelectedCodes = new Set([
+      ...nativeLanguages.map(e => e.language.code),
+      ...learningLanguages.map(e => e.language.code),
+    ]);
+    if (languageModalTarget?.index != null) {
+      const entries = languageModalTarget.type === "native" ? nativeLanguages : learningLanguages;
+      allSelectedCodes.delete(entries[languageModalTarget.index].language.code);
+    }
+    if (allSelectedCodes.has(lang.code)) return false;
     return (
       lang.name.toLowerCase().includes(q) ||
       lang.nativeName.toLowerCase().includes(q) ||
@@ -306,7 +324,8 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <View
+    <KeyboardAvoidingView
+      behavior="padding"
       className="flex-1"
       style={{ paddingTop: insets.top, backgroundColor: theme.background }}
     >
@@ -392,54 +411,44 @@ export default function EditProfileScreen() {
         {/* Languages */}
         <SectionHeader label={t("editProfile.languages")} theme={theme} />
         <SectionCard theme={theme}>
+          {/* Native languages */}
           <FieldRow label={t("editProfile.native")} theme={theme}>
-            <Pressable
-              onPress={() => openLanguageModal("native")}
-              className="flex-row items-center justify-between active:opacity-70"
-            >
-              <Text
-                className="font-sans text-[15px]"
-                style={{
-                  color: selectedNative ? theme.text : theme.textTertiary,
-                }}
-              >
-                {selectedNative?.name ?? "—"}
-              </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={14}
-                color={theme.textTertiary}
-              />
-            </Pressable>
+            <View />
           </FieldRow>
-          {selectedNative && (
-            <View className="px-4 pb-3">
+          {nativeLanguages.map((entry, index) => (
+            <View key={entry.language.code} className="px-4 pb-3">
+              <View className="mb-2 flex-row items-center">
+                <Pressable
+                  onPress={() => openLanguageModal("native", index)}
+                  className="flex-1 flex-row items-center active:opacity-70"
+                >
+                  <Text className="font-sans-semibold text-[15px]" style={{ color: theme.text }}>
+                    {entry.language.name}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} style={{ marginLeft: 4 }} />
+                </Pressable>
+                {nativeLanguages.length > 1 && (
+                  <Pressable onPress={() => removeLanguage("native", index)} hitSlop={8} className="ml-2 active:opacity-70">
+                    <Ionicons name="close-circle" size={20} color={theme.textTertiary} />
+                  </Pressable>
+                )}
+              </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-2">
                   {nativeProficiencyOptions.map((level) => {
-                    const isActive = nativeProficiency === level;
+                    const isActive = entry.proficiency === level;
                     return (
                       <Pressable
                         key={level}
-                        onPress={() => {
-                          setNativeProficiency(level);
-                          setLanguagesChanged(true);
-                        }}
+                        onPress={() => updateProficiency("native", index, level)}
                         className="items-center rounded-full px-3 py-1.5"
                         style={{
-                          backgroundColor: isActive
-                            ? theme.primary + "15"
-                            : theme.card,
+                          backgroundColor: isActive ? theme.primary + "15" : theme.card,
                           borderWidth: 1,
                           borderColor: isActive ? theme.primary : theme.border,
                         }}
                       >
-                        <Text
-                          className="font-sans-semibold text-[12px]"
-                          style={{
-                            color: isActive ? theme.primary : theme.text,
-                          }}
-                        >
+                        <Text className="font-sans-semibold text-[12px]" style={{ color: isActive ? theme.primary : theme.text }}>
                           {t(`onboarding.proficiency_${level}`)}
                         </Text>
                       </Pressable>
@@ -448,56 +457,56 @@ export default function EditProfileScreen() {
                 </View>
               </ScrollView>
             </View>
+          ))}
+          {nativeLanguages.length < MAX_LANGUAGES && (
+            <Pressable onPress={() => openLanguageModal("native")} className="px-4 pb-3 active:opacity-70">
+              <View className="flex-row items-center">
+                <Ionicons name="add-circle-outline" size={18} color={theme.primary} />
+                <Text className="ml-1 font-sans text-[14px]" style={{ color: theme.primary }}>
+                  {t("editProfile.addLanguage")}
+                </Text>
+              </View>
+            </Pressable>
           )}
           <Divider theme={theme} />
+          {/* Learning languages */}
           <FieldRow label={t("editProfile.learning")} theme={theme}>
-            <Pressable
-              onPress={() => openLanguageModal("learning")}
-              className="flex-row items-center justify-between active:opacity-70"
-            >
-              <Text
-                className="font-sans text-[15px]"
-                style={{
-                  color: selectedLearning ? theme.text : theme.textTertiary,
-                }}
-              >
-                {selectedLearning?.name ?? "—"}
-              </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={14}
-                color={theme.textTertiary}
-              />
-            </Pressable>
+            <View />
           </FieldRow>
-          {selectedLearning && (
-            <View className="px-4 pb-3">
+          {learningLanguages.map((entry, index) => (
+            <View key={entry.language.code} className="px-4 pb-3">
+              <View className="mb-2 flex-row items-center">
+                <Pressable
+                  onPress={() => openLanguageModal("learning", index)}
+                  className="flex-1 flex-row items-center active:opacity-70"
+                >
+                  <Text className="font-sans-semibold text-[15px]" style={{ color: theme.text }}>
+                    {entry.language.name}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} style={{ marginLeft: 4 }} />
+                </Pressable>
+                {learningLanguages.length > 1 && (
+                  <Pressable onPress={() => removeLanguage("learning", index)} hitSlop={8} className="ml-2 active:opacity-70">
+                    <Ionicons name="close-circle" size={20} color={theme.textTertiary} />
+                  </Pressable>
+                )}
+              </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-2">
                   {learningProficiencyOptions.map((level) => {
-                    const isActive = learningProficiency === level;
+                    const isActive = entry.proficiency === level;
                     return (
                       <Pressable
                         key={level}
-                        onPress={() => {
-                          setLearningProficiency(level);
-                          setLanguagesChanged(true);
-                        }}
+                        onPress={() => updateProficiency("learning", index, level)}
                         className="items-center rounded-full px-3 py-1.5"
                         style={{
-                          backgroundColor: isActive
-                            ? theme.primary + "15"
-                            : theme.card,
+                          backgroundColor: isActive ? theme.primary + "15" : theme.card,
                           borderWidth: 1,
                           borderColor: isActive ? theme.primary : theme.border,
                         }}
                       >
-                        <Text
-                          className="font-sans-semibold text-[12px]"
-                          style={{
-                            color: isActive ? theme.primary : theme.text,
-                          }}
-                        >
+                        <Text className="font-sans-semibold text-[12px]" style={{ color: isActive ? theme.primary : theme.text }}>
                           {t(`onboarding.proficiency_${level}`)}
                         </Text>
                       </Pressable>
@@ -506,6 +515,16 @@ export default function EditProfileScreen() {
                 </View>
               </ScrollView>
             </View>
+          ))}
+          {learningLanguages.length < MAX_LANGUAGES && (
+            <Pressable onPress={() => openLanguageModal("learning")} className="px-4 pb-3 active:opacity-70">
+              <View className="flex-row items-center">
+                <Ionicons name="add-circle-outline" size={18} color={theme.primary} />
+                <Text className="ml-1 font-sans text-[14px]" style={{ color: theme.primary }}>
+                  {t("editProfile.addLanguage")}
+                </Text>
+              </View>
+            </Pressable>
           )}
         </SectionCard>
 
@@ -839,11 +858,11 @@ export default function EditProfileScreen() {
             data={filteredModalLanguages}
             keyExtractor={(item) => item.code}
             renderItem={({ item }) => {
-              const currentSelected =
-                languageModalTarget === "native"
-                  ? selectedNative
-                  : selectedLearning;
-              const isSelected = currentSelected?.code === item.code;
+              let isSelected = false;
+              if (languageModalTarget?.index != null) {
+                const entries = languageModalTarget.type === "native" ? nativeLanguages : learningLanguages;
+                isSelected = entries[languageModalTarget.index]?.language.code === item.code;
+              }
               return (
                 <Pressable
                   onPress={() => handleLanguageSelect(item)}
@@ -933,6 +952,6 @@ export default function EditProfileScreen() {
           </ScrollView>
         </View>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

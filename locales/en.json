@@ -33,7 +33,7 @@
     "continueWithGoogle": "Continue with Google",
     "continueWithEmail": "Continue with Email",
     "loginHeadline": "Log in to start your conversations!",
-    "getStartedHeadline": "Platform for Seamless Messaging and Connected Conversations!",
+    "getStartedHeadline": "Let's start your conversations!",
     "termsText": "By continuing, you agree to the",
     "termsOfService": "Terms of Service",
     "privacyPolicy": "Privacy Policy",
@@ -95,7 +95,16 @@
     "filterNearby": "Nearby",
     "filterFollowing": "Following",
     "noResults": "No vibes found",
-    "noVibesYet": "No vibes yet"
+    "noVibesYet": "No vibes yet",
+    "createTitle": "New Vibe",
+    "contentPlaceholder": "What's on your mind?",
+    "send": "Send",
+    "sendingVibe": "Posting...",
+    "vibeCreated": "Vibe posted!",
+    "vibeCreateError": "Failed to post vibe. Try again.",
+    "attachPhoto": "Photo",
+    "attachAudio": "Audio",
+    "comingSoon": "Coming soon"
   },
   "profile": {
     "userNotFound": "User not found",
@@ -103,7 +112,7 @@
     "following": "Following",
     "followers": "Followers",
     "streak": "Streak",
-    "tabProfile": "Profile",
+    "tabDetails": "Details",
     "tabVibes": "Vibes",
     "tabHonor": "Honor",
     "likes": "Likes",
@@ -113,7 +122,17 @@
     "follow": "Follow",
     "unfollow": "Unfollow",
     "sayHi": "Say Hi",
-    "chat": "Chat"
+    "chat": "Chat",
+    "aboutMe": "About Me",
+    "personalityType": "Personality",
+    "jobTitle": "Work",
+    "gender": "Gender",
+    "age": "Age",
+    "zodiacSign": "Zodiac",
+    "memberSince": "Member since",
+    "interests": "Interests",
+    "yearsOld": "{{age}} years old",
+    "noDetailsYet": "No details shared yet"
   },
   "comments": {
     "title": "Comments",
@@ -172,6 +191,7 @@
     "locationDenied": "Location permission was denied. Please enable it in Settings.",
     "locationNotFound": "Could not determine your city. Please try again.",
     "locationError": "Failed to get your location. Please try again.",
+    "addLanguage": "Add language",
     "saveChanges": "Save Changes",
     "saved": "Profile updated!",
     "saveError": "Failed to update profile"
@@ -179,6 +199,12 @@
   "onboarding": {
     "step1Title": "Tell us about yourself",
     "step1Subtitle": "Let's start with the basics",
+    "username": "Username",
+    "usernamePlaceholder": "Choose a unique username",
+    "usernameChecking": "Checking availability...",
+    "usernameAvailable": "Username is available",
+    "usernameTaken": "This username is already taken",
+    "usernameInvalid": "Only letters, numbers and underscores (min 3 chars)",
     "displayName": "Your name",
     "displayNamePlaceholder": "How should we call you?",
     "dateOfBirth": "Date of birth",
@@ -214,5 +240,21 @@
   },
   "menu": {
     "reportThis": "Report this"
+  },
+  "report": {
+    "title": "Report",
+    "selectReason": "Why are you reporting this?",
+    "reason_SPAM": "Spam",
+    "reason_HARASSMENT": "Harassment",
+    "reason_INAPPROPRIATE_CONTENT": "Inappropriate content",
+    "reason_FAKE_PROFILE": "Fake profile",
+    "reason_OTHER": "Other",
+    "descriptionPlaceholder": "Add more details (optional)...",
+    "submit": "Submit Report",
+    "submitting": "Submitting...",
+    "success": "Report submitted. Thank you for helping keep our community safe.",
+    "errorTitle": "Report failed",
+    "error": "Failed to submit report. Please try again.",
+    "duplicate": "You have already reported this."
   }
 }

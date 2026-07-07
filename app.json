@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "libretalk",
+    "name": "LibreTalk",
     "slug": "libretalk",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,6 +13,7 @@
       "bundleIdentifier": "com.libretalk.app"
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo-without-stroke.png",
         "backgroundColor": "#E6F4FE"
@@ -20,7 +21,10 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "usesCleartextTraffic": true,
-      "package": "com.libretalk.app"
+      "package": "com.libretalk.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -54,11 +58,24 @@
           "cameraPermission": "Allow LibreTalk to take photos to set your profile picture."
         }
       ],
-      "@rnmapbox/maps"
+      "@rnmapbox/maps",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/logo-without-stroke.png",
+          "color": "#E6F4FE"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b650eaa5-a5a3-44ac-85ff-5ae7f20ef681"
+      }
     }
   }
 }

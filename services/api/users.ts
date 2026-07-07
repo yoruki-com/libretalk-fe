@@ -13,6 +13,11 @@ import type {
 } from "./types";
 
 export const usersApi = {
+  // Check username availability
+  async checkUsername(username: string): Promise<ApiResponse<{ available: boolean; reason?: string }>> {
+    return apiClient.get("/users/check-username", { username });
+  },
+
   // Get current authenticated user profile
   async getMe(): Promise<ApiResponse<UserMe>> {
     return apiClient.get("/users/me");
@@ -31,6 +36,11 @@ export const usersApi = {
   // Get online users (with languages) — paginated
   async getOnline(params?: PaginationParams): Promise<PaginatedResponse<UserMe>> {
     return apiClient.get("/users/online", params);
+  },
+
+  // Get nearby users — paginated (uses authenticated user's stored coordinates)
+  async getNearby(params?: PaginationParams): Promise<PaginatedResponse<UserMe>> {
+    return apiClient.get("/users/nearby", params);
   },
 
   // Get user by ID

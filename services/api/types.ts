@@ -129,6 +129,9 @@ export type PaginatedResponse<T> = PaginatedPayload<T>;
 // Frontend-only types (not in shared lib)
 // ============================================================
 
+/** Notification */
+export type Notification = import("./notifications").NotificationResponse;
+
 /** Pagination query params (request-side, not a response type) */
 export interface PaginationParams {
   page?: number;

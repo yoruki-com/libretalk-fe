@@ -33,7 +33,7 @@
     "continueWithGoogle": "Continua con Google",
     "continueWithEmail": "Continua con Email",
     "loginHeadline": "Accedi per iniziare le tue conversazioni!",
-    "getStartedHeadline": "Piattaforma per messaggi e conversazioni sempre connesse!",
+    "getStartedHeadline": "Diamo inizio alle tue conversazioni!",
     "termsText": "Continuando, accetti i",
     "termsOfService": "Termini di Servizio",
     "privacyPolicy": "Informativa sulla Privacy",
@@ -95,7 +95,16 @@
     "filterNearby": "Vicini",
     "filterFollowing": "Seguiti",
     "noResults": "Nessun vibe trovato",
-    "noVibesYet": "Nessun vibe ancora"
+    "noVibesYet": "Nessun vibe ancora",
+    "createTitle": "Nuovo Vibe",
+    "contentPlaceholder": "A cosa stai pensando?",
+    "send": "Invia",
+    "sendingVibe": "Pubblicazione...",
+    "vibeCreated": "Vibe pubblicato!",
+    "vibeCreateError": "Impossibile pubblicare il vibe. Riprova.",
+    "attachPhoto": "Foto",
+    "attachAudio": "Audio",
+    "comingSoon": "Prossimamente"
   },
   "profile": {
     "userNotFound": "Utente non trovato",
@@ -103,7 +112,7 @@
     "following": "Seguiti",
     "followers": "Follower",
     "streak": "Serie",
-    "tabProfile": "Profilo",
+    "tabDetails": "Dettagli",
     "tabVibes": "Vibes",
     "tabHonor": "Onore",
     "likes": "Mi piace",
@@ -113,7 +122,17 @@
     "follow": "Segui",
     "unfollow": "Non seguire",
     "sayHi": "Saluta",
-    "chat": "Chat"
+    "chat": "Chat",
+    "aboutMe": "Su di me",
+    "personalityType": "Personalità",
+    "jobTitle": "Lavoro",
+    "gender": "Sesso",
+    "age": "Età",
+    "zodiacSign": "Zodiaco",
+    "memberSince": "Membro dal",
+    "interests": "Interessi",
+    "yearsOld": "{{age}} anni",
+    "noDetailsYet": "Nessun dettaglio condiviso"
   },
   "comments": {
     "title": "Commenti",
@@ -172,6 +191,7 @@
     "locationDenied": "Permesso di localizzazione negato. Abilitalo nelle Impostazioni.",
     "locationNotFound": "Impossibile determinare la tua città. Riprova.",
     "locationError": "Impossibile ottenere la tua posizione. Riprova.",
+    "addLanguage": "Aggiungi lingua",
     "saveChanges": "Salva modifiche",
     "saved": "Profilo aggiornato!",
     "saveError": "Impossibile aggiornare il profilo"
@@ -179,6 +199,12 @@
   "onboarding": {
     "step1Title": "Parlaci di te",
     "step1Subtitle": "Iniziamo dalle basi",
+    "username": "Username",
+    "usernamePlaceholder": "Scegli un username unico",
+    "usernameChecking": "Verifica disponibilita'...",
+    "usernameAvailable": "Username disponibile",
+    "usernameTaken": "Questo username e' gia' in uso",
+    "usernameInvalid": "Solo lettere, numeri e underscore (min 3 caratteri)",
     "displayName": "Il tuo nome",
     "displayNamePlaceholder": "Come dovremmo chiamarti?",
     "dateOfBirth": "Data di nascita",
@@ -214,5 +240,21 @@
   },
   "menu": {
     "reportThis": "Segnala"
+  },
+  "report": {
+    "title": "Segnala",
+    "selectReason": "Perche stai segnalando?",
+    "reason_SPAM": "Spam",
+    "reason_HARASSMENT": "Molestie",
+    "reason_INAPPROPRIATE_CONTENT": "Contenuto inappropriato",
+    "reason_FAKE_PROFILE": "Profilo falso",
+    "reason_OTHER": "Altro",
+    "descriptionPlaceholder": "Aggiungi dettagli (facoltativo)...",
+    "submit": "Invia segnalazione",
+    "submitting": "Invio in corso...",
+    "success": "Segnalazione inviata. Grazie per aver contribuito a mantenere la comunita sicura.",
+    "errorTitle": "Segnalazione fallita",
+    "error": "Impossibile inviare la segnalazione. Riprova.",
+    "duplicate": "Hai gia segnalato questo contenuto."
   }
 }
